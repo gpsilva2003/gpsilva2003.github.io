@@ -4,7 +4,7 @@
 
 project = 'SimuS'
 copyright = '2024, Gabriel P. Silva'
-author = 'Gabriel'
+author = 'Gabriel P. Silva'
 
 release = '0.1'
 version = '0.1.0'
