@@ -1,22 +1,20 @@
-Welcome to Lumache's documentation!
+Documentação do Simulador SimuS
 ===================================
 
-**Lumache** (/lu'make/) is a Python library for cooks and food lovers
-that creates recipes mixing random ingredients.
-It pulls data from the `Open Food Facts database <https://world.openfoodfacts.org/>`_
-and offers a *simple* and *intuitive* API.
+**SimuS** é um simulador didático para o ensino de Arquitetura de Computadores baseado
+no processador virtual **Sapiens**, com uma arquitetura de acumulador de 8 bits.
 
-Check out the :doc:`usage` section for further information, including
-how to :ref:`installation` the project.
+Verifique a seção :doc:`uso` para maiores informações, incluindo como
+:ref:`instalar` o simulador.
 
 .. note::
 
-   This project is under active development.
+   Este projeto está em desenvolvimento desde 2006.
 
-Contents
+Conteúdo
 --------
 
 .. toctree::
 
-   usage
+   uso
    api
