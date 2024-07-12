@@ -1,9 +1,9 @@
-Usage
+Uso
 =====
 
 .. _installation:
 
-Installation
+Instalação
 ------------
 
 To use Lumache, first install it using pip:
