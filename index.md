@@ -21,6 +21,8 @@ permalink:  /
   - Livro com a descrição do processador [Sapiens e do simulador SimuS](https://www.amazon.com.br/SimuS-Simulador-Didático-Arquitetura-Computadores/dp/1973359707).
     
 - ### Alguns repositórios que gerencio:
+  - Página com [recursos (slides, código e outros)](https://simulador-simus.github.io) para o livro Arquitetura e Organização de Computadores - Uma Introdução.
+  - Página com [recursos (slides, código e outros)] (programacao-paralela-e-distribuida.github.io) para o livro de Programação Paralela e Distribuída. 
   - Página histórica com o sistema operacional [Plurix](https://tropix-ufrj.github.io).
     
 - ### Conheça a página da [Sociedade Espírita Jorge](https://wwww.sej.org.br) e os vídeos de [algumas palestras](https://www.youtube.com/c/SociedadeEspíritaJorge/streams).
