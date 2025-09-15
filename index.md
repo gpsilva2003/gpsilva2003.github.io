@@ -6,7 +6,6 @@ tags: [programação paralela, footgrafia, computação, arquitetura de computad
 permalink:  /
 ---
 
-
 # Gabriel P. Silva
 
 ## Essa é uma páginna com resumo dos meus diversos interesses. 
@@ -30,5 +29,7 @@ permalink:  /
     
 ### Pessoais:
 
-- ### Conheça a página da [Sociedade Espírita Jorge](https://wwww.sej.org.br) e os vídeos de [algumas palestras](https://www.youtube.com/c/SociedadeEspíritaJorge/streams).
-- ### Visite minha página do [Instagram](https://www.instagram.com/gpsilva2003) para ver algumas das minhas fotos, o meu hobby favorito.
+- #### Conheça a página da [Sociedade Espírita Jorge](https://wwww.sej.org.br) e os vídeos de [algumas palestras](https://www.youtube.com/c/SociedadeEspíritaJorge/streams).
+- #### Visite minha página do [Instagram](https://www.instagram.com/gpsilva2003) para ver algumas das minhas fotos, o meu hobby favorito.
+
+  Atualizado em: {{ site.time | date: "%d de %B de %Y" }}
