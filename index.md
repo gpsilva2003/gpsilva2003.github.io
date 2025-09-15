@@ -27,7 +27,7 @@ exclude_from_localizations: ["assets", "images"]
     
 - #### Alguns repositórios que gerencio:
   - Página com [recursos (slides, código e outros)](https://simulador-simus.github.io) para o livro Arquitetura e Organização de Computadores - Uma Introdução.
-  - Página com [recursos (slides, código e outros)] (programacao-paralela-e-distribuida.github.io) para o livro de Programação Paralela e Distribuída. 
+  - Página com [recursos (slides, código e outros)](programacao-paralela-e-distribuida.github.io) para o livro de Programação Paralela e Distribuída. 
   - Página histórica com o sistema operacional [Tropix](https://tropix-ufrj.github.io).
     
 ### Pessoais:
