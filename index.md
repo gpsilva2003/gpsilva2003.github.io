@@ -2,7 +2,7 @@
 layout: default
 title: "Gabriel P. Silva"
 date: 2025-09-14 22:20:00 -0300
-tags: [programação paralela, footgrafia, computação, arquitetura de computadores, organização de computadores, libguagem de montagem]
+tags: [programação paralela, footgrafia, computação, arquitetura de computadores, organização de computadores, libguagem de montagem, computador, sistemas operacionais, javasccript, computer, computer architecture, multithreading, processor, parallel, operating systems, unix, linux, accessibility, parallel programing, MPI, PVM, OpenMP, digital, circuits]
 permalink:  /
 ---
 
