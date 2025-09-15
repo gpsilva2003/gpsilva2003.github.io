@@ -15,6 +15,6 @@ Essa é uma páginna com resumo dos meus diversos interesses.
 - Visite minha página do [Instagram](https://www.instagram.com/gpsilva2003) para ver algumas das minhas fotos, o meu hobby favorito.
 - Alguns livros que publiquei:
   - [Arquitetura e Organização de Computadores - Uma Introdução](https://www.grupogen.com.br/livro-arquitetura-e-organizacao-de-computadores-uma-introducao-gabriel-pereira-da-silva-e-jose-antonio-dos-santos-borges-editora-ltc-9788521638650).
-  - [Programação Paralela e Distribuída com MPI, OpenMP e OpenACC] (https://www.casadocodigo.com.br/products/livro-programacao-paralela)
+  - [Programação Paralela e Distribuída com MPI, OpenMP e OpenACC](https://www.casadocodigo.com.br/products/livro-programacao-paralela)
 - Alguns repositórios que gerencio:
-  - 
+  - Página histórica com o sistema operacional [Plurix](https://tropix-ufrj.github.io)
