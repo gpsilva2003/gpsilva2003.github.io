@@ -6,6 +6,7 @@ tags: [programação paralela, footgrafia, computação, arquitetura de computad
 permalink:  /
 languages: ["pt-BR", "en"]
 default_lang: "pt-BR"
+exclude_from_localizations: ["assets", "images"]
 ---
 
 # Gabriel P. Silva
