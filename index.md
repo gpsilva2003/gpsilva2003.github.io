@@ -1,6 +1,6 @@
 ---
 layout: default
-title: "Gabriel P. Silvva"
+title: "Gabriel P. Silva"
 date: 2025-09-14 22:20:00 -0300
 tags: [programação paralela, footgrafia, computação, arquitetura de computadores, organização de computadores, libguagem de montagem]
 permalink:  /
