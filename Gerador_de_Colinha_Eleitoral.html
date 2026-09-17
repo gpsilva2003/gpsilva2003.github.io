@@ -1,0 +1,874 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f3d2e">
+  <meta name="description" content="Preencha os números dos candidatos e baixe sua colinha eleitoral em PDF.">
+  <title>Gerador de colinha eleitoral</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f3d2e'/%3E%3Cpath d='M17 11h30v42H17z' fill='white'/%3E%3Cpath d='m24 32 5 5 12-13' fill='none' stroke='%23f2bd3b' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #14231d;
+      --muted: #60716a;
+      --green: #0f5a3d;
+      --green-dark: #0a3e2b;
+      --gold: #f2bd3b;
+      --paper: #ffffff;
+      --canvas: #edf4f0;
+      --line: #cad8d1;
+      --error: #b3261e;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      background:
+        linear-gradient(150deg, rgba(242, 189, 59, .16), transparent 24rem),
+        var(--canvas);
+      color: var(--ink);
+    }
+
+    button, input { font: inherit; }
+
+    .shell {
+      width: min(100%, 1080px);
+      margin: 0 auto;
+      padding: 1.25rem 1rem calc(1.5rem + env(safe-area-inset-bottom));
+    }
+
+    header { margin: .25rem 0 1.1rem; }
+
+    h1 {
+      margin: 0;
+      max-width: 18ch;
+      font-size: clamp(1.7rem, 7vw, 2.65rem);
+      line-height: 1.05;
+      letter-spacing: -.035em;
+    }
+
+    header p {
+      margin: .65rem 0 0;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.45;
+    }
+
+    .workspace { display: grid; gap: 1rem; }
+
+    .panel {
+      background: rgba(255, 255, 255, .86);
+      border: 1px solid rgba(15, 90, 61, .14);
+      border-radius: 1.15rem;
+      box-shadow: 0 14px 38px rgba(27, 62, 47, .09);
+      backdrop-filter: blur(10px);
+    }
+
+    .editor { padding: 1rem; }
+
+    .fields { display: grid; gap: 1rem; }
+
+    fieldset {
+      position: relative;
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    legend {
+      width: 100%;
+      margin-bottom: .45rem;
+      padding: 0;
+      font-size: 1rem;
+      font-weight: 760;
+    }
+
+    .search-wrap { position: relative; margin-bottom: .55rem; }
+
+    .candidate-search {
+      width: 100%;
+      min-height: 2.8rem;
+      padding: .68rem .78rem .68rem 2.45rem;
+      border: 1.5px solid #a8b8b0;
+      border-radius: .72rem;
+      outline: none;
+      background: #fff;
+      color: var(--ink);
+      font-size: 1rem;
+    }
+
+    .candidate-search:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 4px rgba(15, 90, 61, .12);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: .8rem;
+      top: 50%;
+      width: 1rem;
+      height: 1rem;
+      border: 2px solid var(--muted);
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translateY(-58%);
+    }
+
+    .search-icon::after {
+      content: '';
+      position: absolute;
+      right: -.36rem;
+      bottom: -.25rem;
+      width: .45rem;
+      height: 2px;
+      background: var(--muted);
+      transform: rotate(45deg);
+    }
+
+    .search-results {
+      position: absolute;
+      z-index: 4;
+      top: calc(100% + .3rem);
+      right: 0;
+      left: 0;
+      max-height: 16rem;
+      margin: 0;
+      padding: .3rem;
+      overflow-y: auto;
+      border: 1px solid var(--line);
+      border-radius: .75rem;
+      background: #fff;
+      box-shadow: 0 12px 28px rgba(20, 35, 29, .18);
+      list-style: none;
+    }
+
+    .search-results:empty { display: none; }
+
+    .search-result {
+      width: 100%;
+      padding: .65rem .7rem;
+      border: 0;
+      border-radius: .52rem;
+      background: transparent;
+      color: var(--ink);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .search-result:hover,
+    .search-result:focus-visible { background: #edf5f1; outline: none; }
+
+    .result-name { display: block; font-weight: 760; }
+    .result-meta { display: block; margin-top: .12rem; color: var(--muted); font-size: .86rem; }
+
+    .digits {
+      display: flex;
+      gap: .42rem;
+    }
+
+    .digit {
+      width: clamp(2.55rem, 13vw, 3.1rem);
+      height: 3.35rem;
+      padding: 0;
+      border: 2px solid #9aaba3;
+      border-radius: .68rem;
+      outline: none;
+      background: #fff;
+      color: #101c17;
+      font-size: 1.65rem;
+      line-height: 1;
+      text-align: center;
+      caret-color: var(--green);
+      transition: border-color .15s, box-shadow .15s, transform .15s;
+    }
+
+    .digit:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 4px rgba(15, 90, 61, .15);
+      transform: translateY(-1px);
+    }
+
+    fieldset.invalid .digit { border-color: var(--error); }
+    fieldset.partial .digit { border-color: #b27a00; }
+
+    .error-message {
+      display: none;
+      margin: .4rem 0 0;
+      color: var(--error);
+      font-size: .88rem;
+    }
+
+    fieldset.invalid .error-message { display: block; }
+    fieldset.partial .error-message { display: block; color: #805700; }
+
+    .candidate-summary {
+      min-height: 2.7rem;
+      margin-top: .55rem;
+      padding: .55rem .65rem;
+      border-radius: .58rem;
+      background: #edf5f1;
+    }
+
+    .candidate-name { display: block; font-weight: 760; line-height: 1.2; }
+    .candidate-party { display: block; margin-top: .16rem; color: var(--muted); font-size: .86rem; }
+    .candidate-summary.empty { background: #f3f5f4; color: var(--muted); }
+
+    .actions {
+      display: grid;
+      gap: .65rem;
+      margin-top: 1.25rem;
+    }
+
+    .button {
+      min-height: 3.25rem;
+      border: 0;
+      border-radius: .8rem;
+      cursor: pointer;
+      font-weight: 760;
+      transition: transform .15s, background .15s, box-shadow .15s;
+    }
+
+    .button:active { transform: translateY(1px); }
+
+    .primary {
+      background: var(--green);
+      color: #fff;
+      box-shadow: 0 7px 18px rgba(15, 90, 61, .23);
+    }
+
+    .primary:hover { background: var(--green-dark); }
+
+    .secondary {
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--green-dark);
+    }
+
+    .privacy {
+      margin: .85rem .1rem 0;
+      color: var(--muted);
+      font-size: .82rem;
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .preview-wrap { padding: .8rem; }
+
+    .preview-label {
+      margin: .15rem .2rem .7rem;
+      color: var(--muted);
+      font-size: .82rem;
+      font-weight: 720;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .slip {
+      width: min(100%, 20rem);
+      margin: 0 auto;
+      padding: 1.1rem 1.05rem 1.25rem;
+      border-top: 4px solid var(--green-dark);
+      background: var(--paper);
+      box-shadow: 0 8px 22px rgba(32, 58, 47, .12);
+    }
+
+    .slip-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      padding-bottom: .65rem;
+      border-bottom: 1px dashed #b8c4be;
+      font-size: .83rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .flag-mark {
+      width: .7rem;
+      height: .7rem;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 0 4px var(--green);
+    }
+
+    .slip-list { display: grid; gap: .78rem; }
+
+    .slip-office { font-weight: 760; }
+
+    .slip-candidate {
+      margin-top: .22rem;
+      overflow-wrap: anywhere;
+      font-size: .92rem;
+      font-weight: 760;
+      line-height: 1.15;
+    }
+
+    .slip-party { margin-top: .12rem; color: var(--muted); font-size: .76rem; }
+
+    .slip-digits {
+      display: flex;
+      gap: .3rem;
+      margin-top: .3rem;
+    }
+
+    .slip-digit {
+      display: grid;
+      width: 2rem;
+      height: 2.5rem;
+      place-items: center;
+      border: 1.6px solid #53615b;
+      border-radius: .42rem;
+      color: #15201b;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 1.3rem;
+    }
+
+    .slip-digit.empty { color: #aeb8b3; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(1rem + env(safe-area-inset-bottom));
+      z-index: 5;
+      max-width: calc(100% - 2rem);
+      padding: .8rem 1rem;
+      border-radius: 999px;
+      background: #14231d;
+      color: white;
+      font-size: .92rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, .8rem);
+      transition: opacity .2s, transform .2s;
+    }
+
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    .confirm-dialog {
+      width: min(calc(100% - 2rem), 28rem);
+      padding: 0;
+      border: 0;
+      border-radius: 1rem;
+      color: var(--ink);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .28);
+    }
+
+    .confirm-dialog::backdrop { background: rgba(9, 24, 18, .62); }
+    .dialog-body { padding: 1.2rem; }
+    .dialog-body h2 { margin: 0; font-size: 1.25rem; }
+    .dialog-body p { margin: .65rem 0; color: var(--muted); line-height: 1.45; }
+    .issue-list { margin: .75rem 0 0; padding-left: 1.2rem; line-height: 1.45; }
+    .dialog-actions { display: grid; gap: .6rem; margin-top: 1rem; }
+
+    @media (min-width: 760px) {
+      .shell { padding: 2.5rem 1.5rem; }
+      header { margin-bottom: 1.5rem; }
+      .workspace { grid-template-columns: minmax(0, 1fr) 23rem; align-items: start; }
+      .editor { padding: 1.35rem; }
+      .fields { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2rem 1.5rem; }
+      .actions { grid-template-columns: 1fr auto; }
+      .secondary { padding-inline: 1.35rem; }
+      .preview-wrap { position: sticky; top: 1rem; }
+      .dialog-actions { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <h1>Gerador de colinha eleitoral</h1>
+      <p>Busque pelo nome ou digite o número dos candidatos e baixe a colinha em PDF.</p>
+    </header>
+
+    <div class="workspace">
+      <form class="panel editor" id="ballot-form" novalidate>
+        <div class="fields" id="fields"></div>
+        <div class="actions">
+          <button class="button primary" type="submit">Baixar colinha em PDF</button>
+          <button class="button secondary" type="button" id="clear-button">Limpar</button>
+        </div>
+        <p class="privacy">A consulta acontece neste aparelho; nenhum nome ou número digitado é enviado.</p>
+      </form>
+
+      <aside class="panel preview-wrap" aria-label="Pré-visualização da colinha">
+        <p class="preview-label">Pré-visualização</p>
+        <section class="slip" id="slip">
+          <div class="slip-title"><span>Minha colinha</span><span class="flag-mark" aria-hidden="true"></span></div>
+          <div class="slip-list" id="slip-list"></div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <dialog class="confirm-dialog" id="confirm-dialog">
+    <div class="dialog-body">
+      <h2>Gerar colinha assim mesmo?</h2>
+      <p>Alguns cargos estão incompletos ou não puderam ser validados:</p>
+      <ul class="issue-list" id="issue-list"></ul>
+      <div class="dialog-actions">
+        <button class="button secondary" type="button" id="review-button">Voltar e revisar</button>
+        <button class="button primary" type="button" id="confirm-button">Gerar mesmo assim</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script type="application/json" id="candidate-data">[["DF","1063","ADALBERTO","REPUBLICANOS"],["DF","1588","ADELE FATIMA","MDB"],["DF","1311","ADELSON GUEDES","PT"],["DF","1537","ADELY OZON","MDB"],["DF","4069","ADEMIR MÁXIMO RESPEITO","PSB"],["DF","1253","ADRIANA AMARAL","PDT"],["DF","3017","ADRIANA BUSTAMANTE","NOVO"],["DF","2297","ADRIANA DA MATTA","PL"],["DF","4303","ADRIANA DO POVO","PV"],["DF","4570","ADRIANO SERFIOTIS","PSDB"],["DF","4048","ADRIELY OSÓRIO","PSB"],["DF","2770","AGHATA  ALMEIDA","DC"],["DF","7004","ALAIDE MELO","AVANTE"],["DF","2201","ALANA PASSOS","PL"],["DF","5580","ALCA MOURA","PSD"],["DF","1044","ALCIONE MARROM AMANCIO","REPUBLICANOS"],["DF","1071","ALESSANDRO SB SALVA BRASIL","REPUBLICANOS"],["DF","1011","ALEX BRAZ","REPUBLICANOS"],["DF","2074","ALEX BRIZOLA","PODE"],["DF","3301","ALEX LELECO","MOBILIZA"],["DF","3014","ALEX SABINO","NOVO"],["DF","7036","ALEXANDER XANDE 360","AVANTE"],["DF","1116","ALEXANDRA FERRO","PP"],["DF","5506","ALEXANDRE BEÇA","PSD"],["DF","3026","ALEXANDRE CARVALHO","NOVO"],["DF","7025","ALEXANDRE GOMES","AVANTE"],["DF","2007","ALEXANDRE LUSTOSA","PODE"],["DF","4566","ALEXANDRE PRADO","PSDB"],["DF","1013","ALEXANDRE RODRIGUES","REPUBLICANOS"],["DF","1001","ALFREDO DO BELO","REPUBLICANOS"],["DF","1527","ALICE GUIMARÃES","MDB"],["DF","1068","ALINE CAPUTI","REPUBLICANOS"],["DF","1545","ALINE DE TAMOIOS","MDB"],["DF","3386","ALINE MATTOS","MOBILIZA"],["DF","4505","ALMEIDA DO PROGRESSO","PSDB"],["DF","2269","ALTINEU CORTES","PL"],["DF","5013","AMANDA COSTA","PSOL"],["DF","1562","AMANDA SANTANA","MDB"],["DF","1304","AMÉLIA LEAL","PT"],["DF","3305","AMIGO DURVAL","MOBILIZA"],["DF","2085","ANA BANTIM","PODE"],["DF","2011","ANA COTTAS","PODE"],["DF","3504","ANALU","DEMOCRATA"],["DF","7720","ANDERSON BRAVO","SOLIDARIEDADE"],["DF","4599","ANDERSON CAMPOS","PSDB"],["DF","7088","ANDERSON PESSOA","AVANTE"],["DF","3544","ANDRE ALBUQUERQUE","DEMOCRATA"],["DF","2744","ANDRÉ ALMEIDA","DC"],["DF","5042","ANDRÉ BARROS","PSOL"],["DF","4077","ANDRÉ PETINHA","PSB"],["DF","1080","ANDRÉ PORTUGUÊS","REPUBLICANOS"],["DF","1215","ANDRE SUZANO","PDT"],["DF","7703","ANDRÉA ARAÚJO","SOLIDARIEDADE"],["DF","7043","ANDREA MORENO","AVANTE"],["DF","3515","ANDREA SANTOS","DEMOCRATA"],["DF","2720","ANDREA SORVETÃO","DC"],["DF","3506","ANDREIA CAMPOS","DEMOCRATA"],["DF","1330","ANIELLE FRANCO","PT"],["DF","3006","ANNA FEIO","NOVO"],["DF","4540","ANTÔNIA FONTENELLE","PSDB"],["DF","1513","AP. JOÃO ALVES","MDB"],["DF","2001","AQUINO DO PAPA","PODE"],["DF","1218","ARAUJO","PDT"],["DF","5067","ARIANE MAGALHÃES","PSOL"],["DF","2023","ARLENE OLIVEIRA","PODE"],["DF","1506","ARNÔ DA ACADEMIA","MDB"],["DF","2780","ARTHUR RIOBOO","DC"],["DF","4099","ARY GIROTA","PSB"],["DF","7733","AUREO RIBEIRO","SOLIDARIEDADE"],["DF","1234","AXEL GRAEL","PDT"],["DF","3090","AZIEL DIAS","NOVO"],["DF","5590","AZRA EL AKBAR","PSD"],["DF","4333","BANDEIRA DE MELLO","PV"],["DF","4023","BARBARA CRISTINA","PSB"],["DF","1660","BARBARA SINEDINO","PSTU"],["DF","3312","BARRIGA PESCADOR","MOBILIZA"],["DF","1133","BEBETO","PP"],["DF","1350","BENNY BRIOLLY","PT"],["DF","3307","BENNY GUERREIRA","MOBILIZA"],["DF","7744","BENY BALABRAM","SOLIDARIEDADE"],["DF","1355","BENY GUERRA","PT"],["DF","4400","BERNARDO ROSSI","UNIÃO"],["DF","3598","BETTA MAIA","DEMOCRATA"],["DF","7044","BIANCA COSTA","AVANTE"],["DF","3077","BIANCA GARCIA","NOVO"],["DF","3369","BIANCA NALDY","MOBILIZA"],["DF","2745","BILL DA PISCINA","DC"],["DF","1526","BIÓLOGO HENRIQUE","MDB"],["DF","3036","BIRINHA","NOVO"],["DF","1205","BISPA ALCIONE","PDT"],["DF","7023","BISPO HENRIQUE SANTINI","AVANTE"],["DF","3391","BISPO JORGE","MOBILIZA"],["DF","3505","BISPO PAULO SANTOS","DEMOCRATA"],["DF","3306","BISPO WILLYAM GUIMARÃES","MOBILIZA"],["DF","7003","BOMBEIRO SARMENTO","AVANTE"],["DF","1027","BRENDOW LINCOLN","REPUBLICANOS"],["DF","3323","BRENER ANTUNES","MOBILIZA"],["DF","2221","BRENO CAFÉ COM TEU PAI","PL"],["DF","1593","BRUM GALVÃO","MDB"],["DF","4467","BRUNO MARINI","UNIÃO"],["DF","1077","BRUNO NASCIMENTO","REPUBLICANOS"],["DF","7062","CABO PEREIRA","AVANTE"],["DF","1411","CADU MORAES","MISSÃO"],["DF","4512","CAIO VIANNA","PSDB"],["DF","7005","CANTOR RONALDO SANTOS","AVANTE"],["DF","3553","CARLA CAMPOS","DEMOCRATA"],["DF","3012","CARLA COUT","NOVO"],["DF","3512","CARLA PETRIS","DEMOCRATA"],["DF","2026","CARLÃO JJ","PODE"],["DF","3360","CARLINHOS JACARÉ","MOBILIZA"],["DF","2061","CARLOS A VALDEVINO CARLÃO","PODE"],["DF","2726","CARLOS CRUZ AMIGO DO SOCIAL","DC"],["DF","2288","CARLOS JORDY","PL"],["DF","3002","CARLOS MARTINS","NOVO"],["DF","1302","CARLOS SANTANA","PT"],["DF","2070","CARLOS STUTZ","PODE"],["DF","4070","CAROL MIDORI","PSB"],["DF","2732","CAROL MONTEIRO","DC"],["DF","4411","CAROL NUNES","UNIÃO"],["DF","3001","CAROL SPONZA","NOVO"],["DF","3356","CEGLEY NA VOZ","MOBILIZA"],["DF","2701","CEL. EMIR LARANGEIRA","DC"],["DF","3310","CÉLIO GARI","MOBILIZA"],["DF","1022","CELITA TOLEDO","REPUBLICANOS"],["DF","1380","CELSO PANSERA","PT"],["DF","4535","CESAR DÓREA","PSDB"],["DF","1507","CHARLES MAURÍCIO","MDB"],["DF","4424","CHARLLES BATISTA","UNIÃO"],["DF","5050","CHICO ALENCAR","PSOL"],["DF","4040","CHICO RUBENS PAIVA","PSB"],["DF","2214","CHRIS TONIETTO","PL"],["DF","1511","CHRISTIANNE MEIRELLES","MDB"],["DF","2750","CIRLENE MOZER","DC"],["DF","3526","CISSA MONTEIRO","DEMOCRATA"],["DF","2713","CLAUDIA ARAUJO","DC"],["DF","7072","CLAUDIA NASCIMENTO","AVANTE"],["DF","1292","CLAUDIO LUIZ","PDT"],["DF","1250","CLAUDIO VIGILANTE","PDT"],["DF","4499","CLEBIO LOPES JACARÉ","UNIÃO"],["DF","5567","CLEIBE DO RIO","PSD"],["DF","3020","COMISSÁRIO ALEX FERREIRA","NOVO"],["DF","2721","CONCEIÇÃO DA SAÚDE","DC"],["DF","7054","CORONEL GUILHERME MORAES","AVANTE"],["DF","7077","CORONEL HENRIQUE","AVANTE"],["DF","7793","CORONEL LAURO BOTTO","SOLIDARIEDADE"],["DF","2238","CORONEL PRINCIPE","PL"],["DF","7755","CORONEL VASCONCELLOS","SOLIDARIEDADE"],["DF","5015","CRÂNIO","PSOL"],["DF","1233","CRIS GEMEAS","PDT"],["DF","2789","CRISTIANE DO ROBERTO JEFFERSON","DC"],["DF","1180","CRISTIANE VIEGAS","PP"],["DF","4551","CRISTIANO","PSDB"],["DF","4553","CRISTINA MEL","PSDB"],["DF","1037","DAIANA MOZER","REPUBLICANOS"],["DF","5505","DAILVA BASILIO","PSD"],["DF","2233","DANI CUNHA","PL"],["DF","1375","DANI NUNES","PT"],["DF","3066","DANI ROURA","NOVO"],["DF","3397","DANIEL BARBOSA","MOBILIZA"],["DF","3537","DANIEL OLIVEIRA","DEMOCRATA"],["DF","5588","DANIEL SORANZ","PSD"],["DF","1045","DANIELA DO WAGUINHO","REPUBLICANOS"],["DF","2730","DANILO BARRETO","DC"],["DF","1245","DANILO PERES","PDT"],["DF","4044","DARLA MUNIZ","PSB"],["DF","4087","DARLAN PRAXEDES","PSB"],["DF","1034","DAVI LOUREIRO","REPUBLICANOS"],["DF","2256","DAVI PQD","PL"],["DF","1007","DAVID PARDINHO","REPUBLICANOS"],["DF","3021","DAYVIANE GARCIA","NOVO"],["DF","1222","DEJORGE PATRICIO","PDT"],["DF","1567","DEL GONÇALVES","MDB"],["DF","4422","DELEGADA MADELEINE","UNIÃO"],["DF","1240","DELEGADA MARTHA ROCHA","PDT"],["DF","2228","DELEGADA PATRÍCIA AGUIAR","PL"],["DF","2226","DELEGADO ANTONIO FURTADO","PL"],["DF","1040","DELEGADO DEULER","REPUBLICANOS"],["DF","3000","DELEGADO FELÍCIO LATERÇA","NOVO"],["DF","1122","DELEGADO FELIPE CURI","PP"],["DF","5060","DELMA","PSOL"],["DF","1422","DHEBORA PAIVA","MISSÃO"],["DF","1313","DIEGO QUAQUA","PT"],["DF","3060","DIEGO VAZ","NOVO"],["DF","1301","DIMAS GADELHA","PT"],["DF","1557","DINY MENEZES","MDB"],["DF","2211","DIOGO BALIEIRO DINIZ","PL"],["DF","2021","DOUGLAS ANDRADE","PODE"],["DF","2299","DOUGLAS GOMES","PL"],["DF","4578","DOUTOR DANILO","PSDB"],["DF","2089","DOUTOR PORFIRIO","PODE"],["DF","4007","DR ADRIANO ROCHA","PSB"],["DF","3033","DR CARLOS DO NOVO","NOVO"],["DF","5055","DR DENILSON PRATA","PSOL"],["DF","1155","DR DILSON DRUMOND","PP"],["DF","5012","DR EMANUEL TORQUATO","PSOL"],["DF","1081","DR JOÃO VAZ","REPUBLICANOS"],["DF","4488","DR LUIS FERNANDO","UNIÃO"],["DF","2246","DR MAURILIO","PL"],["DF","2266","DR RODRIGO FURTADO","PL"],["DF","3010","DR SERGIO FIGUEIREDO","NOVO"],["DF","1107","DR. ALCIO PEREIRA","PP"],["DF","4504","DR. ALUÍZIO","PSDB"],["DF","1199","DR. CHRISTIANO ALVERNAZ","PP"],["DF","2245","DR. FLÁVIO","PL"],["DF","1170","DR. GALVÃO O MÉDICO FEDERAL","PP"],["DF","3083","DR. HERCULANO","NOVO"],["DF","4522","DR. JOÃO","PSDB"],["DF","1306","DR. JOSÉ RICARDO","PT"],["DF","1344","DR. LOBÃO","PT"],["DF","1223","DR. LUCIANO BATATINHA","PDT"],["DF","1177","DR. LUIZINHO","PP"],["DF","7099","DR. LUIZINHO DE ALMEIDA","AVANTE"],["DF","1265","DR. MARCOS  DOUTOR HORA BOLAS","PDT"],["DF","3540","DR. NELSON MERROW","DEMOCRATA"],["DF","3050","DR. NINO CREBYLON","NOVO"],["DF","5599","DR. PAULO CESAR","PSD"],["DF","7701","DR. RICARDO URSINE","SOLIDARIEDADE"],["DF","3509","DR. ROSELENE","DEMOCRATA"],["DF","1342","DR. RUBINHO","PT"],["DF","3558","DR. TADEU SILVA","DEMOCRATA"],["DF","2540","DR. WILLIAN BRAND","PRD"],["DF","3340","DR.. LUCIANA MONTEIRO","MOBILIZA"],["DF","5597","DR.. VIVIAN ALENCAR","PSD"],["DF","2567","DR.RUI","PRD"],["DF","2710","DR.WASHINGTON ADVOGADO DO POVO","DC"],["DF","4055","DRA CHRIS LOPES","PSB"],["DF","1030","DRA TALITA BARBOSA","REPUBLICANOS"],["DF","4588","DRA. ADRIANA KUTWAK","PSDB"],["DF","2733","DRA. ALINE NASCIMENTO","DC"],["DF","4466","DRA. ANGELA TENÓRIO","UNIÃO"],["DF","1323","DRA. CRISLAINE COELHO","PT"],["DF","7789","DRA. ELLIS","SOLIDARIEDADE"],["DF","4427","DRA. EMANOELE FREITAS","UNIÃO"],["DF","7012","DRA. GERMANA SORRISO","AVANTE"],["DF","1370","DRA. LUCIA COSTA","PT"],["DF","3330","DRA. MARIA AMÉLIA","MOBILIZA"],["DF","1455","DRA. SANDRA ALVES","MISSÃO"],["DF","3581","DUDA PORTELA","DEMOCRATA"],["DF","7007","DUDU NUNES","AVANTE"],["DF","4407","DUDU PADRINHO","UNIÃO"],["DF","2207","ED RAPOSO","PL"],["DF","2989","EDILEUZA RAMOS","PCO"],["DF","5545","EDIMAR TEIXEIRA","PSD"],["DF","5570","EDIMARA CELI","PSD"],["DF","3510","EDINHO BRASIL","DEMOCRATA"],["DF","4510","EDMUNDO","PSDB"],["DF","7769","EDSON DO PARAÍSO","SOLIDARIEDADE"],["DF","7759","EDSON DOS SANTOS","SOLIDARIEDADE"],["DF","3399","EDSON PIMENTA","MOBILIZA"],["DF","1020","EDSON RECICLA","REPUBLICANOS"],["DF","5511","EDUARDO BLOG","PSD"],["DF","4001","EDUARDO FURTADO","PSB"],["DF","2999","EDUARDO LOPES","PCO"],["DF","7031","ELAINE FERNANDES","AVANTE"],["DF","4018","ELAINE FERREIRA","PSB"],["DF","1206","ELAINE SAMPAIO","PDT"],["DF","1505","ELBA BARCELLOS","MDB"],["DF","3527","ELCIO DO INSTITUTO","DEMOCRATA"],["DF","4515","ELIANE DA SAÚDE","PSDB"],["DF","2090","ELIANE FARIA","PODE"],["DF","1616","ELIAS ALFREDO","PSTU"],["DF","6577","ELIAS JABBOUR","PCDOB"],["DF","1060","ELIAS QUEIROZ","REPUBLICANOS"],["DF","7712","ELOI RAMALHO","SOLIDARIEDADE"],["DF","2555","ELOI VARÃO","PRD"],["DF","5502","ELYANE SOUZA","PSD"],["DF","1332","EMERSON TDB","PT"],["DF","1093","EMILIO BOMBEIRO","REPUBLICANOS"],["DF","7015","ENFERMEIRA LUCIANA ROSA","AVANTE"],["DF","6556","ENFERMEIRA REJANE","PCDOB"],["DF","1540","ENGENHEIRO MARCAO","MDB"],["DF","2512","ERICA BISPO","PRD"],["DF","2799","ERITON MARRETA DA SERRA","DC"],["DF","8000","ESTEBAN CRESCENTE","UP"],["DF","1494","EUBER LUCAS","MISSÃO"],["DF","3005","EULER BERTUCIO","NOVO"],["DF","4067","EVANDRO MAZA FG","PSB"],["DF","2067","EVERALDO ANSELMO","PODE"],["DF","3044","FABI PESSANHA","NOVO"],["DF","1012","FABIANO GONÇALVES","REPUBLICANOS"],["DF","1303","FABIANO HORTA","PT"],["DF","5509","FABINHO DA FEIRA","PSD"],["DF","5565","FABINHO FERNANDES","PSD"],["DF","3373","FÁBIO DA PAZ","MOBILIZA"],["DF","1407","FABRICIA LERNER","MISSÃO"],["DF","3593","FATIMA ARTESÂ","DEMOCRATA"],["DF","4589","FATINHA","PSDB"],["DF","5515","FELIPE BORÓ","PSD"],["DF","5560","FELIPE BRASILEIRO","PSD"],["DF","1551","FELIPE CORRÊA","MDB"],["DF","7063","FELIPE DO BOTECO","AVANTE"],["DF","2747","FELIPE GUEDES","DC"],["DF","3514","FERNANDA FERNANDES","DEMOCRATA"],["DF","3339","FERNANDA MESQUITA","MOBILIZA"],["DF","5016","FERNANDA VIEIRA","PSOL"],["DF","1550","FERNANDO JORDÃO","MDB"],["DF","5028","FERNANDO NASCIMENTO","PSOL"],["DF","3350","FERREIRINHA DO HOSPITAL","MOBILIZA"],["DF","1556","FILIPE AMARO","MDB"],["DF","2020","FILIPE PEREIRA","PODE"],["DF","3353","FINELLI","MOBILIZA"],["DF","5522","FLAVIA CABELEIREIRA","PSD"],["DF","3303","FLÁVIO BERNARDES","MOBILIZA"],["DF","2767","FLAVIO GALVÃO","DC"],["DF","4456","FLÁVIO GANEM","UNIÃO"],["DF","4502","FLAVIO SALDANHA","PSDB"],["DF","2725","FRANCIS ARAUJO","DC"],["DF","5503","FRANCIS CHOCOLLAT","PSD"],["DF","1299","FRANCISCO JUNIOR","PDT"],["DF","1331","FREIXO","PT"],["DF","5024","FRENTISTA HAYRES MUNIZ","PSOL"],["DF","2027","GABRIELLE ANJOS","PODE"],["DF","4470","GARET","UNIÃO"],["DF","2212","GENERAL PAZUELLO","PL"],["DF","2764","GERUSA SALES","DC"],["DF","5587","GIANCARLO DE TRÂNSITO","PSD"],["DF","5532","GILMAR LELIS","PSD"],["DF","3027","GILSON SENNA","NOVO"],["DF","3011","GIOVANNA ABREU","NOVO"],["DF","7770","GISELE LANCATES","SOLIDARIEDADE"],["DF","5080","GLAUBER BRAGA","PSOL"],["DF","7767","GLAUBER POUBEL","SOLIDARIEDADE"],["DF","1824","GLAUCO COSTA","REDE"],["DF","2522","GLEIBE DE ANDRADE","PRD"],["DF","3321","GLEICE SCHOTT","MOBILIZA"],["DF","4521","GRAÇA","PSDB"],["DF","4088","GRACIANE MAURICIO","PSB"],["DF","5021","GUILHERME PIMENTEL","PSOL"],["DF","3332","GUINHO","MOBILIZA"],["DF","2722","GUSTAVO SCHMIDT","DC"],["DF","2255","GUTEMBERG FONSECA","PL"],["DF","1516","GUTEMBERG REIS","MDB"],["DF","2010","HAROLDO FILHO","PODE"],["DF","2263","HAZENCLEVER LOPES","PL"],["DF","1574","HELEN BARRETO","MDB"],["DF","1818","HELOÍSA HELENA","REDE"],["DF","2929","HENRIQUE SIMONARD","PCO"],["DF","5510","HUGO LEAL","PSD"],["DF","1243","HUGUINHO","PDT"],["DF","2707","HUMBERTO MARTINS","DC"],["DF","4080","IGOR CRESPO","PSB"],["DF","1416","IGOR OLIVEIRA","MISSÃO"],["DF","2210","IGOR PORTO","PL"],["DF","1276","ÍNDIO DAS CADEIRAS","PDT"],["DF","2772","IRAN FERREIRA","DC"],["DF","1144","ISABEL RIBEIRO","PP"],["DF","2004","ISABELA ABREU","PODE"],["DF","2790","ISAC DO EMPREGO","DC"],["DF","1120","ISOLDINHA","PP"],["DF","1054","IVAN INACIO","REPUBLICANOS"],["DF","4064","IVANA MOREIRA","PSB"],["DF","1003","IVANIA MARTINS","REPUBLICANOS"],["DF","2344","IZA DUTRA","CIDADANIA"],["DF","3559","IZABEL HELENA","DEMOCRATA"],["DF","2323","JACK CALDERINI","CIDADANIA"],["DF","4024","JADSON FACTUALRJ","PSB"],["DF","2919","JAMAICA","PCO"],["DF","3326","JAMIL JORGE","MOBILIZA"],["DF","4004","JANAINA SANT ANNA","PSB"],["DF","7773","JANAYNA RODRIGUES","SOLIDARIEDADE"],["DF","6565","JANDIRA FEGHALI","PCDOB"],["DF","3343","JARDANES OLIVEIRA","MOBILIZA"],["DF","3008","JAYME NETO","NOVO"],["DF","2220","JEAN BOLSONARO","PL"],["DF","2068","JECINETE DIAS PICOLÉ","PODE"],["DF","4533","JESSICA ARAÚJO","PSDB"],["DF","3535","JESSICA HIATH","DEMOCRATA"],["DF","3525","JÔ RAMOS","DEMOCRATA"],["DF","5533","JOA","PSD"],["DF","4580","JOÃO DINIZ AVC","PSDB"],["DF","4059","JOÃO HENRIQUE","PSB"],["DF","4012","JOÃO LEONEL BATISTA ESTERY","PSB"],["DF","7017","JOAO VALOIS","AVANTE"],["DF","4575","JOÃO VICTOR FAMÍLIA","PSDB"],["DF","2012","JOHN JOHN","PODE"],["DF","2737","JONAS DE SOUZA NETO","DC"],["DF","7030","JONATAS DA MARCIA","AVANTE"],["DF","1216","JONATAS DIAS","PDT"],["DF","3004","JONATAS VELHO","NOVO"],["DF","7711","JONES MOURA","SOLIDARIEDADE"],["DF","5551","JORGE MELO","PSD"],["DF","2234","JORGE MIRANDA","PL"],["DF","2525","JOSÉ DE DJ","PRD"],["DF","1213","JOSE DIAZ","PDT"],["DF","2788","JOSE MUNIZ","DC"],["DF","7057","JR DUBLE","AVANTE"],["DF","3093","JUAREZ DA FISIOTERAPIA","NOVO"],["DF","5007","JÚLIA CASAMASSO","PSOL"],["DF","2202","JULIA DE CASTRO","PL"],["DF","4550","JULIANA BENÍCIO","PSDB"],["DF","3045","JULIANA FIDELIS","NOVO"],["DF","3069","JULINHO DBORAIS","NOVO"],["DF","2709","JULIO AMARO","DC"],["DF","1111","JULIO LOPES","PP"],["DF","4554","JUNINHO DO PNEU","PSDB"],["DF","3022","JUNIOR JL","NOVO"],["DF","7083","JUNIOR REIS","AVANTE"],["DF","1412","JUSSARA BARBOSA","MISSÃO"],["DF","7014","JUVELINO JUNIOR","AVANTE"],["DF","4016","KARINA DA SAÚDE","PSB"],["DF","3015","KAU MAGNO","NOVO"],["DF","2232","KEILA  ACABA NÃO MUNDÃO","PL"],["DF","3080","KELAINE GOULART","NOVO"],["DF","2500","KELLY FERREIRA","PRD"],["DF","1395","KEVINHO DO MORRO","PT"],["DF","7075","KEZIA QUEIROZ","AVANTE"],["DF","3501","KLEIN","DEMOCRATA"],["DF","1573","LA RUBIA","MDB"],["DF","2288","LAIS JORDY","PL"],["DF","1261","LAU FURACÃO","PDT"],["DF","5566","LAURA CARNEIRO","PSD"],["DF","1499","LEANDRO ISSA","MISSÃO"],["DF","7741","LEANDRO PEIXE","SOLIDARIEDADE"],["DF","1599","LEANDRO ZIQUINHO","MDB"],["DF","3551","LECA DA BICICLETA","DEMOCRATA"],["DF","3032","LEDA ALVES","NOVO"],["DF","1100","LENIEL BOREL","PP"],["DF","7775","LENILTON RODRIGUES","SOLIDARIEDADE"],["DF","1132","LENY DA AFRICA","PP"],["DF","1325","LEO CDD","PT"],["DF","1123","LEO MENDES","PP"],["DF","4343","LÉO PICCIANI","PV"],["DF","1255","LEON GOMES","PDT"],["DF","1418","LEONARDO BALBI","MISSÃO"],["DF","3055","LEONEL POLICIANO","NOVO"],["DF","4452","LETÍCIA LYRA","UNIÃO"],["DF","7027","LIGEIRO DO ASFALTO","AVANTE"],["DF","4569","LILIAN MEDEIROS","PSDB"],["DF","1300","LINDBERGH","PT"],["DF","1088","LIVIA DE CHIQUINHO","REPUBLICANOS"],["DF","1329","LOURENÇO DO VALLE","PT"],["DF","5589","LOURIVAL GOMES","PSD"],["DF","5575","LU RUFINO MISS CADEIRANTE","PSD"],["DF","1188","LUAN LENNON","PP"],["DF","1402","LUANA VIDAL","MISSÃO"],["DF","1207","LUCAS TERRA","PDT"],["DF","1369","LUCIANA NERY","PT"],["DF","5562","LUCIANE COSTA","PSD"],["DF","1035","LUCIANO ALVES","REPUBLICANOS"],["DF","2009","LUCIANO FERREIRA","PODE"],["DF","3572","LUCIANO FREITAS","DEMOCRATA"],["DF","1515","LUCIANO GUERREIRO","MDB"],["DF","4545","LUCIANO VIEIRA","PSDB"],["DF","1590","LÚCIO AGUIAR","MDB"],["DF","2051","LUIS ALEGRIA DO PASSARINHEIRO","PODE"],["DF","1010","LUIS CARLOS GOMES","REPUBLICANOS"],["DF","7722","LUIS MARTA","SOLIDARIEDADE"],["DF","3390","LUIZ ANTONIO SERRALHEIRO","MOBILIZA"],["DF","3030","LUIZ LIMA","NOVO"],["DF","2247","LUIZINHO PATRIOTA","PL"],["DF","7737","MÃE MANU DA OXUM","SOLIDARIEDADE"],["DF","1066","MAGDALA FURTADO","REPUBLICANOS"],["DF","4532","MAGO DO APP","PSDB"],["DF","1307","MAIARA FELICIO","PT"],["DF","1046","MAJOR AISLAN","REPUBLICANOS"],["DF","7022","MAJOR FABIANA","AVANTE"],["DF","2200","MANOELA PERES","PL"],["DF","7006","MANU SANTOS","AVANTE"],["DF","1512","MANUEL NETO","MDB"],["DF","4557","MARA DAMASCENO","PSDB"],["DF","1270","MARCÃO ALVES","PDT"],["DF","3316","MARCÃO BORGES","MOBILIZA"],["DF","2022","MARCELLE LUCAS","PODE"],["DF","2204","MARCELLO CAPPARELLI","PL"],["DF","1023","MARCELO  RIZZI","REPUBLICANOS"],["DF","5577","MARCELO DINIZ","PSD"],["DF","3300","MARCELO DO TÁXI","MOBILIZA"],["DF","2538","MARCELO MAGARÇA","PRD"],["DF","7700","MARCELO NASCIMENTO","SOLIDARIEDADE"],["DF","1399","MARCELO PACHECO","PT"],["DF","2052","MARCELO PEDRO","PODE"],["DF","4500","MARCELO QUEIROZ","PSDB"],["DF","5535","MARCELO VERLY","PSD"],["DF","1267","MARCIA BRAGA","PDT"],["DF","4313","MÁRCIA DO PV","PV"],["DF","1320","MÁRCIA PEIXOTO","PT"],["DF","4577","MARCIA VALENTIM","PSDB"],["DF","3078","MARCINHO","NOVO"],["DF","1415","MARCIO LABRE","MISSÃO"],["DF","5523","MÁRCIO REZENDE","PSD"],["DF","5555","MARCIO RIBEIRO","PSD"],["DF","3528","MARCO RODRIGUES","DEMOCRATA"],["DF","2779","MARCO VAZ","DC"],["DF","5544","MARCOS ABRAHÃO FILHO","PSD"],["DF","4403","MARCOS ALMEIDA","UNIÃO"],["DF","4555","MARCOS BRAZ","PSDB"],["DF","2785","MARCOS MEDEIROS","DC"],["DF","7033","MARCOS MÜLLER","AVANTE"],["DF","2755","MARCOS NOBRE","DC"],["DF","1441","MARCOS PAULO","MISSÃO"],["DF","4567","MARCOS RR SOARES","PSDB"],["DF","2034","MARCOS SANTO","PODE"],["DF","1212","MARCOS TAVARES","PDT"],["DF","2053","MARCUS FUSCO","PODE"],["DF","4065","MARCUS SÃO THIAGO","PSB"],["DF","2523","MARCUS VINICIUS NESKAU","PRD"],["DF","5557","MARIA ANGELICA","PSD"],["DF","1147","MARIANA DE SOUZA","PP"],["DF","2270","MARINARA","PL"],["DF","4543","MÁRIO ESTEVES","PSDB"],["DF","3508","MARIO ESTRELA","DEMOCRATA"],["DF","7714","MÁRIO GOMES","SOLIDARIEDADE"],["DF","3563","MÁRIO MALAQUIAS","DEMOCRATA"],["DF","4015","MARKO PATRÍCIO","PSB"],["DF","1190","MARLON PIPOSHOW","PP"],["DF","2088","MARLYCE DA INCLUSÃO","PODE"],["DF","4477","MARQUINHO BARCELLAR","UNIÃO"],["DF","7710","MARQUINHOS DA RECICLAGEM","SOLIDARIEDADE"],["DF","1262","MARTA ENLALE","PDT"],["DF","2296","MATHEUS QUINTAL","PL"],["DF","2215","MATILDES SILVEIRA","PL"],["DF","4546","MAURÍCIO BM","PSDB"],["DF","1134","MAURICIO CARVALHO","PP"],["DF","3543","MAURICIO REIS","DEMOCRATA"],["DF","4490","MAX","UNIÃO"],["DF","1520","MAYCON FREITAS","MDB"],["DF","4002","MAYSA LOURENÇO","PSB"],["DF","2711","MC HULK DA SELVA","DC"],["DF","3503","MERINHA RAMOS","DEMOCRATA"],["DF","1400","MICHEL KOURI","MISSÃO"],["DF","7778","MICHEL VILA NOVA","SOLIDARIEDADE"],["DF","7784","MICHELE NASCIMENTO","SOLIDARIEDADE"],["DF","1242","MICHELLE CARVALHO","PDT"],["DF","5500","MICHELLE DA CORRENTE DO BEM","PSD"],["DF","1005","MICHELLY RODRIGUES","REPUBLICANOS"],["DF","4017","MIGUELITO","PSB"],["DF","1491","MÍRIAM CARVALHO","MISSÃO"],["DF","1502","MIRIAM GUERREIRA","MDB"],["DF","1067","MISSIONARIA CARLA","REPUBLICANOS"],["DF","1235","MOISES BOECHAT","PDT"],["DF","1211","MONICA MONINHA","PDT"],["DF","4556","MUNIQUE BUSSON","PSDB"],["DF","4552","MURILLO GOUVÊA","PSDB"],["DF","3363","MURILO MORAES","MOBILIZA"],["DF","3533","MYLENA DO JUAREZ","DEMOCRATA"],["DF","4447","NATACHA ALVES","UNIÃO"],["DF","7757","NATASHA LOBA","SOLIDARIEDADE"],["DF","1121","NATCHA DIAS","PP"],["DF","1006","NATHALIA CARVALHO","REPUBLICANOS"],["DF","3337","NEIDELLY FAUSTINO","MOBILIZA"],["DF","1517","NELSINHO GARI","MDB"],["DF","4078","NESTOR LOPES DE MADALENA","PSB"],["DF","1280","NETE HULPAN","PDT"],["DF","2031","NEY CARLOS","PODE"],["DF","1456","NEYMAR PESADÃO DA ILHA GRANDE","MISSÃO"],["DF","2050","NILTINHO MOTOTÁXI","PODE"],["DF","4455","NINO DE ITABORAÍ","UNIÃO"],["DF","1310","NÍSIA TRINDADE","PT"],["DF","5051","NOEL","PSOL"],["DF","2577","NURIMAR DO COMÉRCIO","PRD"],["DF","2729","OMAR DAMAZIO","DC"],["DF","7090","ONASSIS","AVANTE"],["DF","1347","ORLANDO CARIOCA","PT"],["DF","5550","OTONI DE PAULA","PSD"],["DF","5508","PAIVA","PSD"],["DF","2533","PAOLA DANIEL","PRD"],["DF","7020","PAPINHA","AVANTE"],["DF","1000","PASTOR ALEX GONÇALVES","REPUBLICANOS"],["DF","3379","PASTOR AMARO JUNIOR DA VAN","MOBILIZA"],["DF","7788","PASTOR EDGAR COSTA","SOLIDARIEDADE"],["DF","3072","PASTOR ELVIS","NOVO"],["DF","5001","PASTOR HENRIQUE VIEIRA","PSOL"],["DF","3519","PASTOR JONAS DE LIMA","DEMOCRATA"],["DF","1522","PASTOR JUNIOR TROVÃO","MDB"],["DF","1577","PASTOR PAULO ANDERSON","MDB"],["DF","3003","PASTOR PEDRÃO","NOVO"],["DF","2075","PASTOR RENATO ROCHA","PODE"],["DF","1367","PASTOR WAGNER AVELLAR","PT"],["DF","3345","PASTOR WILLIAM LOPES","MOBILIZA"],["DF","3377","PASTORA ANTONIA","MOBILIZA"],["DF","1403","PASTORA ESMERALDA BORGES","MISSÃO"],["DF","3023","PASTORA KELLY SILVA","NOVO"],["DF","2797","PASTORA VANIA AGUIAR","DC"],["DF","7702","PATRICIA CARDOSO","SOLIDARIEDADE"],["DF","5585","PATRICK LIMA","PSD"],["DF","3502","PATRIOTA LEANDRO SILVA","DEMOCRATA"],["DF","4003","PAULA DO VOLEI","PSB"],["DF","1251","PAULÃO CARVALHO","PDT"],["DF","2781","PAULINHO DO AVIÁRIO","DC"],["DF","3317","PAULINHO PLAYBOY","MOBILIZA"],["DF","4030","PAULO ANGELITO","PSB"],["DF","2060","PAULO DA CEASA","PODE"],["DF","3388","PAULO LOBATO","MOBILIZA"],["DF","3334","PAULO LOMENHA","MOBILIZA"],["DF","5507","PAULO QUEIROZ","PSD"],["DF","7080","PEDRO AUGUSTO","AVANTE"],["DF","1072","PEDRO DA COSTA","REPUBLICANOS"],["DF","3393","PENHA DO VIEGAS","MOBILIZA"],["DF","1503","PENHA VENTURA","MDB"],["DF","8080","PÉTALA","UP"],["DF","2703","PETTERSON SANTOS","DC"],["DF","2262","POUBEL","PL"],["DF","7066","PR PASTORA SIDNEIA SANTOS","AVANTE"],["DF","7743","PRA. ELIZANGELA TERRA","SOLIDARIEDADE"],["DF","4090","PRATINHA","PSB"],["DF","2215","PRISCIANE SILVEIRA","PL"],["DF","4520","PROF. JONATAS CASTELO BRANCO","PSDB"],["DF","1405","PROF. MARY SOCORRO","MISSÃO"],["DF","2242","PROF. MAURO ROSA","PL"],["DF","3592","PROFESSOR  GILSON DIAS","DEMOCRATA"],["DF","2708","PROFESSOR ANDERSON","DC"],["DF","3507","PROFESSOR ARISTEU","DEMOCRATA"],["DF","7715","PROFESSOR HEITOR QUEIROZ","SOLIDARIEDADE"],["DF","4060","PROFESSOR IVANIR DOS SANTOS","PSB"],["DF","4000","PROFESSOR JOSÉ","PSB"],["DF","1016","PROFESSOR JOZIEL","REPUBLICANOS"],["DF","1050","PROFESSOR LEANDRO AZEVEDO","REPUBLICANOS"],["DF","4022","PROFESSOR LEONARDO","PSB"],["DF","3034","PROFESSOR MURDOCH","NOVO"],["DF","3040","PROFESSOR RALPH","NOVO"],["DF","4321","PROFESSOR RODNEY","PV"],["DF","2043","PROFESSOR RUBENS DA SAÚDE","PODE"],["DF","1055","PROFESSORA AMANDA","REPUBLICANOS"],["DF","2025","PROFESSORA CRISTINA RITINS","PODE"],["DF","5020","PROFESSORA MIRIANA","PSOL"],["DF","1509","PROFESSORA RUTH PATROCÍNIO","MDB"],["DF","5501","RAFAEL ALOISIO FREITAS","PSD"],["DF","2728","RAFAEL BRAZ","DC"],["DF","4081","RAFAEL DO BEM","PSB"],["DF","2036","RAFAEL MATOS DR.DO POVO","PODE"],["DF","4050","RAFAEL PRIMO","PSB"],["DF","5005","RAFAEL RIBEIRO","PSOL"],["DF","2237","RAFAEL SATIÊ","PL"],["DF","1501","RAMINHO BIGFIELD","MDB"],["DF","3037","RAPHAEL GADELHA","NOVO"],["DF","7045","RAQUEL CANTARELLI","AVANTE"],["DF","1525","RAQUEL WICK","MDB"],["DF","2002","RAVEL SOARES","PODE"],["DF","2217","REBECA RAMAGEM","PL"],["DF","1333","REIMONT","PT"],["DF","1244","REJANE DA EDUCAÇÃO","PDT"],["DF","5521","RENAN FERREIRINHA","PSD"],["DF","4412","RENAN MARASSI","UNIÃO"],["DF","1466","RENATO ALONSO","MISSÃO"],["DF","2223","RENATO ARAÚJO","PL"],["DF","2900","RENATO BULHÕES","PCO"],["DF","1101","RENATO COZZOLINO","PP"],["DF","5569","RENATO GARCIA","PSD"],["DF","1210","RENATO MUNIZ","PDT"],["DF","7008","RENATO ZACA","AVANTE"],["DF","4544","RICARDO ABRÃO","PSDB"],["DF","1288","RICARDO ARANHA","PDT"],["DF","3322","RICARDO CÊDA","MOBILIZA"],["DF","1220","RICARDO DO MATERIAL","PDT"],["DF","2252","RICARDO NETUNO","PL"],["DF","5044","RICK AZEVEDO","PSOL"],["DF","5530","ROBERTA MENDES","PSD"],["DF","7787","ROBERTO BELEZA","SOLIDARIEDADE"],["DF","2250","ROBERTO MONTEIRO-PAI","PL"],["DF","1073","ROBSON DA FARMÁCIA","REPUBLICANOS"],["DF","7779","ROBSON SANTOS","SOLIDARIEDADE"],["DF","3564","RODOLFO BARROS","DEMOCRATA"],["DF","1523","RODOLFO BELÉM","MDB"],["DF","1015","RODRIGO BARBEIRO","REPUBLICANOS"],["DF","3035","RODRIGO MULTIMIDIA","NOVO"],["DF","1555","RODRIGO VIZEU","MDB"],["DF","2244","ROGERIA BOLSONARO","PL"],["DF","7032","ROGERIO RIGUETTI","AVANTE"],["DF","2705","ROGERIO VERISSIMO","DC"],["DF","4010","ROMÉRIO DUARTE","PSB"],["DF","3522","ROMULO BARRETO","DEMOCRATA"],["DF","4045","RÔMULO MILAGRES","PSB"],["DF","2566","RONALDO ANQUIETA","PRD"],["DF","7067","ROSALDO MADEIRAS","AVANTE"],["DF","4565","ROSANE FELIX","PSDB"],["DF","1277","ROSANGELA DO MÉIER","PDT"],["DF","1033","ROSANGELA GOMES","REPUBLICANOS"],["DF","3031","ROSANNE GARCIA","NOVO"],["DF","1337","ROSE DA SILVA","PT"],["DF","1108","ROSY TROVÃO","PP"],["DF","3567","ROZENDO JUNIOR","DEMOCRATA"],["DF","3500","RUBÃO","DEMOCRATA"],["DF","1340","RUBENS BOMTEMPO","PT"],["DF","4444","RUEDA","UNIÃO"],["DF","2777","RUIMAR MENDES","DC"],["DF","3556","RUSSO ENEAS","DEMOCRATA"],["DF","1444","SALDANHA","MISSÃO"],["DF","5525","SALVINO OLIVEIRA","PSD"],["DF","4019","SAMUEL FAYAD","PSB"],["DF","1112","SANCLER MELLO","PP"],["DF","2216","SANDRA SANTOS","PL"],["DF","4020","SANDRA TEIXEIRA","PSB"],["DF","1314","SANDRÃO DA SAÚDE","PT"],["DF","1214","SANDRO MARTINS","PDT"],["DF","7777","SARAH PONCIO","SOLIDARIEDADE"],["DF","3530","SARGENTO GILBERTO BOMBEIRO","DEMOCRATA"],["DF","2208","SARGENTO GURGEL","PL"],["DF","2000","SARGENTO PORTUGAL","PODE"],["DF","3555","SATURNINO","DEMOCRATA"],["DF","4066","SELMINHA SORRISO","PSB"],["DF","7011","SERAFIM","AVANTE"],["DF","4033","SERGINHO DA SINUCA","PSB"],["DF","4523","SÉRGIO PINA","PSDB"],["DF","4525","SEVERINO DIAS","PSDB"],["DF","2240","SGT BATATA","PL"],["DF","5540","SHERAZADE","PSD"],["DF","3333","SHIRLEI ENGEL","MOBILIZA"],["DF","4032","SIDNEY JESUS","PSB"],["DF","2040","SILVANA DA FAZENDA DA LAJE","PODE"],["DF","5518","SILVIA ARÃO","PSD"],["DF","3099","SILVIA BLUMBERG","NOVO"],["DF","2712","SIMONE CLARA","DC"],["DF","2736","SIMONE CRYSTAL","DC"],["DF","7001","SIMONE OLIVEIRA","AVANTE"],["DF","7071","SIMONE PIMENTEL","AVANTE"],["DF","2760","SOLANGE SOUZA","DC"],["DF","2715","SONINHA ANIBAL","DC"],["DF","4469","SONINHA DE QUINTINO","UNIÃO"],["DF","2222","SORAYA SANTOS","PL"],["DF","2277","SÓSTENES CAVALCANTE","PL"],["DF","1224","STELLA GAIO","PDT"],["DF","2059","STOPPA","PODE"],["DF","1312","SUB ANTÔNIO ANDRADE","PT"],["DF","4590","SUBTENENTE BERNARDO","PSDB"],["DF","7078","SUELEN LIMA","AVANTE"],["DF","4006","SUSTENTARE IDÁLIA","PSB"],["DF","1377","TAINÁ DE PAULA","PT"],["DF","5077","TALÍRIA PETRONE","PSOL"],["DF","4501","TALITA GALHARDO","PSDB"],["DF","5512","TANGO","PSD"],["DF","5000","TARCÍSIO MOTTA","PSOL"],["DF","1053","TATAL DE MARECHAL","REPUBLICANOS"],["DF","2018","TATIANA AGDA","PODE"],["DF","4013","TATIANA ROQUE","PSB"],["DF","1078","TATY FURACÃO","REPUBLICANOS"],["DF","4511","TAYANE MÃE DO GUI","PSDB"],["DF","1477","THAYENNE PERRIER","MISSÃO"],["DF","7723","THIAGO DA SAÚDE","SOLIDARIEDADE"],["DF","2227","THIAGO GAGLIASSO","PL"],["DF","2055","THIAGO GEDEON","PODE"],["DF","4433","THIAGO LIMÃO","UNIÃO"],["DF","3088","THIAGO LYRA","NOVO"],["DF","2017","THIAGO NAZARETH","PODE"],["DF","3536","THIAGO NUNES","DEMOCRATA"],["DF","3588","THIAGO O AMIGO DO POVO","DEMOCRATA"],["DF","1232","THIAGO VALERIO","PDT"],["DF","1406","THIAGO VILLAÇA","MISSÃO"],["DF","1510","THIAGO ZANATA","MDB"],["DF","4413","TIA CRIS","UNIÃO"],["DF","2047","TIA JÔ DO POVO","PODE"],["DF","7727","TIA VANESSA","SOLIDARIEDADE"],["DF","4585","TIAGO CARECA","PSDB"],["DF","2019","TONI CARVALHO","PODE"],["DF","1225","TONINHO BONDADE","PDT"],["DF","4014","VAGNER MARTINS","PSB"],["DF","1321","VALDO TAVARES","PT"],["DF","2909","VALÉRIA BARBALHO","PCO"],["DF","3073","VALMIR DE ALMEIDA","NOVO"],["DF","5561","VANDO LUZ","PSD"],["DF","1533","VANDREA FURQUIM","MDB"],["DF","2230","VANESSA SILVA","PL"],["DF","4027","VANESSINHA MONTEIRO","PSB"],["DF","7070","VENISSIUS","AVANTE"],["DF","4021","VERÔNICA INÁCIO","PSB"],["DF","1084","VET. L. CESAR","REPUBLICANOS"],["DF","1414","VICTOR ANTOUN","MISSÃO"],["DF","1566","VICTOR MAZZEI","MDB"],["DF","1433","VICTOR MENEZES","MISSÃO"],["DF","1256","VIGILANTE JORGE ROSA","PDT"],["DF","2077","VILELA","PODE"],["DF","3313","VILMAR A GUERREIRA DA ZONA OES","MOBILIZA"],["DF","1239","VINICIUS ASSIS","PDT"],["DF","4415","VINICIUS FARAH","UNIÃO"],["DF","7021","VINICIUS LO BIANCO","AVANTE"],["DF","2740","VINICIUS PRUDÊNCIO","DC"],["DF","1357","VITOR ARANHA","PT"],["DF","1200","VITOR JUNIOR","PDT"],["DF","7010","VIVIANE CARVALHO","AVANTE"],["DF","1110","VIVIANE FERNANDES","PP"],["DF","7707","VIVIANE PETISCO","SOLIDARIEDADE"],["DF","1019","VLADE GUERRA","REPUBLICANOS"],["DF","2044","WAGNER COE","PODE"],["DF","2700","WAGNER COELHO","DC"],["DF","1201","WANDERSON NOGUEIRA","PDT"],["DF","3071","WASHINGTON SORIO","NOVO"],["DF","7000","WELINGTON BRAGA","AVANTE"],["DF","4479","WELLINGTON JOSÉ","UNIÃO"],["DF","7055","WILIAM EMILIANO","AVANTE"],["DF","5022","WILIANS DOUGLAS","PSOL"],["DF","1278","WILL DO GUETTO","PDT"],["DF","2727","WILLIAM CORREIA","DC"],["DF","7040","WILLIAN COELHO","AVANTE"],["DF","3520","WILSON PERNA TORTA","DEMOCRATA"],["DF","7717","WILSON PROTETOR","SOLIDARIEDADE"],["DF","2008","WILSON SOUSA","PODE"],["DF","2258","WLADIMIR GAROTINHO","PL"],["DF","1401","YAGO MEDEIROS","MISSÃO"],["DF","1530","YARA VELLASCO","MDB"],["DF","2757","YUL GOMES","DC"],["DF","3355","ZÉ NINGUEM","MOBILIZA"],["DF","1099","ZE ROBERTO AMIGO DO POVO","REPUBLICANOS"],["DF","1266","ZEZÉ AMIGA DE FÉ","PDT"],["DF","1014","ZOINHO","REPUBLICANOS"],["DE","12514","ABIGUAR","PDT"],["DE","30121","ADAIR VIEIRA","NOVO"],["DE","27001","ADEMIR MARTINS","DC"],["DE","27049","ADEMIR RODRIGUES","DC"],["DE","13620","ADILSON PIRES","PT"],["DE","11009","ADRIANA ANTUNES","PP"],["DE","40822","ADRIANO RODRIGUES","PSB"],["DE","23980","AGUEDA MOURA","CIDADANIA"],["DE","55007","AGUINALDO LUIS","PSD"],["DE","40135","AILTON FREITAS","PSB"],["DE","70678","ALAN KARDECK","AVANTE"],["DE","22377","ALAN LOPES","PL"],["DE","40222","ALAN MANSUR","PSB"],["DE","33789","ALANZINHO DA SAUDE","MOBILIZA"],["DE","30077","ALBA MONTEIRO","NOVO"],["DE","15116","ALBERTO FRANÇA","MDB"],["DE","30230","ALBERTO HABIB","NOVO"],["DE","15099","ALBERTO NÓBREGA","MDB"],["DE","70776","ALBERTO RANGEL","AVANTE"],["DE","45605","ALBINO BATISTA","PSDB"],["DE","70456","ALCEMIR MACIEL","AVANTE"],["DE","27223","ALCIMAR BORGES","DC"],["DE","12033","ALCYR BARÃO","PDT"],["DE","30999","ALESSANDRA ESEQUIEL","NOVO"],["DE","45077","ALESSANDRA OLIVEIRA","PSDB"],["DE","30577","ALESSANDRA TEIXEIRA","NOVO"],["DE","45222","ALESSANDRO MUTANTE","PSDB"],["DE","55755","ALEX AMARANTE","PSD"],["DE","77676","ALEX DA CONFECÇÃO","SOLIDARIEDADE"],["DE","30120","ALEX FARAH","NOVO"],["DE","77251","ALEX MAGAR","SOLIDARIEDADE"],["DE","36433","ALEX MELIM","AGIR"],["DE","36644","ALEX OLIVEIRA","AGIR"],["DE","33324","ALEX SERVO","MOBILIZA"],["DE","22789","ALEXANDRA MOREIRA","PL"],["DE","30005","ALEXANDRE ABELHA","NOVO"],["DE","30636","ALEXANDRE AGUIAR","NOVO"],["DE","77888","ALEXANDRE BATISTA","SOLIDARIEDADE"],["DE","27004","ALEXANDRE COUTINHO","DC"],["DE","25625","ALEXANDRE COUTO","PRD"],["DE","12111","ALEXANDRE DO PORTO","PDT"],["DE","35033","ALEXANDRE FERRÃO","DEMOCRATA"],["DE","30007","ALEXANDRE FREITAS","NOVO"],["DE","45453","ALEXANDRE INOCÊNCIO","PSDB"],["DE","22077","ALEXANDRE ISQUIERDO MALAFAIA","PL"],["DE","22722","ALEXANDRE KNOPLOCH","PL"],["DE","30047","ALEXANDRE MARCIANO","NOVO"],["DE","70555","ALEXANDRE SALGADO","AVANTE"],["DE","50800","ALEXANDRE VR ABANDONADA","PSOL"],["DE","40209","ALEXXA","PSB"],["DE","70838","ALIBABA DO MAGAÇA","AVANTE"],["DE","20222","ALIETE DANTAS","PODE"],["DE","12182","ALINA VIEIRA","PDT"],["DE","25321","ALINE LOPES","PRD"],["DE","36012","ALINE LOSSANO","AGIR"],["DE","22522","ALINE MUNIZ","PL"],["DE","70014","ALISSON COC","AVANTE"],["DE","13650","ALLYSON ELIAS","PT"],["DE","70123","ALMIR RANGEL","AVANTE"],["DE","18013","ALVARO TRAVASSOS","REDE"],["DE","55632","ALZENIR","PSD"],["DE","33018","AMANDA DINIZ","MOBILIZA"],["DE","27300","ANA DA SAUDE","DC"],["DE","70666","ANA LUCIA COSTA","AVANTE"],["DE","30177","ANA LUÍSA","NOVO"],["DE","30222","ANA PAULA GOLDBACH","NOVO"],["DE","55500","ANA PAULA MENDES","PSD"],["DE","27260","ANA PAULA REIS PRETA DE FÉ","DC"],["DE","25023","ANA PAULA RODEIO","PRD"],["DE","77233","ANA SAGÁRIO","SOLIDARIEDADE"],["DE","33633","ANANIAS BERNARDO","MOBILIZA"],["DE","27125","ANDERSON BIGU","DC"],["DE","12200","ANDERSON DA SAUDE","PDT"],["DE","27010","ANDERSON GRANIÇO","DC"],["DE","27007","ANDERSON KYBBA","DC"],["DE","22120","ANDERSON MORAES","PL"],["DE","70474","ANDERSON PESSANHA","AVANTE"],["DE","50080","ANDERSON RIBEIRO","PSOL"],["DE","15615","ANDINHO DJ","MDB"],["DE","33036","ANDRE BALBINA GARI ATIVISTA","MOBILIZA"],["DE","14444","ANDRÉ BRANDÃO","MISSÃO"],["DE","13567","ANDRÉ CECILIANO","PT"],["DE","55321","ANDRÉ CORREA","PSD"],["DE","10999","ANDRE DAS CLÍNICAS","REPUBLICANOS"],["DE","33027","ANDRE DO FLAMENGO","MOBILIZA"],["DE","10020","ANDRE FERREIRA EM AÇÃO","REPUBLICANOS"],["DE","23222","ANDRÉ MARTINS","CIDADANIA"],["DE","77190","ANDRÉ RIOS","SOLIDARIEDADE"],["DE","40001","ANDRÉ SALVADOR","PSB"],["DE","43937","ANDRÉ TAVARES","PV"],["DE","11199","ANDRÉA GERMANO","PP"],["DE","35092","ANDREA HORNE","DEMOCRATA"],["DE","12423","ANDREA RIBEIRO","PDT"],["DE","43123","ANDREIA ZITO","PV"],["DE","33040","ANDREZA BRAZIL","MOBILIZA"],["DE","35533","ANGELA SIMOES","DEMOCRATA"],["DE","12177","ANGELICA MOREIRA","PDT"],["DE","35541","ANGELINA GONZAGA","DEMOCRATA"],["DE","12179","ANNA CRISTINA PINHEIRO","PDT"],["DE","55554","ANNIBAL DA PAZ","PSD"],["DE","45010","ANTONIO FRANÇA","PSDB"],["DE","20067","ANTONIO GONÇALVES","PODE"],["DE","15022","APÓSTOLA MARINA AGUIAR","MDB"],["DE","27888","ARARIBÓIA","DC"],["DE","35088","ARI DA COPA","DEMOCRATA"],["DE","30500","ARNALDO BALTAZAR","NOVO"],["DE","77222","ARTHUR MONTEIRO","SOLIDARIEDADE"],["DE","33425","ASHILEY XAVIER","MOBILIZA"],["DE","40234","ASSIS FREITAS","PSB"],["DE","55055","ÁTILA NUNES","PSD"],["DE","45233","AUGUSTO DE CARVALHO","PSDB"],["DE","27277","AUGUSTO EMILIO","DC"],["DE","15144","AUGUSTO PEREIRA","MDB"],["DE","27362","B1 TORRES","DC"],["DE","77778","BABA RODRIGO","SOLIDARIEDADE"],["DE","12678","BADI","PDT"],["DE","35999","BAIANO AUDACIA PURA","DEMOCRATA"],["DE","35030","BARBARA MAIA","DEMOCRATA"],["DE","27079","BARBUDO DA Z.O","DC"],["DE","25333","BATATA","PRD"],["DE","40852","BATATINHA","PSB"],["DE","33100","BENEDITO CARA NOVA","MOBILIZA"],["DE","35100","BENJAMIN BERECO DA SAÚDE","DEMOCRATA"],["DE","55140","BERNARDO SANTORO","PSD"],["DE","13513","BERRIEL","PT"],["DE","12999","BETÃO PEZÃO","PDT"],["DE","77345","BIA AQUINO","SOLIDARIEDADE"],["DE","55024","BIA BOGOSSIAN","PSD"],["DE","20456","BIA CRUZ","PODE"],["DE","27770","BIANCA NETO","DC"],["DE","80800","BIANCA RUBIM","UP"],["DE","27555","BIL KELE BK","DC"],["DE","27000","BIMBIM PORTELLA","DC"],["DE","15132","BISPA NEULY BARROS","MDB"],["DE","27077","BISPA ROSILENE OLIMPIO","DC"],["DE","70533","BISPO MARCELO","AVANTE"],["DE","12011","BISPO REIS DA SAÚDE","PDT"],["DE","30193","BOMBA","NOVO"],["DE","10193","BOMBEIRO PIRES VAZ","REPUBLICANOS"],["DE","25016","BONITO REIS","PRD"],["DE","12007","BRANCA SANTOS","PDT"],["DE","45965","BRUNA MELLO","PSDB"],["DE","13555","BRUNNÃO REALLEZA","PT"],["DE","22369","BRUNO BOARETTO","PL"],["DE","70019","BRUNO DA ACADEMIA","AVANTE"],["DE","44888","BRUNO DAUAIRE","UNIÃO"],["DE","30311","BRUNO GUERRA","NOVO"],["DE","22822","BRUNO LESSA","PL"],["DE","77119","BRUNO MAX","SOLIDARIEDADE"],["DE","22220","BRUNO PORTO","PL"],["DE","35070","BRUNO RYU","DEMOCRATA"],["DE","43400","BRUNO VACA","PV"],["DE","50033","CABELINHO TURISMO","PSOL"],["DE","77277","CAMILA PALERMO","SOLIDARIEDADE"],["DE","20332","CANTOR MARCOS SILVA","PODE"],["DE","35031","CAPITÃO NASCIMENTO","DEMOCRATA"],["DE","12016","CARLA CASTILHO","PDT"],["DE","15025","CARLA M MORAES","MDB"],["DE","55088","CARLA MACHADO","PSD"],["DE","11444","CARLA SAAR","PP"],["DE","11777","CARLINHOS BNH","PP"],["DE","33003","CARLINHOS CUNHA","MOBILIZA"],["DE","27014","CARLINHOS PRÓ MENOR","DC"],["DE","45016","CARLINHOS VIEIRA - THE BEST 16","PSDB"],["DE","27700","CARLOS ADRIANO","DC"],["DE","15069","CARLOS ALEXANDRE","MDB"],["DE","30276","CARLOS CABRAL","NOVO"],["DE","11131","CARLOS CUNHA","PP"],["DE","10100","CARLOS MACEDO","REPUBLICANOS"],["DE","40000","CARLOS MINC","PSB"],["DE","27777","CARLOS RUSSO","DC"],["DE","33023","CARLOS VAMPETA","MOBILIZA"],["DE","22888","CAROL DE CAXIAS","PL"],["DE","33000","CAROL DO TAXI","MOBILIZA"],["DE","55121","CAROL GUEDES","PSD"],["DE","13333","CAROL ONTIVEROS","PT"],["DE","27008","CAROLINA PERIS","DC"],["DE","30555","CASSIUS VIEIRA","NOVO"],["DE","70321","CAUTELA","AVANTE"],["DE","36366","CECEL SANTOS","AGIR"],["DE","70223","CECÍLIA MENDES","AVANTE"],["DE","33366","CEIÇA PEREIRA","MOBILIZA"],["DE","55155","CELIA JORDÃO","PSD"],["DE","15009","CELIA MENEZES","MDB"],["DE","35455","CELSO DA ROÇA","DEMOCRATA"],["DE","43000","CÉSAR","PV"],["DE","45111","CÉSAR ALMEIDA","PSDB"],["DE","35025","CESAR VIGILANTE","DEMOCRATA"],["DE","40630","CESINHA COM TODO GÁS","PSB"],["DE","36200","CEZARIO","AGIR"],["DE","15111","CHARLES COZZOLINO","MDB"],["DE","45450","CHARLES FISCAL DO POVO","PSDB"],["DE","22611","CHICO MACHADO","PL"],["DE","70345","CHIQUINHO DA MANGUEIRA","AVANTE"],["DE","27332","CHIQUINHO DO GEBARA","DC"],["DE","45132","CHIQUINHO DO PANDEIRO","PSDB"],["DE","27150","CHIQUINHO TRINDADE","DC"],["DE","45004","CHRIS DA QUATRO PATINHAS","PSDB"],["DE","36633","CHRIS NERI","AGIR"],["DE","55789","CHRISTIAN BERNARDO","PSD"],["DE","40520","CHRISTIANE RODRIGUES","PSB"],["DE","30330","CHRISTINE MOUTINHO","NOVO"],["DE","12051","CHUPA CABRA","PDT"],["DE","11040","CIANA VIANA","PP"],["DE","27003","CICA SOM","DC"],["DE","55200","CIDINHO SAMPAIO","PSD"],["DE","45202","CINTHIA CASTILHO","PSDB"],["DE","50000","CLARICE CHACON","PSOL"],["DE","55533","CLARICE SANTOS","PSD"],["DE","30777","CLAUDIA BELLO","NOVO"],["DE","30003","CLÁUDIA BODART","NOVO"],["DE","77750","CLÁUDIA BRAGA","SOLIDARIEDADE"],["DE","27444","CLAUDIA FERREIRA","DC"],["DE","40011","CLAUDIA RESPEITA","PSB"],["DE","55001","CLAUDIA VASCONCELLOS","PSD"],["DE","27134","CLAUDINHA","DC"],["DE","55622","CLAUDIO CAIADO","PSD"],["DE","12013","CLAUDIO CEZAR","PDT"],["DE","20153","CLÁUDIO SILVA","PODE"],["DE","10021","CLAYTON OLIVEIRA","REPUBLICANOS"],["DE","10505","CLEIDE DUARTE","REPUBLICANOS"],["DE","44488","CLEISSIANE","UNIÃO"],["DE","10666","CLEITON SILVA","REPUBLICANOS"],["DE","22311","CLEMILDA CLÉO MENDONÇA","PL"],["DE","12312","CLOVINHO SEMPRE JUNTO","PDT"],["DE","22234","COMANDANTE FELIPE","PL"],["DE","10007","COMISSARIO ARANHA","REPUBLICANOS"],["DE","35020","COMISSARIO IVAN BAPTISTA","DEMOCRATA"],["DE","45555","COMISSÁRIO MARCIO GARCIA","PSDB"],["DE","27200","CONRADO","DC"],["DE","30038","CORONEL GERMANO","NOVO"],["DE","77191","CORONEL JÚNIOR","SOLIDARIEDADE"],["DE","36555","CORONEL LENISE DURÃO","AGIR"],["DE","30030","CORONEL LEOCIR DAL PAI","NOVO"],["DE","22922","CORONEL MARCIO","PL"],["DE","22001","CORONEL MENEZES","PL"],["DE","10051","CORONEL WILLIAM  SODRE","REPUBLICANOS"],["DE","30333","COSTENARO","NOVO"],["DE","30200","CREMILDO VIGILANTE","NOVO"],["DE","25220","CRIS DA SUSTENTABILIDADE","PRD"],["DE","70077","CRIS DO CARNEIRINHO","AVANTE"],["DE","33700","CRIS GOULART","MOBILIZA"],["DE","55180","CRIS KAIZER","PSD"],["DE","50666","CRISTIANE NASCIMENTO","PSOL"],["DE","20880","CRISTIANE RODRIGUES","PODE"],["DE","27199","CRISTIANO NOGUEIRA","DC"],["DE","70931","CRISTIANO SANTOS","AVANTE"],["DE","11888","CYNTHIA AUGUSTO","PP"],["DE","23765","D GLÓRIA","CIDADANIA"],["DE","35457","DAIANA SILVA","DEMOCRATA"],["DE","44180","DAIANE LUNA","UNIÃO"],["DE","70523","DAIZINHO","AVANTE"],["DE","77733","DALIELSON BERTO","SOLIDARIEDADE"],["DE","33063","DALMO JORGE EDUCADOR","MOBILIZA"],["DE","65123","DANI BALBI","PCDOB"],["DE","45110","DANI DO POVO","PSDB"],["DE","45333","DANI LEAL","PSDB"],["DE","10610","DANI MARTINS","REPUBLICANOS"],["DE","50050","DANI MONTEIRO","PSOL"],["DE","55190","DANIEL CORREA","PSD"],["DE","20055","DANIEL DO NASCIMENTO","PODE"],["DE","22002","DANIEL MARQUES","PL"],["DE","36222","DANIELZINHO","AGIR"],["DE","35003","DANY VAN TOL","DEMOCRATA"],["DE","35935","DARIL NOGUEIRA","DEMOCRATA"],["DE","55011","DAVI DO ESPORTE","PSD"],["DE","36011","DAVID LOURENÇO","AGIR"],["DE","20555","DAVID NOGUEIRA","PODE"],["DE","20705","DAVIZINHO DO PODEMOS","PODE"],["DE","30307","DAYAN VOLTRI7","NOVO"],["DE","18021","DE LOYS","REDE"],["DE","36005","DÉBORA CAUSA ANIMAL","AGIR"],["DE","15026","DÉBORA MAGALHÃES","MDB"],["DE","30001","DÉBORA PONTES","NOVO"],["DE","12180","DEBORA SARAIVA","PDT"],["DE","40450","DEISE FRANKLIN","PSB"],["DE","10888","DELEGADA TATIANA QUEIROZ","REPUBLICANOS"],["DE","11222","DELEGADO BERNARDO LEAL","PP"],["DE","22045","DELEGADO CARLOS AUGUSTO","PL"],["DE","55015","DELEGADO LÉO","PSD"],["DE","15555","DELEGADO MARCUS VINICIUS","MDB"],["DE","36008","DELEGADO RUCHESTER","AGIR"],["DE","11404","DELLON DA JUVENTUDE","PP"],["DE","77383","DENIS DO SKATE","SOLIDARIEDADE"],["DE","40637","DENISE VIEIRA","PSB"],["DE","13002","DEVALDO","PT"],["DE","27177","DHEMA CANTOR","DC"],["DE","44117","DI RIBEIRO","UNIÃO"],["DE","70544","DIANA LIMA","AVANTE"],["DE","45455","DIEGO ALBA","PSDB"],["DE","33333","DIEGO MARQUES","MOBILIZA"],["DE","30190","DIEGO MORENO","NOVO"],["DE","70015","DILSON DE LUCA","AVANTE"],["DE","20123","DINEY MARINS","PODE"],["DE","44122","DINHO DO CANELLA","UNIÃO"],["DE","35762","DINHO GOMES PQD","DEMOCRATA"],["DE","40351","DINNY DA VILA","PSB"],["DE","33107","DIOGO NASCIMENTO","MOBILIZA"],["DE","25000","DIOGO TALENTO","PRD"],["DE","45554","DIOGO VENTURA","PSDB"],["DE","11111","DIONISIO LINS","PP"],["DE","55018","DIRETORA ANA PAULA","PSD"],["DE","35123","DISRAELI ULRICH","DEMOCRATA"],["DE","22007","DONIZETE PANTERA","PL"],["DE","70777","DOUTOR LUISINHO JUNIOR","AVANTE"],["DE","45666","DOUTORA MARCIA VALERIA","PSDB"],["DE","70193","DR BRUNO BOMBEIRO","AVANTE"],["DE","36700","DR CURY-HABIB","AGIR"],["DE","40369","DR GILMAR SANTOS","PSB"],["DE","40007","DR GLÁUCIO TAI CHI","PSB"],["DE","40153","DR HAROLDO BUNN","PSB"],["DE","11772","DR J SANTANA","PP"],["DE","12789","DR RAFAEL BRASIEL","PDT"],["DE","30006","DR RICARDO BITENCOURT","NOVO"],["DE","40040","DR SÉRGIO","PSB"],["DE","30900","DR VLAMIR GOULART","NOVO"],["DE","35897","DR.  RICARDO","DEMOCRATA"],["DE","27222","DR. ACYR AGUIAR","DC"],["DE","27021","DR. ALI","DC"],["DE","11678","DR. ALOISIO BARBOSA","PP"],["DE","44222","DR. ANDRINHO","UNIÃO"],["DE","11011","DR. BERNARDO BARROS","PP"],["DE","22456","DR. DEODALTO","PL"],["DE","10190","DR. ELIEZER","REPUBLICANOS"],["DE","33111","DR. FABIANO ROZEMBRACH","MOBILIZA"],["DE","22555","DR. GRAZI MACEDO","PL"],["DE","45999","DR. HENRIQUE PAES","PSDB"],["DE","33500","DR. JOÃO BAPTISTA","MOBILIZA"],["DE","15333","DR. JOSÉ RIBEIRO","MDB"],["DE","33888","DR. LEONARDO ARAGÃO","MOBILIZA"],["DE","15021","DR. LEONARDO MAZZUTTI","MDB"],["DE","55255","DR. LUCAS","PSD"],["DE","11322","DR. MARCELLO AUTRAN","PP"],["DE","10131","DR. MARCOS FERNANDES","REPUBLICANOS"],["DE","40123","DR. MARCOS PAULO","PSB"],["DE","11789","DR. MARCUS GUEDES","PP"],["DE","12022","DR. MAURICIO","PDT"],["DE","77555","DR. NORIVAL JÚNIOR","SOLIDARIEDADE"],["DE","35060","DR. PAULO MARCELO","DEMOCRATA"],["DE","22000","DR. PEDRO RICARDO","PL"],["DE","33123","DR. RENATO DE PAULA","MOBILIZA"],["DE","30101","DR. ROBERTO AZEVEDO","NOVO"],["DE","22123","DR. ROGERIO AMORIM","PL"],["DE","35081","DR.. ELIONE","DEMOCRATA"],["DE","15888","DR.RODRIGO SCHRÖDER","MDB"],["DE","10101","DRA ALEXANDRA GOMES","REPUBLICANOS"],["DE","10661","DRA DENISE CORDEIRO","REPUBLICANOS"],["DE","22400","DRA HELEN VITA","PL"],["DE","40567","DRA MARIANA MORAES","PSB"],["DE","11555","DRA NATÁLIA NEGREIROS","PP"],["DE","30011","DRA THAÍS MUQUICI","NOVO"],["DE","10985","DRA. DANIELE SANTOS","REPUBLICANOS"],["DE","45633","DRA. FÁTIMA","PSDB"],["DE","22122","DRA. GABRIELA","PL"],["DE","55571","DRA. GLÁUCIA ARAÚJO","PSD"],["DE","36963","DRA. GLAURA","AGIR"],["DE","55577","DRA. GLÓRIA","PSD"],["DE","33755","DRA. JANAINA TRINTIN","MOBILIZA"],["DE","20021","DRA. REGINA EVARISTO","PODE"],["DE","44001","DRA. RENATA MELO","UNIÃO"],["DE","36110","DRA. VALERIA MATOS","AGIR"],["DE","70132","DRIKA","AVANTE"],["DE","44567","DUDA GANEM","UNIÃO"],["DE","27456","DUDU","DC"],["DE","80456","DULCE","UP"],["DE","13167","DURVAL PEÇANHA","PT"],["DE","20500","DYONNE DE SEROPÉDICA","PODE"],["DE","35493","ED. VELÔZO","DEMOCRATA"],["DE","36300","EDER COSTA, O EDINHO","AGIR"],["DE","27327","EDILMA DA QUENTINHA","DC"],["DE","10033","EDMAR BRAGA","REPUBLICANOS"],["DE","13813","EDNA CALHEIROS MANDATOCOLETIVO","PT"],["DE","30122","EDPO FELIX","NOVO"],["DE","15088","EDSON ALBERTASSI","MDB"],["DE","15280","EDSON CHARLY","MDB"],["DE","12346","EDSON RIBEIRO PITIMBU","PDT"],["DE","13611","EDUARDO ACOSTA","PT"],["DE","70111","EDUARDO CABRAL","AVANTE"],["DE","20228","EDUARDO ROSA","PODE"],["DE","30055","ELAINE CONSTANTINO","NOVO"],["DE","77180","ELAINE MARTINS","SOLIDARIEDADE"],["DE","12003","ELAINE OLIVEIRA","PDT"],["DE","20088","ELAINE SOARES A PATROA","PODE"],["DE","40455","ELI DA REFRIGERAÇÃO","PSB"],["DE","15612","ELIANE MENDES","MDB"],["DE","35685","ELIANE SILVA","DEMOCRATA"],["DE","70100","ELIAS DE JESUS","AVANTE"],["DE","22011","ELIAS MONTES","PL"],["DE","45145","ELIEZER ROCHA","PSDB"],["DE","13021","ELIKA TAKIMOTO","PT"],["DE","55077","ELINETE GIRARD","PSD"],["DE","18000","ELIOMAR COELHO","REDE"],["DE","55033","ELIS ALMEIDA","PSD"],["DE","36989","ELIS QUERIDINHA","AGIR"],["DE","22424","ELISA SORRISO","PL"],["DE","12005","ELKER JAÉ","PDT"],["DE","33322","ELNA MÜLLER","MOBILIZA"],["DE","55222","ELTON CRISTO","PSD"],["DE","80123","ELZA E EUNICE DO MLB","UP"],["DE","50100","EMANUEL ALENCAR","PSOL"],["DE","70057","EMILIA SOUZA","AVANTE"],["DE","35044","ENF. FERNANDA","DEMOCRATA"],["DE","27713","ENFERMEIRA BERNARDETE LIMA","DC"],["DE","55188","ENFERMEIRA DENISE CUSTÓDIO","PSD"],["DE","30054","ENFERMEIRA ERCILENE ARAÚJO","NOVO"],["DE","35034","ENFERMEIRA FLOR","DEMOCRATA"],["DE","11192","ENFERMEIRA KA BARBOSA","PP"],["DE","11227","ENFERMEIRA LUCIENE","PP"],["DE","27227","ENGENHEIRO MACHADO","DC"],["DE","44777","ENGENHEIRO URUAN","UNIÃO"],["DE","40556","ERICA DA SAÚDE","PSB"],["DE","35700","ÉRICA FERREIRA","DEMOCRATA"],["DE","30707","ERICK CRUZ","NOVO"],["DE","70070","ERICO DO GANEM","AVANTE"],["DE","10093","ERIK JULIO","REPUBLICANOS"],["DE","70040","ERIKA COELHO","AVANTE"],["DE","27369","ERIKA MÃEZONA","DC"],["DE","13150","ERIVALDO FILHO","PT"],["DE","45800","ETIENNE CIMINELLI","PSDB"],["DE","27005","EUGENIA BONDIM","DC"],["DE","33016","EUGENIO GRATIDÃO","MOBILIZA"],["DE","80123","EUNICE DO MLB","UP"],["DE","40140","EVANDRO BRASIL","PSB"],["DE","35035","EVANDRO LOURENÇO O GENTE NOSSA","DEMOCRATA"],["DE","40111","EZAQUIEL SIQUEIRA","PSB"],["DE","36026","FABÃO FULLTIMETV","AGIR"],["DE","12311","FABI CARMO","PDT"],["DE","30111","FABIANA RECREART","NOVO"],["DE","55025","FABIANA RODRIGUES","PSD"],["DE","30009","FABIANE RODRIGUES","NOVO"],["DE","36123","FABIANI VASCONCELLOS","AGIR"],["DE","15881","FABIANO ORELHA","MDB"],["DE","45522","FABINHO CÂMARA","PSDB"],["DE","15678","FABIO BARDO","MDB"],["DE","33778","FABIO CHAVES","MOBILIZA"],["DE","70001","FABIO COSTA","AVANTE"],["DE","13706","FABIO DOUTOR FOSFORO","PT"],["DE","12099","FABIO FEIJÓ","PDT"],["DE","44300","FABIO SILVA","UNIÃO"],["DE","45399","FABIO SOARES","PSDB"],["DE","40611","FABÍOLA DO BALNEÁRIO","PSB"],["DE","50010","FABÍOLA RODRIGUES","PSOL"],["DE","43334","FELIPE ALVES","PV"],["DE","45444","FELIPE DOS APOSENTADOS","PSDB"],["DE","11021","FELIPE MICHEL","PP"],["DE","11123","FELIPE PAMPOLHA","PP"],["DE","12666","FELIPE SANGINETO","PDT"],["DE","33666","FELIPE SOMMER","MOBILIZA"],["DE","22200","FELIPE TROPA","PL"],["DE","11500","FELIPINHO RAVIS","PP"],["DE","55288","FERNANDA LEAL","PSD"],["DE","22202","FERNANDA LOUBACK","PL"],["DE","12000","FERNANDA NEVES","PDT"],["DE","27022","FERNANDO ALEX","DC"],["DE","30313","FERNANDO BICUDO","NOVO"],["DE","30303","FERNANDO BRAZ","NOVO"],["DE","10800","FERNANDO COLOSSO","REPUBLICANOS"],["DE","15041","FERNANDO SANTA CRUZ","MDB"],["DE","30100","FERREIRA","NOVO"],["DE","44555","FILIPE BUSTILHO","UNIÃO"],["DE","45678","FILIPE RR SOARES","PSDB"],["DE","25555","FLAVIA THOMAZ","PRD"],["DE","70113","FLAVIANO COELHO","AVANTE"],["DE","70099","FLAVIO FREITAS","AVANTE"],["DE","40023","FLÁVIO SANTA MARTA","PSB"],["DE","50123","FLAVIO SERAFINI","PSOL"],["DE","55501","FLAVIO VALLE","PSD"],["DE","11122","FOLHA","PP"],["DE","35675","FRANCIANA MACHADO","DEMOCRATA"],["DE","77077","FRANCIMARA AZEREDO","SOLIDARIEDADE"],["DE","35656","FRANCISCO ARAUJO O TICA","DEMOCRATA"],["DE","11636","FRANCISCO FILHO CHIQUINHO","PP"],["DE","15800","FRANCISCO FLORIANO","MDB"],["DE","36363","FRANCISCO NACELIO","AGIR"],["DE","22010","FRED PACHECO","PL"],["DE","15222","FRED PROCÓPIO","MDB"],["DE","10026","FRED ROCHA","REPUBLICANOS"],["DE","10555","GABRIEL GONÇALVES","REPUBLICANOS"],["DE","36777","GABRIEL MIELGO","AGIR"],["DE","20333","GALÔ FERNANDES","PODE"],["DE","40124","GARDÊNIA GRIGORIO DO TRABALHO","PSB"],["DE","10077","GAYOSO","REPUBLICANOS"],["DE","11999","GEFERSON DO CQO","PP"],["DE","30130","GENILSON BARROS","NOVO"],["DE","33053","GENILSON GUIMARÃES","MOBILIZA"],["DE","35222","GERSÃO","DEMOCRATA"],["DE","44100","GESIEL LESSA","UNIÃO"],["DE","15779","GIAN MARINS","MDB"],["DE","35777","GIL NEGÃO","DEMOCRATA"],["DE","70333","GIL TORRES","AVANTE"],["DE","30789","GILBERTO ESTEVES","NOVO"],["DE","36006","GILMAR HENRIQUE","AGIR"],["DE","12612","GILSINHO AMIGO","PDT"],["DE","15000","GIOVANI RATINHO","MDB"],["DE","70732","GIOVANNA OLIVEIRÀ","AVANTE"],["DE","15444","GISELE DO TIQUINHO","MDB"],["DE","77677","GISELE NASCIMENTO","SOLIDARIEDADE"],["DE","22500","GISELLE MONTEIRO","PL"],["DE","45100","GLAUBER BASTOS","PSDB"],["DE","45079","GLAUBER ROCHA","PSDB"],["DE","35221","GLAUCIANE MARTINS","DEMOCRATA"],["DE","10173","GLAUCIO MARUJO","REPUBLICANOS"],["DE","27155","GLORIA CALIXTO","DC"],["DE","13677","GRAÇA DO PT","PT"],["DE","10476","GRACIARA VENDEDORA DE DOCES","REPUBLICANOS"],["DE","22777","GREG DUARTE","PL"],["DE","45007","GUARDA GABY","PSDB"],["DE","77433","GUDÊ","SOLIDARIEDADE"],["DE","22222","GUILHERME DELAROLI","PL"],["DE","33444","GUILHERME MENEZES","MOBILIZA"],["DE","55555","GUILHERME SCHLEDER","PSD"],["DE","30002","GUSTAVO BUSSE","NOVO"],["DE","36476","GUSTAVO MANICURO","AGIR"],["DE","11212","GUSTAVO TUTUCA","PP"],["DE","36611","GUSTAVO VILELA","AGIR"],["DE","33456","GUTEMBERGUE DE OLIVEIRA","MOBILIZA"],["DE","12620","HELANIO DE RESENDE","PDT"],["DE","70222","HELCIO ANGELO","AVANTE"],["DE","45789","HELEM CRISTINA","PSDB"],["DE","30021","HELINHO ESTADUAL","NOVO"],["DE","35004","HÉLIO CUNHA","DEMOCRATA"],["DE","12190","HELÔ CORDEIRO","PDT"],["DE","80000","HENDERSON","UP"],["DE","36151","HENRIQUE PIU-PIU","AGIR"],["DE","12129","HERNANDES JOGADOR","PDT"],["DE","22082","HILARY ROUSE","PL"],["DE","13006","HILDER LIGEIRINHO","PT"],["DE","20022","HUDSON FERREIRA","PODE"],["DE","20200","HUDSON TAVARES","PODE"],["DE","10298","HUGO RODRIGUES","REPUBLICANOS"],["DE","36678","HUMBERTO SIQUEIRA","AGIR"],["DE","11258","HYGOR BARCELLOS","PP"],["DE","70270","IANDRA TEMPESTADE","AVANTE"],["DE","13123","IGO MENEZES","PT"],["DE","30430","IGOR BARROS","NOVO"],["DE","36111","IGOR GRINGO","AGIR"],["DE","36999","ILDINHO RESENDE","AGIR"],["DE","15931","INACIO GERALDO","MDB"],["DE","12137","INDIA","PDT"],["DE","22322","ÍNDIA ARMELAU","PL"],["DE","13169","INDIANARAE SIQUEIRA","PT"],["DE","40315","ÍNDIO","PSB"],["DE","40169","INÊS BRASIL","PSB"],["DE","18888","INGRID","REDE"],["DE","20257","INGRID BARBOSA","PODE"],["DE","70000","IRANILDO CAMPOS","AVANTE"],["DE","65131","ISAAC RICALDE","PCDOB"],["DE","33004","ISIS VIANA","MOBILIZA"],["DE","10233","ISLA COSTA","REPUBLICANOS"],["DE","35775","ISRAEL ATLETA","DEMOCRATA"],["DE","10011","ITALO GODINHO","REPUBLICANOS"],["DE","45009","IVAN DO VALLE","PSDB"],["DE","27088","IVANA FARMACÊUTICA","DC"],["DE","40797","IYALORISA JANAINA","PSB"],["DE","27027","JACKSON SOUZA","DC"],["DE","33976","JACQUELINE POEYS","MOBILIZA"],["DE","16016","JAD AVILA","PSTU"],["DE","18121","JAIME ALBINO VELOSO","REDE"],["DE","12026","JAIME AROXA","PDT"],["DE","22300","JAIR BITTENCOURT","PL"],["DE","33033","JAIR RAMOS","MOBILIZA"],["DE","77855","JAIRO BISPO","SOLIDARIEDADE"],["DE","33323","JAIRO MEIRA","MOBILIZA"],["DE","27750","JANAINA DA CIDADE DOS IDOSOS","DC"],["DE","27333","JANE DE ANDRADE","DC"],["DE","30004","JANINHO AUTOESCOLA","NOVO"],["DE","40555","JAQUE JOY","PSB"],["DE","36367","JAQUELINE COSTA","AGIR"],["DE","14222","JAQUELINE VIEIRA","MISSÃO"],["DE","40100","JARI","PSB"],["DE","45003","JARRO PIPAS","PSDB"],["DE","20093","JC AUGUSTO CHAPOLIM","PODE"],["DE","40002","JEAN MORAES","PSB"],["DE","10223","JEAN PIERRE","REPUBLICANOS"],["DE","70722","JEANINE PRESENTE","AVANTE"],["DE","50222","JEFFERSON VINCO","PSOL"],["DE","22021","JEREMAIS SANTOS","PL"],["DE","15677","JERRI MIRANDA","MDB"],["DE","33468","JÔ BENEDICTO","MOBILIZA"],["DE","12230","JOÃO BROTHER","PDT"],["DE","33657","JOÃO CARLOS JC. COMUNIDADE","MOBILIZA"],["DE","25777","JOÃO DRUMOND","PRD"],["DE","13113","JOÃO PANAYOTIS DAMATIS","PT"],["DE","55021","JOÃO PIRES","PSD"],["DE","70300","JOÃO SOARES","AVANTE"],["DE","27788","JOAO SOTZ","DC"],["DE","12777","JOCIMAR FREIRE","PDT"],["DE","18180","JOE VENTURA","REDE"],["DE","33050","JOEL MACHADO","MOBILIZA"],["DE","35121","JOELSON DO ÔNIBUS","DEMOCRATA"],["DE","44044","JONAS FERNANDO","UNIÃO"],["DE","15548","JONATHAN JJ","MDB"],["DE","33376","JORGE ALMEIDA","MOBILIZA"],["DE","20688","JORGE BORGES GAMBÁ","PODE"],["DE","13157","JORGE BRAGA","PT"],["DE","27100","JORGE COUTINHO","DC"],["DE","36615","JORGE DE AUSTIN","AGIR"],["DE","22800","JORGE FELIPPE NETO","PL"],["DE","12712","JORGE KATARINA","PDT"],["DE","45006","JORGE TAVARES","PSDB"],["DE","25123","JORGINHO BRUM","PRD"],["DE","40022","JORGINHO DA URUGUAIANA","PSB"],["DE","10200","JOSE ARAUJO","REPUBLICANOS"],["DE","70775","JOSE CARLOS DE SOUSA","AVANTE"],["DE","40303","JOSÉ EVERALDO","PSB"],["DE","33369","JOSI RIBEIRO","MOBILIZA"],["DE","12025","JOSIAS MOREIRA O HOMEM DO POVO","PDT"],["DE","55510","JOSIÊ NOGUEIRA","PSD"],["DE","35771","JOSIMAR MESQUITA","DEMOCRATA"],["DE","27678","JOSUÉ DE OLIVEIRA","DC"],["DE","10700","JOSUE FROTA","REPUBLICANOS"],["DE","33623","JOVINO DE PAULA","MOBILIZA"],["DE","33060","JOYCE ANDRESSA","MOBILIZA"],["DE","55557","JOYCE TRINDADE","PSD"],["DE","35333","JUAREZ","DEMOCRATA"],["DE","36707","JUCIANE PASSEATA DAS MÃES","AGIR"],["DE","70773","JÚLIO BONFADINI","AVANTE"],["DE","45023","JÚLIO GUERREIRO","PSDB"],["DE","36036","JULIO ROCHA","AGIR"],["DE","55889","JUNIA CARDOSO","PSD"],["DE","18088","JUNINHO SEPETIBA AVERA","REDE"],["DE","55620","JUNIOR DA LUCINHA","PSD"],["DE","45321","JÚNIOR FALCÃO","PSDB"],["DE","40707","JUNIOR MOTOTÁXI","PSB"],["DE","45000","JUNIOR PAIXÃO","PSDB"],["DE","77444","JUNIOR TRAKINAS","SOLIDARIEDADE"],["DE","12222","JUNIOR UIOS","PDT"],["DE","45101","JUSSIE DA CESTA BASICA","PSDB"],["DE","15251","JUVENATO","MDB"],["DE","33389","JVILLAR","MOBILIZA"],["DE","27133","KAKO","DC"],["DE","35200","KALICO MOTOTAXI","DEMOCRATA"],["DE","20622","KAMILA KISUCO","PODE"],["DE","35779","KAREN TINA","DEMOCRATA"],["DE","27101","KARLA BARRETO","DC"],["DE","15115","KARLA DE LUCAS DA RÁDIO","MDB"],["DE","35002","KARLOS BATISTA","DEMOCRATA"],["DE","11001","KAROL MENDEZ","PP"],["DE","36987","KÁTIA DA SAÚDE","AGIR"],["DE","13131","KATIA MACILLO","PT"],["DE","77026","KÁTIA NASCIMENTO","SOLIDARIEDADE"],["DE","36456","KEILA DO TOLDO","AGIR"],["DE","20027","KELLY MATTOS","PODE"],["DE","15018","KLEBER DA ACADEMIA","MDB"],["DE","12555","LACERDA","PDT"],["DE","22888","LAIS JORDY","PL"],["DE","10135","LALA OLIVEIRA","REPUBLICANOS"],["DE","55020","LAPROVITA","PSD"],["DE","45876","LAURA DA SAÚDE","PSDB"],["DE","10456","LEANDRO","REPUBLICANOS"],["DE","33137","LEANDRO DE PAULA","MOBILIZA"],["DE","33200","LEANDRO DOS SANTOS","MOBILIZA"],["DE","70011","LEANDRO GARI","AVANTE"],["DE","33393","LEANDRO GOMES","MOBILIZA"],["DE","33580","LEANDRO GOULART","MOBILIZA"],["DE","20777","LEANDRO LACERDA","PODE"],["DE","77788","LEANDRO MARQUES","SOLIDARIEDADE"],["DE","10789","LECINHO","REPUBLICANOS"],["DE","50900","LEEBLON DA CULTURARJ","PSOL"],["DE","35377","LEILA DA SAUDE","DEMOCRATA"],["DE","50200","LEKO LEONARDO","PSOL"],["DE","55900","LELECO DE COSTA BARROS","PSD"],["DE","77321","LELIANE PINHEIRO","SOLIDARIEDADE"],["DE","40751","LÉLIO","PSB"],["DE","13040","LÉO FRANÇA","PT"],["DE","12345","LEO LUPI","PDT"],["DE","12001","LÉO MAGALHÃES","PDT"],["DE","36789","LÉO TAÍ O ZORRO DE CAXIAS","AGIR"],["DE","45456","LÉO VIEIRA FILHO","PSDB"],["DE","33007","LEONARDO DA VINCI","MOBILIZA"],["DE","77159","LEONARDO TECO","SOLIDARIEDADE"],["DE","13013","LEONEL DE ESQUERDA","PT"],["DE","45777","LESSA","PSDB"],["DE","40809","LEVI ALVES","PSB"],["DE","10000","LIBRELON","REPUBLICANOS"],["DE","10777","LIGIA ALVES","REPUBLICANOS"],["DE","40456","LILI SOLDADORA","PSB"],["DE","77122","LILIAM SÁ","SOLIDARIEDADE"],["DE","65656","LILIAN BEHRING","PCDOB"],["DE","30455","LILIANE LOURENÇO","NOVO"],["DE","22707","LISANDRA CARLOS","PL"],["DE","10212","LISIANY BRAGA","REPUBLICANOS"],["DE","25855","LÍVIA OLIVEIRA","PRD"],["DE","16123","LORRAN NEVES","PSTU"],["DE","35888","LÚ PONTES","DEMOCRATA"],["DE","30026","LUANA GOUVÊA","NOVO"],["DE","50180","LUCIANA BOITEUX","PSOL"],["DE","15005","LUCIANA OROZIMBO","MDB"],["DE","36000","LUCIANA POLATI","AGIR"],["DE","40888","LUCIANA RODRIGUES","PSB"],["DE","20044","LUCIANO AGUALUZA","PODE"],["DE","77501","LUCIANO GARCIA","SOLIDARIEDADE"],["DE","10127","LUCIANO RESENDE","REPUBLICANOS"],["DE","27933","LUCIO LUNNY O GRANDÃO","DC"],["DE","33350","LUIS FILHO","MOBILIZA"],["DE","12147","LUIZ ALEXANDRE","PDT"],["DE","22999","LUIZ JUNIOR","PL"],["DE","45200","LUIZ MARTINS","PSDB"],["DE","55678","LUIZ PAULO","PSD"],["DE","55019","LUIZ RAMOS FILHO","PSD"],["DE","36027","LUIZELERES","AGIR"],["DE","12030","LUIZINHO EVANGELISTA","PDT"],["DE","36002","LUZIA LOPES","AGIR"],["DE","18234","MÃE MARIA DE XANGÔ","REDE"],["DE","12077","MÃE ODÉLEWÁ","PDT"],["DE","77231","MAESTRO JOÃO LUCAS","SOLIDARIEDADE"],["DE","43456","MAICON CRUZ","PV"],["DE","40055","MAICON NASCIMENTO","PSB"],["DE","22762","MAJOR ELITUSALEM","PL"],["DE","25193","MAJOR IZABEL","PRD"],["DE","55762","MAJOR LUIGI","PSD"],["DE","13777","MALLU CÔRTES","PT"],["DE","70471","MALVA","AVANTE"],["DE","45013","MANOEL SALES","PSDB"],["DE","33020","MARA DA ZONA OESTE","MOBILIZA"],["DE","20190","MARCÃO VALLADÃO","PODE"],["DE","55551","MARCELINHO DAS COMUNIDADES","PSD"],["DE","45369","MARCELINO D ALMEIDA","PSDB"],["DE","12012","MARCELL CASTRO DE BARRA MANSA","PDT"],["DE","77770","MARCELLA MELLO","SOLIDARIEDADE"],["DE","70999","MARCELO ABRAHAO","AVANTE"],["DE","35120","MARCELO ARAÚJO","DEMOCRATA"],["DE","35526","MARCELO BARRIL","DEMOCRATA"],["DE","55455","MARCELO CABELEIREIRO","PSD"],["DE","45021","MARCELO DA CONSTRUÇÃO","PSDB"],["DE","22190","MARCELO DINO","PL"],["DE","33878","MARCELO FERNANDES","MOBILIZA"],["DE","40010","MARCELO FRITZ","PSB"],["DE","36444","MARCELO LAJES","AGIR"],["DE","18007","MARCELO NUNES","REDE"],["DE","30930","MARCELO SUB DO JUDÔ","NOVO"],["DE","10771","MARCIA PAIVA MAE LOIRA","REPUBLICANOS"],["DE","40008","MARCINHA DO POVO","PSB"],["DE","55004","MARCIO ANDRADE","PSD"],["DE","44444","MÁRCIO CANELLA","UNIÃO"],["DE","33321","MARCIO CARDOSO","MOBILIZA"],["DE","70788","MARCIO DIRETOR","AVANTE"],["DE","65021","MÁRCIO FILHO","PCDOB"],["DE","22070","MÁRCIO GUALBERTO","PL"],["DE","10432","MARCIO MAGI","REPUBLICANOS"],["DE","30800","MARCIO MOTTA","NOVO"],["DE","36888","MÁRCIO PEQUENO","AGIR"],["DE","77333","MARCO ANTÔNIO CABRAL","SOLIDARIEDADE"],["DE","13433","MARCO AURÉLIO BARRETO","PT"],["DE","40145","MARCO FIGUEIREDO","PSB"],["DE","33222","MARCOS FORÇA BRASIL","MOBILIZA"],["DE","15666","MARCOS JOSÉ","MDB"],["DE","55800","MARCOS MARINS","PSD"],["DE","20474","MARCOS MOURA","PODE"],["DE","35353","MARCOS XIMENES","DEMOCRATA"],["DE","20016","MARCUS GAMA","PODE"],["DE","50555","MARCUS LOPES","PSOL"],["DE","36321","MARCUS NAVAL","AGIR"],["DE","20888","MARCUS SOARES","PODE"],["DE","44077","MARI KARMOUCHE","UNIÃO"],["DE","33228","MARIA CARMEM","MOBILIZA"],["DE","10510","MARIA DA PENHA","REPUBLICANOS"],["DE","45125","MARIA HELENA CABO","PSDB"],["DE","77033","MARIA INÊS","SOLIDARIEDADE"],["DE","22202","MARIA JOSÉ","PL"],["DE","40047","MARILÉA DA SAÚDE","PSB"],["DE","45345","MARILENA DA SAÚDE","PSDB"],["DE","12236","MARILENE DOS SANTOS","PDT"],["DE","15020","MARINA CARVALHO","MDB"],["DE","13713","MARINA DO MST","PT"],["DE","30033","MARIO JESUS","NOVO"],["DE","15768","MARIO SODRÉ DE NOVA IGUACU","MDB"],["DE","10220","MARIO VIANNA","REPUBLICANOS"],["DE","12733","MARIZA FERNANDES COSTUREIRA","PDT"],["DE","11100","MARIZE ARAÚJO","PP"],["DE","36127","MARLI ALVES","AGIR"],["DE","36622","MARLON ROCHA","AGIR"],["DE","35015","MARLUCIA CRUZ","DEMOCRATA"],["DE","36223","MAROTTE JÁ É","AGIR"],["DE","30444","MARQUINHO","NOVO"],["DE","27171","MARQUINHO BOMBEIRO","DC"],["DE","77500","MARQUINHO DA CRECHE","SOLIDARIEDADE"],["DE","25142","MARQUINHO DO FRANGÃO","PRD"],["DE","36022","MARQUINHO DO POVO","AGIR"],["DE","27123","MARQUINHO DO TRANSPORTE","DC"],["DE","15123","MARQUINHO MENDES","MDB"],["DE","40003","MARQUINHOS LIMA","PSB"],["DE","13888","MARY BORGES","PT"],["DE","10550","MAURICIO VALENTE","REPUBLICANOS"],["DE","27144","MAURO DO BRA","DC"],["DE","10331","MAX NASCIMENTO (A VOZ DO POVO)","REPUBLICANOS"],["DE","15339","MAYARA FLOR","MDB"],["DE","36003","MC DHAMA","AGIR"],["DE","40384","MC GELÉIA","PSB"],["DE","18123","MC SMITH","REDE"],["DE","11007","MEIRE MOURA","PP"],["DE","15616","MELL TAMIOZZO","MDB"],["DE","27707","MESTRE BRUCE LUCIO PAZ","DC"],["DE","40333","MESTRE GARNISÉ","PSB"],["DE","70044","MESTRE MARCIA","AVANTE"],["DE","40903","MICHELLE ALMEIDA","PSB"],["DE","10111","MILTON BAHIA","REPUBLICANOS"],["DE","20111","MIRALDO CORRETOR","PODE"],["DE","55333","MIRIAN PORTO","PSD"],["DE","22014","MISSIONÁRIA PAULINHA","PL"],["DE","22567","MISSIONÁRIA VIVIANE AMORIM","PL"],["DE","13320","MISSIONÁRIO THIAGO","PT"],["DE","35633","MISTER DO SEU BRAZ","DEMOCRATA"],["DE","35224","MIZINHO","DEMOCRATA"],["DE","35024","MOISES DAMASIO","DEMOCRATA"],["DE","40335","MOLINA","PSB"],["DE","18369","MONICA BICUDO","REDE"],["DE","50077","MONICA CUNHA","PSOL"],["DE","80180","MONIQUE ZUMA","UP"],["DE","77777","MUNIR NETO","SOLIDARIEDADE"],["DE","55133","MURILO DU RIO","PSD"],["DE","11333","NALDINHO","PP"],["DE","12333","NALDO DA SAUDE","PDT"],["DE","15789","NANDO DA NANCEL","MDB"],["DE","35050","NANDO PAIS","DEMOCRATA"],["DE","77533","NATASHA LOBA","SOLIDARIEDADE"],["DE","22022","NELSINHO RUAS","PL"],["DE","45390","NETO BRONSON","PSDB"],["DE","13008","NEUSA GUARANI","PT"],["DE","13913","NEY SOARES","PT"],["DE","27377","NEY TUDO AZUL","DC"],["DE","30722","NICOLE OLIVER","NOVO"],["DE","12047","NIL DOCES","PDT"],["DE","22223","NILSON O ABENÇOADO","PL"],["DE","40020","NILTINHO","PSB"],["DE","20444","NILTON COSTA","PODE"],["DE","33862","NILTON LOPES SILVA ÔGARI","MOBILIZA"],["DE","40104","NILTON SALOMÃO","PSB"],["DE","70707","NISOMAR PROVENZANO","AVANTE"],["DE","40005","NOEL MARTELLO","PSB"],["DE","35223","NOEMI OLIVEIRA","DEMOCRATA"],["DE","20030","NONATO TRINTA","PODE"],["DE","20213","NUBIA FLÔRES","PODE"],["DE","45055","O PRACINHA RENATO NASCIMENTO","PSDB"],["DE","22422","OCTAVIO SAMPAIO","PL"],["DE","15766","ODAIR XINGU","MDB"],["DE","30191","OKASAKI","NOVO"],["DE","33039","OLEGARIO","MOBILIZA"],["DE","33101","ORLANDO RUSSO DA PANELA","MOBILIZA"],["DE","20362","OSÉIAS SANTOS","PODE"],["DE","55151","OZIRES MAIA","PSD"],["DE","15159","PABLO SIQUEIRA","MDB"],["DE","27789","PALOMA BRASIL","DC"],["DE","40654","PASTOR CARLOS SILVA","PSB"],["DE","10627","PASTOR DANIEL RAMOS","REPUBLICANOS"],["DE","36600","PASTOR DO PEIXE","AGIR"],["DE","15117","PASTOR EDSON CAMARA","MDB"],["DE","77241","PASTOR JONATHAN FERREIRA","SOLIDARIEDADE"],["DE","40339","PASTOR LUIZ GOMES","PSB"],["DE","20620","PASTOR RAFAEL OLIVEIRA","PODE"],["DE","70030","PASTOR SAMUEL GONZAGA","AVANTE"],["DE","35800","PASTOR SEBASTIÃO ANDRADE","DEMOCRATA"],["DE","27057","PASTOR TAQUARACI RODRIGUES","DC"],["DE","15613","PASTORA ALDINEIA","MDB"],["DE","77007","PASTORA GLÓRIA THIENGO","SOLIDARIEDADE"],["DE","70769","PASTORA GLORINHA SANTOS","AVANTE"],["DE","77037","PASTORA JANAÍNA GUIMARÃES","SOLIDARIEDADE"],["DE","45245","PASTORA MARIA DA PENHA","PSDB"],["DE","12888","PATRICIA AZEDO","PDT"],["DE","10370","PATRICIA BORRET","REPUBLICANOS"],["DE","44030","PATRICIA EGIDIO","UNIÃO"],["DE","70888","PATRÍCIA NUNES","AVANTE"],["DE","36122","PATRÍCIA POTIRA","AGIR"],["DE","15002","PATRÍCIA REGINA","MDB"],["DE","35110","PATRICIA TAVARES","DEMOCRATA"],["DE","70789","PATRICK GUIMARÃES","AVANTE"],["DE","55100","PATRICK NADINHO","PSD"],["DE","10047","PAULA BISPO","REPUBLICANOS"],["DE","22252","PAULA QUINTANILHA","PL"],["DE","43621","PAULINHA SILVA","PV"],["DE","36193","PAULO DA RAYSSA","AGIR"],["DE","33638","PAULO FERNANDO","MOBILIZA"],["DE","70023","PAULO FERREIRA","AVANTE"],["DE","40021","PAULO HORN","PSB"],["DE","44288","PAULO MELO","UNIÃO"],["DE","13613","PAULO MUSTRANGI","PT"],["DE","50111","PAULO PINHEIRO","PSOL"],["DE","15345","PAULO RAMOS","MDB"],["DE","35422","PAULO SILVA","DEMOCRATA"],["DE","33190","PAULO SOBRAL","MOBILIZA"],["DE","25650","PÉ LISO","PRD"],["DE","40510","PEBA","PSB"],["DE","15180","PEDAGOGA GAMA","MDB"],["DE","14000","PEDRO BADARÓ","MISSÃO"],["DE","29029","PEDRO DINIZ","PCO"],["DE","55300","PEDRO DUARTE","PSD"],["DE","12456","PEDRO HENRIQUE","PDT"],["DE","10300","PEDRO HENRIQUE PELO RIO","REPUBLICANOS"],["DE","12211","PEDRO MENDES","PDT"],["DE","50321","PEDRO NASSIF","PSOL"],["DE","70022","PEDRO NETO","AVANTE"],["DE","27017","PELÉ BARBEIRO","DC"],["DE","44111","PENHA BERNARDES","UNIÃO"],["DE","70129","PERITA JUDICIAL LORIENE","AVANTE"],["DE","12024","PHÊNIX","PDT"],["DE","20120","POGGIAN","PODE"],["DE","22900","POLICIAL PAULO BASTOS","PL"],["DE","36233","POROCA","AGIR"],["DE","70012","PORTEIRO JOACIR","AVANTE"],["DE","22622","POUBEL FILHO","PL"],["DE","70021","PR. EMERSON PESSANHA","AVANTE"],["DE","13967","PR. HUDSON M","PT"],["DE","70009","PRETA MARTINS","AVANTE"],["DE","22015","PRICARISMA","PL"],["DE","14762","PROF DAVI ANDRADE","MISSÃO"],["DE","18345","PROF RAUL","REDE"],["DE","77776","PROF. ALEXANDRE","SOLIDARIEDADE"],["DE","33192","PROF. ANTONIO BARRETO","MOBILIZA"],["DE","11355","PROF. EDSON PANTERA","PP"],["DE","33021","PROF. EVELYN","MOBILIZA"],["DE","77200","PROF. HELBIA BARRETO","SOLIDARIEDADE"],["DE","77456","PROF. JOÃO LUCAS","SOLIDARIEDADE"],["DE","50500","PROF. JOSEMAR","PSOL"],["DE","55022","PROF. MAURILIA RODRIGUES","PSD"],["DE","70177","PROF. MILTON J.R.","AVANTE"],["DE","77136","PROF. RENATA VIEIRA","SOLIDARIEDADE"],["DE","36333","PROF. RENATO FIFIU","AGIR"],["DE","45618","PROF. VERA LÚCIA","PSDB"],["DE","55150","PROFESSOR ALEXANDRE NOGUEIRA","PSD"],["DE","50101","PROFESSOR ANTONIO AUGUSTO","PSOL"],["DE","27011","PROFESSOR CALVINHO","DC"],["DE","36361","PROFESSOR DAVI SILVA","AGIR"],["DE","12544","PROFESSOR EDSON PAIVA","PDT"],["DE","22580","PROFESSOR HEITOR QUEIROZ","PL"],["DE","33555","PROFESSOR JOSE ONIX","MOBILIZA"],["DE","36522","PROFESSOR LENINE","AGIR"],["DE","12500","PROFESSOR MARCÃO","PDT"],["DE","18618","PROFESSOR MARCIO","REDE"],["DE","27137","PROFESSOR NILTON PATRICIO","DC"],["DE","20000","PROFESSOR PAULO PEREIRA","PODE"],["DE","70700","PROFESSOR ROGÉRIO MARTINS","AVANTE"],["DE","20011","PROFESSOR VIEIRA","PODE"],["DE","13001","PROFESSOR WALDECK CARNEIRO","PT"],["DE","10345","PROFESSORA ADRIANA FRANÇA","REPUBLICANOS"],["DE","45059","PROFESSORA ALINE PIRES","PSDB"],["DE","36021","PROFESSORA BÁRBARA OLIVEIRA","AGIR"],["DE","15003","PROFESSORA CRISTIANE MARCELINO","MDB"],["DE","10401","PROFESSORA JANAINA RIBEIRO","REPUBLICANOS"],["DE","30107","PROFESSORA LETICIA DE SÁ","NOVO"],["DE","20122","PROFESSORA LÍVIA MEDEIROS","PODE"],["DE","55070","PROFESSORA MARCIA MARTINS","PSD"],["DE","12122","PROFESSORA MARIA HELENA","PDT"],["DE","45963","PROFESSORA SONIA","PSDB"],["DE","43333","PROFESSORA TÂNIA MARA","PV"],["DE","70007","QUEZIA SOUZA","AVANTE"],["DE","70101","RACHEL NASSER","AVANTE"],["DE","10050","RAFAEL DA EMPADA","REPUBLICANOS"],["DE","20321","RAFAEL MAESTRO","PODE"],["DE","44000","RAFAEL NOBRE","UNIÃO"],["DE","44333","RAFAEL PICCIANI","UNIÃO"],["DE","40029","RAFAEL PIZZIALI","PSB"],["DE","33177","RAFAEL SIMPLICIO","MOBILIZA"],["DE","55005","RAFAEL SORRILHA","PSD"],["DE","10321","RAFAELA BARROS PCD","REPUBLICANOS"],["DE","33777","RAFAELA CERRUTI","MOBILIZA"],["DE","44400","RAFAELLE FIRMINO","UNIÃO"],["DE","13321","RAIMUNDO NONATO","PT"],["DE","22221","RALPH GRACIE","PL"],["DE","36900","RAMBO DO BUÁ","AGIR"],["DE","13000","RAONE FERREIRA","PT"],["DE","33233","RAPHAEL GONÇALVES","MOBILIZA"],["DE","20091","RAQUEL CRUZ","PODE"],["DE","30756","RAUL CORRETOR","NOVO"],["DE","10097","REBECA PESTANA","REPUBLICANOS"],["DE","33227","REGINA FONTE","MOBILIZA"],["DE","23333","REGINA PEDREGAL","CIDADANIA"],["DE","22111","RENAN JORDY","PL"],["DE","20707","RENAN LOPES","PODE"],["DE","10333","RENAN MENDONÇA","REPUBLICANOS"],["DE","30233","RENATA CLAUDINO","NOVO"],["DE","22288","RENATA MANFRENATE","PL"],["DE","44144","RENATA RAMOS","UNIÃO"],["DE","50007","RENATA SOUZA","PSOL"],["DE","77789","RENATINHO","SOLIDARIEDADE"],["DE","30600","RENATO DA REMMAR","NOVO"],["DE","13444","RENATO MACHADO","PT"],["DE","22345","RENATO MIRANDA","PL"],["DE","15500","RENATO MOURA","MDB"],["DE","40004","RENATO PELLIZZARI","PSB"],["DE","27075","RENATO SANTOS","DC"],["DE","77100","RENATO VALVERDE","SOLIDARIEDADE"],["DE","44244","RHEURY SCHEIDEGGER","UNIÃO"],["DE","11142","RICARDO BOARETO","PP"],["DE","45123","RICARDO DA KAROL","PSDB"],["DE","10808","RICARDO NAVAL","REPUBLICANOS"],["DE","22100","RICARDO PERICAR","PL"],["DE","13616","RICARDO SANTOS","PT"],["DE","36061","RICARDO TINHA","AGIR"],["DE","55029","RICHARD CASARES","PSD"],["DE","12322","ROBERTA BOMBOM","PDT"],["DE","22700","ROBERTO CID","PL"],["DE","35789","ROBERTO MOTOBOY","DEMOCRATA"],["DE","40012","ROBINHO SANTA LUZIA","PSB"],["DE","77282","ROBSON MENEZES","SOLIDARIEDADE"],["DE","18321","ROBSON PAZ","REDE"],["DE","15231","ROBSON TADEU","MDB"],["DE","22444","RODRIGO ASCOLY","PL"],["DE","10222","RODRIGO CABEÇÃO","REPUBLICANOS"],["DE","12120","RODRIGO DA APOSENTADORIA","PDT"],["DE","35115","RODRIGO DAVID","DEMOCRATA"],["DE","45210","RODRIGO DINAMITE","PSDB"],["DE","77890","RODRIGO DRABLE","SOLIDARIEDADE"],["DE","22133","RODRIGO FARIAS O XUXA","PL"],["DE","22333","RODRIGO MEDEIROS","PL"],["DE","27111","RODRIGO ROCHA DA SILVA","DC"],["DE","70212","RODRIGO VALENTIM","AVANTE"],["DE","36190","ROGERIA QUARESMA","AGIR"],["DE","36007","ROGÉRIO 007","AGIR"],["DE","10155","ROGERIO GATO MANSO","REPUBLICANOS"],["DE","70444","ROGERIO PINHEIRO","AVANTE"],["DE","77021","ROGÉRIO PREDADOR","SOLIDARIEDADE"],["DE","30147","ROGÉRIO SANTOS","NOVO"],["DE","30099","ROMILDO VICTORINO","NOVO"],["DE","10980","RONALD ALVES MUSICOTERAPEUTA","REPUBLICANOS"],["DE","35456","RONALDO BATISTA RAIZ","DEMOCRATA"],["DE","55888","RONALDO MOREIRA ACS","PSD"],["DE","20183","ROSANA PAULINO","PODE"],["DE","33360","ROSANGELA LEAL","MOBILIZA"],["DE","15233","ROSANGELA LIMA","MDB"],["DE","33430","ROSANGELA SILVA","MOBILIZA"],["DE","70358","ROSE CABRAL","AVANTE"],["DE","13007","ROSE CIPRIANO","PT"],["DE","30700","ROSELI FERREIRA","NOVO"],["DE","35045","ROSELI SILVA","DEMOCRATA"],["DE","15016","ROSENVERG REIS","MDB"],["DE","40440","ROSINHA","PSB"],["DE","55400","RUAN VALLE FOOX","PSD"],["DE","80080","RUAN VIDAL","UP"],["DE","11155","RUBENS DA INDICAÇÃO SOCIAL","PP"],["DE","30211","RUI LIMA","NOVO"],["DE","14192","RUI SALDANHA","MISSÃO"],["DE","45001","SALGADINHO DO FRETE","PSDB"],["DE","45334","SANDRA ALEIXO","PSDB"],["DE","40127","SANDRA BORGES","PSB"],["DE","43177","SANDRA DO MUTIRÃO","PV"],["DE","70221","SANDRA SALOMÃO","AVANTE"],["DE","45277","SANDRINHO ABDALA","PSDB"],["DE","45121","SANDRO ALVES","PSDB"],["DE","70078","SANDRO DA SAUDE","AVANTE"],["DE","11633","SANDRO RITTON","PP"],["DE","10022","SAPO","REPUBLICANOS"],["DE","77123","SARAH PONCIO","SOLIDARIEDADE"],["DE","10001","SARGENTO BRITTO","REPUBLICANOS"],["DE","27762","SARGENTO CARVALHÃO","DC"],["DE","11190","SARGENTO FLAVIA LOUZADA","PP"],["DE","23454","SARGENTO GUSTAVO","CIDADANIA"],["DE","36014","SARGENTO MARTINS","AGIR"],["DE","35235","SAUL GUALBERTO","DEMOCRATA"],["DE","20338","SAUL RIBEIRO","PODE"],["DE","12123","SERGINHO","PDT"],["DE","36077","SERGINHO HD","AGIR"],["DE","45244","SERGINHO LEGADO","PSDB"],["DE","55040","SERGINHO MORENO","PSD"],["DE","55000","SÉRGIO FERNANDES","PSD"],["DE","27920","SÉRGIO LOUBACK","DC"],["DE","33195","SERGIO OLIVEIRA","MOBILIZA"],["DE","27072","SÉRGIO PENUDJO","DC"],["DE","23018","SGT CALVETE","CIDADANIA"],["DE","10762","SGT COSTA","REPUBLICANOS"],["DE","70762","SGT DA SILVA","AVANTE"],["DE","30321","SGT LÚCIO DUARTE","NOVO"],["DE","33008","SHEILA CONCEIÇÃO","MOBILIZA"],["DE","30221","SHIRLEY MORAES","NOVO"],["DE","25028","SIDNEY DINHO","PRD"],["DE","35000","SILAS CHAVES","DEMOCRATA"],["DE","30123","SILVIA BROLO","NOVO"],["DE","14014","SILVIA QUEZADO","MISSÃO"],["DE","70431","SILVIO CASTRO","AVANTE"],["DE","20650","SILVIO GUEDES","PODE"],["DE","20007","SIMONE CONTREIRAS","PODE"],["DE","77000","SIMONE DO QUIOSQUE","SOLIDARIEDADE"],["DE","27345","SIMONE FEITOSA","DC"],["DE","30400","SIMONE SOARES","NOVO"],["DE","10121","SOLANGE DO CHARME","REPUBLICANOS"],["DE","77212","SOLANGE NAVAL","SOLIDARIEDADE"],["DE","29129","SOLANGE PEREIRA","PCO"],["DE","25190","SOLDADO TOBIAS","PRD"],["DE","12088","SONIA APARECIDA","PDT"],["DE","12044","SONIA GASPAR","PDT"],["DE","27110","SONIA LOPES","DC"],["DE","11000","SONIA SAMUDIO","PP"],["DE","27999","SUB HONÓRIO","DC"],["DE","35555","SUB OLIVEIRA","DEMOCRATA"],["DE","36439","SUBTENENTE MESAC BOMBEIRO","AGIR"],["DE","22321","SUPERZEFA","PL"],["DE","33155","SUSSU DE BÚZIOS","MOBILIZA"],["DE","12180","SUSY","PDT"],["DE","30622","SYLVIO LUCAS MORFFEU","NOVO"],["DE","36033","TADALA","AGIR"],["DE","36001","TALES CUSTÓDIO","AGIR"],["DE","35173","TALITA GOMES","DEMOCRATA"],["DE","44678","TAMIRIS PEIXOTO","UNIÃO"],["DE","40052","TANIA DE BRÁS DE PINA90","PSB"],["DE","11456","TATIANA OLIVEIRA","PP"],["DE","44677","TATIANA OLIVEIRA DE CASTRO","UNIÃO"],["DE","20080","TEC. IND. SERGIO RICARDO","PODE"],["DE","15242","TEIXEIRA DO CARVÃO","MDB"],["DE","20230","TENENTE OTACILIO FILHO","PODE"],["DE","18188","TEREZA ARAPIUM","REDE"],["DE","10528","THAIANNE MORAES","REPUBLICANOS"],["DE","36108","THAÍS TOSTES","AGIR"],["DE","15220","THAIZA CRISTINA","MDB"],["DE","13400","THAYSA VENTURA","PT"],["DE","77193","THIAGO ANDRADE","SOLIDARIEDADE"],["DE","45045","THIAGO MOURA","PSDB"],["DE","35400","THIAGO SILVA","DEMOCRATA"],["DE","10611","THIAGO VIRGÍLIO","REPUBLICANOS"],["DE","36100","THIMOTINHO","AGIR"],["DE","40659","TIA DO CAFÉ","PSB"],["DE","36085","TIA GLAUCIA","AGIR"],["DE","10123","TIA JU","REPUBLICANOS"],["DE","27002","TIA SOCORRO","DC"],["DE","15006","TIA SONIA","MDB"],["DE","20124","TIA TÂNIA DA CRECHE","PODE"],["DE","40846","TIA VAL","PSB"],["DE","10678","TIAGO MEDEIROS COLETIVO","REPUBLICANOS"],["DE","45888","TIO CARLOS","PSDB"],["DE","70567","TIO EDINHO","AVANTE"],["DE","15015","TONI RUSSO","MDB"],["DE","10342","TOPETE","REPUBLICANOS"],["DE","77051","TUNICO AMIGO DO POVO","SOLIDARIEDADE"],["DE","13456","TUNINHO DA PADARIA","PT"],["DE","33345","TUQUINHA","MOBILIZA"],["DE","10987","ULISSES GALL","REPUBLICANOS"],["DE","25234","VAGUINHO NEGUINHO","PRD"],["DE","25888","VAL CEASA","PRD"],["DE","22615","VALDECY DA SAÚDE","PL"],["DE","12645","VALDECY NUNES","PDT"],["DE","55050","VALDIR BATISTA","PSD"],["DE","36288","VALENTIM PET","AGIR"],["DE","70972","VALENTINA BM","AVANTE"],["DE","27023","VALERIA NASCIMENTO","DC"],["DE","20279","VALESKA ROSA","PODE"],["DE","30830","VALMIR DE ALMEIDA","NOVO"],["DE","45019","VANDETE SOARES","PSDB"],["DE","45500","VANDRO FAMÍLIA","PSDB"],["DE","40133","VANDYNHO","PSB"],["DE","20202","VANESSA AFONSO","PODE"],["DE","27006","VANIA DO ALEMÃO","DC"],["DE","40999","VANTOIL MARTINS","PSB"],["DE","10110","VELLOSO A VOZ DO POVO","REPUBLICANOS"],["DE","23444","VERA RAMOS","CIDADANIA"],["DE","77040","VERÔNICA ANDRADE","SOLIDARIEDADE"],["DE","77044","VERÔNICA DO SOCIAL","SOLIDARIEDADE"],["DE","13580","VERÔNICA LIMA","PT"],["DE","35007","VETERANO HUMBERTO","DEMOCRATA"],["DE","10234","VICENTE PORTELLA","REPUBLICANOS"],["DE","36565","VICTOR AGUIAR","AGIR"],["DE","36500","VICTOR SETARO","AGIR"],["DE","40260","VILSON LENNON","PSB"],["DE","30023","VINI VITORINO","NOVO"],["DE","13134","VINICIOS BETIOL","PT"],["DE","55123","VINÍCIUS COZZOLINO","PSD"],["DE","27677","VITOR BARBOSA","DC"],["DE","12010","VIVI RODRIGUES","PDT"],["DE","36677","VIVIANE CARIELLO","AGIR"],["DE","70770","VIVIANY PEREIRA","AVANTE"],["DE","12900","VIZEU","PDT"],["DE","12600","VLAD BIGODE","PDT"],["DE","55456","WAGNER MONTES","PSD"],["DE","40321","WAGNER TAVARES","PSB"],["DE","20008","WAGUINHO ESPORTE","PODE"],["DE","40444","WALACE PRESIDENTE","PSB"],["DE","70606","WALLACE CANELINHA","AVANTE"],["DE","43111","WALLACE O ABENÇOADO","PV"],["DE","44321","WALLACE PALA PALA","UNIÃO"],["DE","10444","WALLACE RUSSO","REPUBLICANOS"],["DE","35001","WALTER TORRES","DEMOCRATA"],["DE","35010","WANDER SILVA","DEMOCRATA"],["DE","36016","WANDERLEY CORRETOR","AGIR"],["DE","30010","WELBER ASSIS","NOVO"],["DE","30300","WELBERT PEDRO","NOVO"],["DE","36800","WELLINGTON BAPTISTA","AGIR"],["DE","77101","WELLINGTON VIZINHO","SOLIDARIEDADE"],["DE","55111","WERNON PRESLEY","PSD"],["DE","40777","WESLEY TEIXEIRA","PSB"],["DE","12444","WILLIAM BARCELLOS","PDT"],["DE","13681","WILLIAM MACEDO","PT"],["DE","30000","YARA HAQUIM","NOVO"],["DE","15777","YENNA","MDB"],["DE","50700","YURI MOURA","PSOL"],["DE","13193","ZÉ ALEXANDRE","PT"],["DE","12369","ZE VIEIRA","PDT"],["DE","13103","ZEIDAN","PT"],["DE","77133","ZEZINHO DO CAMINHÃO","SOLIDARIEDADE"],["DE","11277","ZICO PQD","PP"],["DE","55012","ZICO ZONA OESTE RAIZ","PSD"],["DE","12543","ZITO","PDT"],["S","350","ANDRÉ MONTEIRO","DEMOCRATA"],["S","131","BENEDITA DA SILVA","PT"],["S","221","CARLOS JORDY","PL"],["S","222","CARLOS PORTINHO","PL"],["S","350","COMANDANTE RIBEIRO AFONSO","DEMOCRATA"],["S","144","HELIO SECCO","MISSÃO"],["S","280","LUCIANO MATTOS","PRTB"],["S","290","LUIZ EUGENIO","PCO"],["S","100","MARCELO CRIVELLA","REPUBLICANOS"],["S","200","MARCOS DIAS","PODE"],["S","800","MICHELLY XAVIER","UP"],["S","500","MONICA BENICIO","PSOL"],["S","355","Ó CLEMENTE","DEMOCRATA"],["S","160","PAULA FALCÃO","PSTU"],["S","555","PEDRO PAULO","PSD"],["S","808","VINICIUS BENEVIDES","UP"],["S","101","WAGUINHO","REPUBLICANOS"],["G","30","ANDRÉ MARINHO","NOVO"],["G","14","CORONEL BUSNELLO","MISSÃO"],["G","16","CYRO GARCIA","PSTU"],["G","22","DOUGLAS RUAS","PL"],["G","55","EDUARDO PAES","PSD"],["G","10","GAROTINHO","REPUBLICANOS"],["G","80","JULIETE","UP"],["G","29","LUAN MONTEIRO","PCO"],["G","50","WILLIAM SIRI","PSOL"],["P","27","CLARIANA BARAO","DC"],["P","21","EDMILSON COSTA","PCB"],["P","70","ESCRITOR AUGUSTO CURY","AVANTE"],["P","22","FLAVIO BOLSONARO","PL"],["P","16","HERTZ DIAS","PSTU"],["P","28","LEONARDO AVALANCHE","PRTB"],["P","13","LULA","PT"],["P","28","PABLO MARÇAL","PRTB"],["P","14","RENAN SANTOS","MISSÃO"],["P","55","RONALDO CAIADO","PSD"],["P","29","RUI COSTA PIMENTA","PCO"],["P","80","SAMARA","UP"],["P","35","VETERINÁRIO WILSON GRASSI","DEMOCRATA"],["P","30","ZEMA","NOVO"]]</script>
+
+  <script>
+    const offices = [
+      { id: 'federal', cargo: 'DF', label: 'Deputado Federal', digits: 4 },
+      { id: 'estadual', cargo: 'DE', label: 'Deputado Estadual', digits: 5 },
+      { id: 'senador1', cargo: 'S', label: 'Senador — 1ª opção', pdfLabel: 'Senador (1a opcao)', digits: 3 },
+      { id: 'senador2', cargo: 'S', label: 'Senador — 2ª opção', pdfLabel: 'Senador (2a opcao)', digits: 3 },
+      { id: 'governador', cargo: 'G', label: 'Governador', digits: 2 },
+      { id: 'presidente', cargo: 'P', label: 'Presidente', digits: 2 }
+    ];
+
+    const normalizeText = (text) => String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+    const candidateRows = JSON.parse(document.querySelector('#candidate-data').textContent);
+    const candidates = candidateRows.map(([cargo, number, name, party], index) => ({
+      id: index, cargo, number, name, party, search: normalizeText(name)
+    }));
+    const candidatesByCargo = Object.fromEntries(
+      ['DF', 'DE', 'S', 'G', 'P'].map((cargo) => [cargo, candidates.filter((candidate) => candidate.cargo === cargo)])
+    );
+    const selectedCandidates = new Map();
+    const fields = document.querySelector('#fields');
+    const slipList = document.querySelector('#slip-list');
+    const form = document.querySelector('#ballot-form');
+    const toast = document.querySelector('#toast');
+    const confirmDialog = document.querySelector('#confirm-dialog');
+    const issueList = document.querySelector('#issue-list');
+    let toastTimer;
+
+    function buildInterface() {
+      offices.forEach((office) => {
+        const fieldset = document.createElement('fieldset');
+        fieldset.dataset.office = office.id;
+        const legend = document.createElement('legend');
+        legend.textContent = office.label;
+        fieldset.appendChild(legend);
+
+        const searchWrap = document.createElement('div');
+        searchWrap.className = 'search-wrap';
+        searchWrap.innerHTML = `<span class="search-icon" aria-hidden="true"></span><input class="candidate-search" type="search" autocomplete="off" placeholder="Buscar candidato pelo nome" aria-label="Buscar candidato para ${office.label}" aria-expanded="false"><ul class="search-results" role="listbox"></ul>`;
+        fieldset.appendChild(searchWrap);
+
+        const row = document.createElement('div');
+        row.className = 'digits';
+        for (let i = 0; i < office.digits; i += 1) {
+          const input = document.createElement('input');
+          input.className = 'digit';
+          input.type = 'text';
+          input.inputMode = 'numeric';
+          input.pattern = '[0-9]*';
+          input.maxLength = 1;
+          input.autocomplete = 'off';
+          input.enterKeyHint = 'next';
+          input.setAttribute('aria-label', `${office.label}, dígito ${i + 1} de ${office.digits}`);
+          input.dataset.office = office.id;
+          input.dataset.index = i;
+          row.appendChild(input);
+        }
+        fieldset.appendChild(row);
+
+        const error = document.createElement('p');
+        error.className = 'error-message';
+        error.setAttribute('role', 'status');
+        fieldset.appendChild(error);
+
+        const summary = document.createElement('div');
+        summary.className = 'candidate-summary empty';
+        summary.innerHTML = '<span class="candidate-name">Nenhum candidato selecionado</span><span class="candidate-party">—</span>';
+        fieldset.appendChild(summary);
+        fields.appendChild(fieldset);
+
+        const item = document.createElement('div');
+        item.innerHTML = '<div class="slip-office"></div><div class="slip-candidate">Não preenchido</div><div class="slip-party">—</div><div class="slip-digits"></div>';
+        item.querySelector('.slip-office').textContent = office.label;
+        item.dataset.previewOffice = office.id;
+        for (let i = 0; i < office.digits; i += 1) {
+          const cell = document.createElement('span');
+          cell.className = 'slip-digit empty';
+          cell.textContent = '–';
+          item.querySelector('.slip-digits').appendChild(cell);
+        }
+        slipList.appendChild(item);
+      });
+    }
+
+    const allInputs = () => [...document.querySelectorAll('.digit')];
+    const officeInputs = (id) => [...document.querySelectorAll(`.digit[data-office="${id}"]`)];
+    const officeNumber = (id) => officeInputs(id).map((input) => input.value).join('');
+    const officeFieldset = (id) => document.querySelector(`fieldset[data-office="${id}"]`);
+
+    function candidateMatches(office, number) {
+      return candidatesByCargo[office.cargo].filter((candidate) => candidate.number === number);
+    }
+
+    function resolveOffice(office) {
+      const number = officeNumber(office.id);
+      if (!number) return { state: 'empty', number, message: 'Nenhum candidato selecionado' };
+      if (number.length < office.digits) return { state: 'partial', number, message: `Número incompleto: ${number.length} de ${office.digits} dígitos.` };
+      const selected = selectedCandidates.get(office.id);
+      if (selected && selected.number === number) return { state: 'valid', number, candidate: selected };
+      const matches = candidateMatches(office, number);
+      if (matches.length === 1) return { state: 'valid', number, candidate: matches[0] };
+      if (matches.length > 1) return { state: 'ambiguous', number, message: 'Mais de um candidato usa este número. Selecione pelo nome.' };
+      return { state: 'invalid', number, message: 'Número não encontrado para este cargo.' };
+    }
+
+    function updateOffice(office) {
+      const fieldset = officeFieldset(office.id);
+      const result = resolveOffice(office);
+      const error = fieldset.querySelector('.error-message');
+      const summary = fieldset.querySelector('.candidate-summary');
+      const preview = document.querySelector(`[data-preview-office="${office.id}"]`);
+      const cells = preview.querySelectorAll('.slip-digit');
+
+      fieldset.classList.toggle('invalid', ['invalid', 'ambiguous'].includes(result.state));
+      fieldset.classList.toggle('partial', result.state === 'partial');
+      error.textContent = ['invalid', 'ambiguous', 'partial'].includes(result.state) ? result.message : '';
+
+      if (result.candidate) {
+        summary.classList.remove('empty');
+        summary.querySelector('.candidate-name').textContent = result.candidate.name;
+        summary.querySelector('.candidate-party').textContent = result.candidate.party;
+        preview.querySelector('.slip-candidate').textContent = result.candidate.name;
+        preview.querySelector('.slip-party').textContent = result.candidate.party;
+      } else {
+        summary.classList.add('empty');
+        summary.querySelector('.candidate-name').textContent = result.message;
+        summary.querySelector('.candidate-party').textContent = '—';
+        preview.querySelector('.slip-candidate').textContent = result.state === 'empty' ? 'Não preenchido' : result.message;
+        preview.querySelector('.slip-party').textContent = '—';
+      }
+
+      const values = officeInputs(office.id).map((input) => input.value);
+      cells.forEach((cell, index) => {
+        cell.textContent = values[index] || '–';
+        cell.classList.toggle('empty', !values[index]);
+      });
+      return result;
+    }
+
+    function updateAll() { return offices.map((office) => ({ office, result: updateOffice(office) })); }
+
+    function closeSearchResults(except) {
+      document.querySelectorAll('.search-results').forEach((list) => {
+        if (list !== except) list.replaceChildren();
+      });
+      document.querySelectorAll('.candidate-search').forEach((input) => {
+        if (input.nextElementSibling !== except) input.setAttribute('aria-expanded', 'false');
+      });
+    }
+
+    function renderSearch(searchInput) {
+      const fieldset = searchInput.closest('fieldset');
+      const office = offices.find((item) => item.id === fieldset.dataset.office);
+      const list = fieldset.querySelector('.search-results');
+      const query = normalizeText(searchInput.value).trim();
+      list.replaceChildren();
+      closeSearchResults(list);
+      if (query.length < 2) {
+        searchInput.setAttribute('aria-expanded', 'false');
+        return;
+      }
+      const tokens = query.split(/\s+/);
+      const matches = candidatesByCargo[office.cargo]
+        .filter((candidate) => tokens.every((token) => candidate.search.includes(token)))
+        .slice(0, 8);
+      matches.forEach((candidate) => {
+        const li = document.createElement('li');
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'search-result';
+        button.dataset.candidateId = candidate.id;
+        button.innerHTML = '<span class="result-name"></span><span class="result-meta"></span>';
+        button.querySelector('.result-name').textContent = candidate.name;
+        button.querySelector('.result-meta').textContent = `${candidate.party} · ${candidate.number}`;
+        li.appendChild(button);
+        list.appendChild(li);
+      });
+      if (!matches.length) {
+        const li = document.createElement('li');
+        li.className = 'result-meta';
+        li.style.padding = '.7rem';
+        li.textContent = 'Nenhum candidato encontrado.';
+        list.appendChild(li);
+      }
+      searchInput.setAttribute('aria-expanded', 'true');
+    }
+
+    function selectCandidate(office, candidate) {
+      selectedCandidates.set(office.id, candidate);
+      officeInputs(office.id).forEach((input, index) => { input.value = candidate.number[index]; });
+      const fieldset = officeFieldset(office.id);
+      fieldset.querySelector('.candidate-search').value = candidate.name;
+      fieldset.querySelector('.search-results').replaceChildren();
+      fieldset.querySelector('.candidate-search').setAttribute('aria-expanded', 'false');
+      updateOffice(office);
+      showToast(`${office.label}: ${candidate.name}.`);
+    }
+
+    fields.addEventListener('input', (event) => {
+      const search = event.target.closest('.candidate-search');
+      if (search) {
+        const office = offices.find((item) => item.id === search.closest('fieldset').dataset.office);
+        selectedCandidates.delete(office.id);
+        updateOffice(office);
+        renderSearch(search);
+        return;
+      }
+      const input = event.target.closest('.digit');
+      if (!input) return;
+      input.value = input.value.replace(/\D/g, '').slice(-1);
+      const office = offices.find((item) => item.id === input.dataset.office);
+      selectedCandidates.delete(office.id);
+      officeFieldset(office.id).querySelector('.candidate-search').value = '';
+      updateOffice(office);
+      if (input.value) {
+        const inputs = allInputs();
+        const next = inputs[inputs.indexOf(input) + 1];
+        if (next) next.focus();
+      }
+    });
+
+    fields.addEventListener('click', (event) => {
+      const button = event.target.closest('.search-result[data-candidate-id]');
+      if (!button) return;
+      const fieldset = button.closest('fieldset');
+      const office = offices.find((item) => item.id === fieldset.dataset.office);
+      const candidate = candidates[Number(button.dataset.candidateId)];
+      selectCandidate(office, candidate);
+    });
+
+    fields.addEventListener('keydown', (event) => {
+      const input = event.target.closest('.digit');
+      if (!input) return;
+      const inputs = allInputs();
+      const position = inputs.indexOf(input);
+      if (event.key === 'Backspace' && !input.value && position > 0) {
+        event.preventDefault();
+        inputs[position - 1].value = '';
+        inputs[position - 1].dispatchEvent(new Event('input', { bubbles: true }));
+        inputs[position - 1].focus();
+      }
+      if (event.key === 'ArrowLeft' && position > 0) inputs[position - 1].focus();
+      if (event.key === 'ArrowRight' && position < inputs.length - 1) inputs[position + 1].focus();
+    });
+
+    fields.addEventListener('paste', (event) => {
+      const input = event.target.closest('.digit');
+      if (!input) return;
+      const pasted = event.clipboardData.getData('text').replace(/\D/g, '');
+      if (!pasted) return;
+      event.preventDefault();
+      const office = offices.find((item) => item.id === input.dataset.office);
+      const inputs = officeInputs(office.id);
+      let position = Number(input.dataset.index);
+      [...pasted].forEach((character) => {
+        if (inputs[position]) inputs[position++].value = character;
+      });
+      selectedCandidates.delete(office.id);
+      officeFieldset(office.id).querySelector('.candidate-search').value = '';
+      updateOffice(office);
+      (inputs[position] || allInputs()[allInputs().indexOf(inputs.at(-1)) + 1])?.focus();
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('.search-wrap')) closeSearchResults();
+    });
+
+    function values() {
+      return offices.map((office) => {
+        const result = resolveOffice(office);
+        return { ...office, value: result.number, candidate: result.candidate || null, state: result.state };
+      });
+    }
+
+    function generationIssues() {
+      return offices.map((office) => ({ office, result: resolveOffice(office) }))
+        .filter(({ result }) => result.state !== 'valid');
+    }
+
+    function pdfSafe(text, limit = 42) {
+      return String(text || '').replace(/[–—]/g, '-').replace(/[“”]/g, '"').replace(/[‘’]/g, "'")
+        .replace(/[^\x20-\xFF]/g, '?').slice(0, limit);
+    }
+
+    function pdfEscape(text, limit = 42) {
+      return pdfSafe(text, limit).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+    }
+
+    function makePdf(data) {
+      const width = 298;
+      const height = 595;
+      const commands = [
+        '0.059 0.243 0.180 rg',
+        `0 ${height - 5} ${width} 5 re f`,
+        '0.08 0.14 0.11 rg',
+        'BT /F2 15 Tf 24 560 Td (MINHA COLINHA) Tj ET',
+        '0.72 0.77 0.74 RG [4 3] 0 d 24 545 m 274 545 l S',
+        '[] 0 d'
+      ];
+      let y = 462;
+      data.forEach((office) => {
+        const candidateName = office.candidate?.name || (office.state === 'empty' ? 'NAO PREENCHIDO' : office.state === 'partial' ? 'NUMERO INCOMPLETO' : 'NUMERO NAO VALIDADO');
+        const party = office.candidate?.party || '-';
+        commands.push('0.059 0.243 0.180 rg');
+        commands.push(`BT /F2 9 Tf 24 ${y + 64} Td (${pdfEscape(office.pdfLabel || office.label)}) Tj ET`);
+        commands.push('0.08 0.14 0.11 rg');
+        commands.push(`BT /F2 10 Tf 24 ${y + 49} Td (${pdfEscape(candidateName, 36)}) Tj ET`);
+        commands.push('0.36 0.44 0.40 rg');
+        commands.push(`BT /F1 8 Tf 24 ${y + 36} Td (${pdfEscape(party, 18)}) Tj ET`);
+        const shown = office.value.padEnd(office.digits, ' ');
+        [...shown].forEach((digit, index) => {
+          const x = 24 + index * 34;
+          commands.push('0.33 0.38 0.35 RG 1.2 w');
+          commands.push(`${x} ${y} 28 28 re S`);
+          if (digit.trim()) {
+            commands.push('0.08 0.12 0.10 rg');
+            commands.push(`BT /F1 17 Tf ${x + 9} ${y + 7} Td (${digit}) Tj ET`);
+          }
+        });
+        y -= 80;
+      });
+      commands.push('0.36 0.44 0.40 rg');
+      commands.push('BT /F1 7 Tf 24 17 Td (Documento de apoio pessoal - confira os dados antes de votar.) Tj ET');
+
+      const stream = commands.join('\n');
+      const objects = [
+        '<< /Type /Catalog /Pages 2 0 R >>',
+        '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${width} ${height}] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 4 0 R >>`,
+        `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
+        '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>',
+        '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>'
+      ];
+
+      let pdf = '%PDF-1.4\n%\xE2\xE3\xCF\xD3\n';
+      const offsets = [0];
+      objects.forEach((object, index) => {
+        offsets.push(pdf.length);
+        pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+      });
+      const xref = pdf.length;
+      pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+      offsets.slice(1).forEach((offset) => { pdf += `${String(offset).padStart(10, '0')} 00000 n \n`; });
+      pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+      const bytes = Uint8Array.from(pdf, (character) => character.charCodeAt(0));
+      return new Blob([bytes], { type: 'application/pdf' });
+    }
+
+    function generatePdf() {
+      const blob = makePdf(values());
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'minha-colinha-eleitoral.pdf';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast('PDF gerado com sucesso.');
+      return true;
+    }
+
+    function requestPdf() {
+      const issues = generationIssues();
+      if (!issues.length) return generatePdf();
+      issueList.replaceChildren();
+      issues.forEach(({ office, result }) => {
+        const li = document.createElement('li');
+        li.textContent = `${office.label}: ${result.message}`;
+        issueList.appendChild(li);
+      });
+      confirmDialog.showModal();
+      return false;
+    }
+
+    function showToast(message) {
+      clearTimeout(toastTimer);
+      toast.textContent = message;
+      toast.classList.add('show');
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+    }
+
+    function setBallotNumbers(input) {
+      if (!input || typeof input !== 'object') throw new Error('Informe os números dos candidatos.');
+      offices.forEach((office) => {
+        const number = String(input[office.id] || '').replace(/\D/g, '').slice(0, office.digits);
+        officeInputs(office.id).forEach((field, index) => { field.value = number[index] || ''; });
+        selectedCandidates.delete(office.id);
+        officeFieldset(office.id).querySelector('.candidate-search').value = '';
+      });
+      updateAll();
+      return { status: 'preenchida', cargos: offices.length, avisos: generationIssues().length };
+    }
+
+    function registerWebMcpTools() {
+      const context = document.modelContext;
+      if (!context?.registerTool) return;
+      const numberProperties = Object.fromEntries(offices.map((office) => [
+        office.id,
+        { type: 'string', pattern: `^\\d{0,${office.digits}}$`, description: `${office.label}, com até ${office.digits} dígitos.` }
+      ]));
+      try {
+        void Promise.resolve(context.registerTool({
+          name: 'fill_ballot_numbers',
+          title: 'Preencher a colinha',
+          description: 'Preenche os números informados e atualiza nomes, partidos, avisos e pré-visualização.',
+          inputSchema: { type: 'object', properties: numberProperties, additionalProperties: false },
+          annotations: { readOnlyHint: false, untrustedContentHint: false },
+          execute(input) { return setBallotNumbers(input); }
+        })).catch(() => {});
+        void Promise.resolve(context.registerTool({
+          name: 'download_ballot_pdf',
+          title: 'Baixar a colinha em PDF',
+          description: 'Baixa a colinha quando todos os cargos estão válidos; a interface pede confirmação se houver pendências.',
+          inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+          annotations: { readOnlyHint: false, untrustedContentHint: false },
+          execute() {
+            if (generationIssues().length) throw new Error('Há cargos incompletos ou não validados; confirme pela interface.');
+            generatePdf();
+            return { status: 'baixado', arquivo: 'minha-colinha-eleitoral.pdf' };
+          }
+        })).catch(() => {});
+      } catch (_) {}
+    }
+
+    form.addEventListener('submit', (event) => { event.preventDefault(); requestPdf(); });
+    document.querySelector('#review-button').addEventListener('click', () => confirmDialog.close());
+    document.querySelector('#confirm-button').addEventListener('click', () => { confirmDialog.close(); generatePdf(); });
+    document.querySelector('#clear-button').addEventListener('click', () => {
+      allInputs().forEach((input) => { input.value = ''; });
+      document.querySelectorAll('.candidate-search').forEach((input) => { input.value = ''; });
+      selectedCandidates.clear();
+      closeSearchResults();
+      updateAll();
+      allInputs()[0].focus();
+      showToast('Campos limpos.');
+    });
+
+    buildInterface();
+    updateAll();
+    registerWebMcpTools();
+  </script>
+</body>
+</html>
