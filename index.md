@@ -40,6 +40,7 @@ exclude_from_localizations: ["assets", "images"]
 
 - Pequeno aplicativo para [gerar cola para a votação de 2026](./colinha_eleitoral.html)
 - Visualizador da [conjectura de Collatz](./collatz_visualizador.html)
+- Simulador de [Memória Cache](./simulador_cache_localidade.html)
 
 ### Alguns joguinhos, para distrair:
 - [Cobrinha](./cobrinha2.html)
