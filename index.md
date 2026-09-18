@@ -23,6 +23,7 @@ exclude_from_localizations: ["assets", "images"]
 - Alguns livros que publiquei:
   - [Arquitetura e Organização de Computadores - Uma Introdução](https://www.grupogen.com.br/livro-arquitetura-e-organizacao-de-computadores-uma-introducao-gabriel-pereira-da-silva-e-jose-antonio-dos-santos-borges-editora-ltc-9788521638650).
   - [Programação Paralela e Distribuída com MPI, OpenMP e OpenACC](https://www.casadocodigo.com.br/products/livro-programacao-paralela)
+  - [Programação Paralela para Arquiteturas Híbridas com OpenMP, OpenACC e MPI](https://www.casadocodigo.com.br/products/livro-paralela-arquiteturas-hibridas)
   - Livro com a descrição do processador [Sapiens e do simulador SimuS](https://www.amazon.com.br/SimuS-Simulador-Didático-Arquitetura-Computadores/dp/1973359707).
     <br>
 - Alguns repositórios que gerencio:
