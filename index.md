@@ -9,6 +9,7 @@ default_lang: "pt-BR"
 exclude_from_localizations: ["assets", "images"]
 ---
 
+<img src="gabriel2026.jpg" alt="Gabriel P. Silva" width="300" height="200">
 ## Essa é uma página com resumo dos meus diversos interesses. 
 
 ### Profissionais:
