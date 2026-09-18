@@ -17,14 +17,15 @@ exclude_from_localizations: ["assets", "images"]
 
 - Visite minha página profissional no [Instituto de Computação](https://www.ic.ufrj.br/~gabriel) da UFRJ.
 - Conheça a minha página no [Research Gate](https://www.researchgate.net/profile/Gabriel-Silva-130), com diversos artigos, apostilas e apresentações sobre Computação.
+- A minha página do [Linkedin](www.linkedin.com/in/gabrielsilvaufrj).
 - Meu currículo [Lattes]( http://lattes.cnpq.br/8636301961155552).
   
-- #### Alguns livros que publiquei:
+- Alguns livros que publiquei:
   - [Arquitetura e Organização de Computadores - Uma Introdução](https://www.grupogen.com.br/livro-arquitetura-e-organizacao-de-computadores-uma-introducao-gabriel-pereira-da-silva-e-jose-antonio-dos-santos-borges-editora-ltc-9788521638650).
   - [Programação Paralela e Distribuída com MPI, OpenMP e OpenACC](https://www.casadocodigo.com.br/products/livro-programacao-paralela)
   - Livro com a descrição do processador [Sapiens e do simulador SimuS](https://www.amazon.com.br/SimuS-Simulador-Didático-Arquitetura-Computadores/dp/1973359707).
     <br>
-- #### Alguns repositórios que gerencio:
+- Alguns repositórios que gerencio:
   - Página com [recursos (slides, código e outros)](https://simulador-simus.github.io) para o livro Arquitetura e Organização de Computadores - Uma Introdução.
   - Página com [recursos (slides, código e outros)](programacao-paralela-e-distribuida.github.io) para o livro de Programação Paralela e Distribuída. 
   - Página histórica com o sistema operacional [Tropix](https://tropix-ufrj.github.io).
