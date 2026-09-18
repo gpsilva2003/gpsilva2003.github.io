@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualizador da Conjectura de Collatz</title>
+
+  <style>
+    :root {
+      --fundo: #f4f7fb;
+      --painel: #ffffff;
+      --texto: #172033;
+      --secundario: #667085;
+      --borda: #d8dee9;
+      --destaque: #2563eb;
+      --destaque-escuro: #1d4ed8;
+      --sucesso: #16803c;
+      --alerta: #b54708;
+      --grade: #e6eaf0;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 24px;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--texto);
+      background: var(--fundo);
+    }
+
+    .aplicacao {
+      width: min(1100px, 100%);
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.7rem, 4vw, 2.5rem);
+    }
+
+    .subtitulo {
+      margin: 0 0 22px;
+      color: var(--secundario);
+      line-height: 1.5;
+    }
+
+    .painel {
+      padding: 18px;
+      border: 1px solid var(--borda);
+      border-radius: 14px;
+      background: var(--painel);
+      box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+    }
+
+    .controles {
+      display: grid;
+      grid-template-columns: minmax(160px, 1fr) minmax(140px, 220px);
+      gap: 14px;
+      align-items: end;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    input,
+    select,
+    button {
+      width: 100%;
+      min-height: 44px;
+      border-radius: 9px;
+      font-size: 1rem;
+    }
+
+    input,
+    select {
+      padding: 9px 11px;
+      border: 1px solid var(--borda);
+      color: var(--texto);
+      background: #fff;
+    }
+
+    input:focus,
+    select:focus {
+      outline: 3px solid rgba(37, 99, 235, 0.18);
+      border-color: var(--destaque);
+    }
+
+    .botoes {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button {
+      padding: 10px 14px;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.1s, background 0.2s;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .primario {
+      color: #fff;
+      background: var(--destaque);
+    }
+
+    .primario:hover {
+      background: var(--destaque-escuro);
+    }
+
+    .secundario {
+      color: var(--texto);
+      border: 1px solid var(--borda);
+      background: #fff;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .estatisticas {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .cartao {
+      padding: 14px;
+      border: 1px solid var(--borda);
+      border-radius: 12px;
+      background: var(--painel);
+    }
+
+    .cartao span {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--secundario);
+      font-size: 0.9rem;
+    }
+
+    .cartao strong {
+      font-size: 1.25rem;
+    }
+
+    .grafico-container {
+      position: relative;
+      height: min(62vh, 560px);
+      min-height: 360px;
+      padding: 10px;
+      border: 1px solid var(--borda);
+      border-radius: 14px;
+      background: var(--painel);
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    .mensagem {
+      min-height: 24px;
+      margin: 12px 2px 0;
+      color: var(--secundario);
+      font-weight: 700;
+    }
+
+    .regra {
+      margin-top: 18px;
+      padding: 14px 18px;
+      border-left: 4px solid var(--destaque);
+      border-radius: 8px;
+      background: #eef4ff;
+      line-height: 1.55;
+    }
+
+    code {
+      font-size: 1rem;
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 14px;
+      }
+
+      .controles {
+        grid-template-columns: 1fr;
+      }
+
+      .botoes {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .estatisticas {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .grafico-container {
+        height: 480px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="aplicacao">
+    <h1>Conjectura de Collatz</h1>
+    <p><a href="https://gabrielsilva.rio.br">Gabriel P. Silva</a></p>
+    <p class="subtitulo">
+      O eixo horizontal representa as iterações e o eixo vertical mostra o valor
+      obtido em cada etapa da sequência.
+    </p>
+
+    <section class="painel">
+      <div class="controles">
+        <div>
+          <label for="numeroInicial">Número inicial</label>
+          <input
+            id="numeroInicial"
+            type="number"
+            min="1"
+            step="1"
+            value="27"
+            inputmode="numeric"
+          >
+        </div>
+
+        <div>
+          <label for="velocidade">Velocidade</label>
+          <select id="velocidade">
+            <option value="900">Lenta</option>
+            <option value="450" selected>Normal</option>
+            <option value="150">Rápida</option>
+            <option value="35">Muito rápida</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="botoes">
+        <button id="iniciar" class="primario">Iniciar</button>
+        <button id="pausar" class="secundario" disabled>Pausar</button>
+        <button id="passo" class="secundario">Próximo passo</button>
+        <button id="reiniciar" class="secundario">Reiniciar</button>
+      </div>
+    </section>
+
+    <section class="estatisticas">
+      <div class="cartao">
+        <span>Valor atual</span>
+        <strong id="valorAtual">27</strong>
+      </div>
+
+      <div class="cartao">
+        <span>Iterações</span>
+        <strong id="iteracoes">0</strong>
+      </div>
+
+      <div class="cartao">
+        <span>Maior valor</span>
+        <strong id="maiorValor">27</strong>
+      </div>
+
+      <div class="cartao">
+        <span>Quantidade de termos</span>
+        <strong id="quantidadeTermos">1</strong>
+      </div>
+    </section>
+
+    <section class="grafico-container">
+      <canvas id="grafico" aria-label="Gráfico da sequência de Collatz"></canvas>
+    </section>
+
+    <p id="mensagem" class="mensagem">
+      Digite um número inteiro positivo e pressione “Iniciar”.
+    </p>
+
+    <section class="regra">
+      <strong>Regra:</strong>
+      se <code>n</code> for par, o próximo valor será <code>n ÷ 2</code>.
+      Se for ímpar, será <code>3n + 1</code>. O processo termina quando chega a
+      <code>1</code>.
+    </section>
+  </main>
+
+  <script>
+    "use strict";
+
+    const canvas = document.getElementById("grafico");
+    const ctx = canvas.getContext("2d");
+
+    const entrada = document.getElementById("numeroInicial");
+    const seletorVelocidade = document.getElementById("velocidade");
+
+    const botaoIniciar = document.getElementById("iniciar");
+    const botaoPausar = document.getElementById("pausar");
+    const botaoPasso = document.getElementById("passo");
+    const botaoReiniciar = document.getElementById("reiniciar");
+
+    const valorAtualTexto = document.getElementById("valorAtual");
+    const iteracoesTexto = document.getElementById("iteracoes");
+    const maiorValorTexto = document.getElementById("maiorValor");
+    const quantidadeTermosTexto = document.getElementById("quantidadeTermos");
+    const mensagem = document.getElementById("mensagem");
+
+    let sequencia = [27];
+    let executando = false;
+    let temporizador = null;
+
+    const margem = {
+      esquerda: 72,
+      direita: 24,
+      topo: 28,
+      inferior: 58
+    };
+
+    function proximoValor(n) {
+      return n % 2 === 0 ? n / 2 : 3 * n + 1;
+    }
+
+    function lerNumeroInicial() {
+      const numero = Number(entrada.value);
+
+      if (!Number.isSafeInteger(numero) || numero < 1) {
+        mensagem.textContent =
+          "Informe um número inteiro positivo dentro do limite seguro do JavaScript.";
+        entrada.focus();
+        return null;
+      }
+
+      return numero;
+    }
+
+    function prepararSequencia() {
+      const numero = lerNumeroInicial();
+
+      if (numero === null) {
+        return false;
+      }
+
+      pararAnimacao();
+      sequencia = [numero];
+      atualizarInterface();
+      mensagem.textContent = `Sequência iniciada em ${numero}.`;
+      return true;
+    }
+
+    function executarPasso() {
+      if (sequencia.length === 0 && !prepararSequencia()) {
+        return;
+      }
+
+      const atual = sequencia[sequencia.length - 1];
+
+      if (atual === 1) {
+        concluir();
+        return;
+      }
+
+      const proximo = proximoValor(atual);
+
+      if (!Number.isSafeInteger(proximo)) {
+        pararAnimacao();
+        mensagem.textContent =
+          "A sequência ultrapassou o limite de inteiros seguros do JavaScript.";
+        return;
+      }
+
+      sequencia.push(proximo);
+      atualizarInterface();
+
+      if (proximo === 1) {
+        concluir();
+      }
+    }
+
+    function iniciarAnimacao() {
+      if (executando) {
+        return;
+      }
+
+      const precisaRecomecar =
+        sequencia.length === 0 ||
+        sequencia[sequencia.length - 1] === 1 ||
+        Number(entrada.value) !== sequencia[0];
+
+      if (precisaRecomecar && !prepararSequencia()) {
+        return;
+      }
+
+      executando = true;
+      botaoIniciar.disabled = true;
+      botaoPausar.disabled = false;
+      botaoPasso.disabled = true;
+      entrada.disabled = true;
+
+      mensagem.textContent = "Executando a sequência...";
+
+      const repetir = () => {
+        if (!executando) {
+          return;
+        }
+
+        executarPasso();
+
+        if (executando) {
+          temporizador = setTimeout(
+            repetir,
+            Number(seletorVelocidade.value)
+          );
+        }
+      };
+
+      repetir();
+    }
+
+    function pararAnimacao() {
+      executando = false;
+
+      if (temporizador !== null) {
+        clearTimeout(temporizador);
+        temporizador = null;
+      }
+
+      botaoIniciar.disabled = false;
+      botaoPausar.disabled = true;
+      botaoPasso.disabled = false;
+      entrada.disabled = false;
+    }
+
+    function pausarAnimacao() {
+      pararAnimacao();
+      mensagem.textContent = "Execução pausada.";
+    }
+
+    function concluir() {
+      pararAnimacao();
+      mensagem.textContent =
+        `A sequência chegou a 1 após ${sequencia.length - 1} iterações.`;
+    }
+
+    function reiniciar() {
+      pararAnimacao();
+
+      const numero = lerNumeroInicial();
+      sequencia = numero === null ? [] : [numero];
+
+      atualizarInterface();
+      mensagem.textContent =
+        "Visualização reiniciada. Pressione “Iniciar” ou “Próximo passo”.";
+    }
+
+    function avancarUmPasso() {
+      const numeroDigitado = Number(entrada.value);
+
+      if (
+        sequencia.length === 0 ||
+        sequencia[sequencia.length - 1] === 1 ||
+        numeroDigitado !== sequencia[0]
+      ) {
+        if (!prepararSequencia()) {
+          return;
+        }
+      }
+
+      executarPasso();
+    }
+
+    function atualizarInterface() {
+      const atual = sequencia.length
+        ? sequencia[sequencia.length - 1]
+        : 0;
+
+      const maior = sequencia.length
+        ? Math.max(...sequencia)
+        : 0;
+
+      valorAtualTexto.textContent = atual.toLocaleString("pt-BR");
+      iteracoesTexto.textContent = Math.max(0, sequencia.length - 1)
+        .toLocaleString("pt-BR");
+      maiorValorTexto.textContent = maior.toLocaleString("pt-BR");
+      quantidadeTermosTexto.textContent = sequencia.length
+        .toLocaleString("pt-BR");
+
+      desenharGrafico();
+    }
+
+    function ajustarCanvas() {
+      const proporcao = window.devicePixelRatio || 1;
+      const larguraCSS = canvas.clientWidth;
+      const alturaCSS = canvas.clientHeight;
+
+      const larguraReal = Math.round(larguraCSS * proporcao);
+      const alturaReal = Math.round(alturaCSS * proporcao);
+
+      if (
+        canvas.width !== larguraReal ||
+        canvas.height !== alturaReal
+      ) {
+        canvas.width = larguraReal;
+        canvas.height = alturaReal;
+      }
+
+      ctx.setTransform(proporcao, 0, 0, proporcao, 0, 0);
+
+      return {
+        largura: larguraCSS,
+        altura: alturaCSS
+      };
+    }
+
+    function passoArredondado(valorMaximo, quantidadeMarcas = 6) {
+      if (valorMaximo <= 0) {
+        return 1;
+      }
+
+      const valorBruto = valorMaximo / quantidadeMarcas;
+      const potencia = 10 ** Math.floor(Math.log10(valorBruto));
+      const normalizado = valorBruto / potencia;
+
+      let fator;
+
+      if (normalizado <= 1) fator = 1;
+      else if (normalizado <= 2) fator = 2;
+      else if (normalizado <= 5) fator = 5;
+      else fator = 10;
+
+      return fator * potencia;
+    }
+
+    function desenharGrafico() {
+      const { largura, altura } = ajustarCanvas();
+
+      ctx.clearRect(0, 0, largura, altura);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, largura, altura);
+
+      const larguraUtil =
+        largura - margem.esquerda - margem.direita;
+      const alturaUtil =
+        altura - margem.topo - margem.inferior;
+
+      if (larguraUtil <= 0 || alturaUtil <= 0) {
+        return;
+      }
+
+      const totalPontos = Math.max(2, sequencia.length);
+      const maiorValor = Math.max(1, ...sequencia);
+      const passoY = passoArredondado(maiorValor);
+      const limiteY = Math.ceil(maiorValor / passoY) * passoY;
+
+      const xParaPixel = indice =>
+        margem.esquerda +
+        (indice / Math.max(1, totalPontos - 1)) * larguraUtil;
+
+      const yParaPixel = valor =>
+        margem.topo +
+        alturaUtil -
+        (valor / limiteY) * alturaUtil;
+
+      ctx.font = "12px Arial";
+      ctx.textBaseline = "middle";
+      ctx.lineWidth = 1;
+
+      // Linhas horizontais e valores do eixo Y
+      for (let valor = 0; valor <= limiteY; valor += passoY) {
+        const y = yParaPixel(valor);
+
+        ctx.strokeStyle = "#e6eaf0";
+        ctx.beginPath();
+        ctx.moveTo(margem.esquerda, y);
+        ctx.lineTo(largura - margem.direita, y);
+        ctx.stroke();
+
+        ctx.fillStyle = "#667085";
+        ctx.textAlign = "right";
+        ctx.fillText(
+          valor.toLocaleString("pt-BR"),
+          margem.esquerda - 9,
+          y
+        );
+      }
+
+      // Marcas do eixo X
+      const maxIteracao = Math.max(1, sequencia.length - 1);
+      const quantidadeMarcasX = Math.min(8, maxIteracao);
+      const passoX = Math.max(
+        1,
+        Math.ceil(maxIteracao / quantidadeMarcasX)
+      );
+
+      for (let indice = 0; indice <= maxIteracao; indice += passoX) {
+        const x = xParaPixel(indice);
+
+        ctx.strokeStyle = "#e6eaf0";
+        ctx.beginPath();
+        ctx.moveTo(x, margem.topo);
+        ctx.lineTo(x, altura - margem.inferior);
+        ctx.stroke();
+
+        ctx.fillStyle = "#667085";
+        ctx.textAlign = "center";
+        ctx.fillText(
+          indice.toLocaleString("pt-BR"),
+          x,
+          altura - margem.inferior + 21
+        );
+      }
+
+      // Eixos
+      ctx.strokeStyle = "#98a2b3";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(margem.esquerda, margem.topo);
+      ctx.lineTo(margem.esquerda, altura - margem.inferior);
+      ctx.lineTo(largura - margem.direita, altura - margem.inferior);
+      ctx.stroke();
+
+      // Linha da sequência
+      if (sequencia.length > 0) {
+        ctx.strokeStyle = "#2563eb";
+        ctx.lineWidth = 2.5;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        ctx.beginPath();
+
+        sequencia.forEach((valor, indice) => {
+          const x = xParaPixel(indice);
+          const y = yParaPixel(valor);
+
+          if (indice === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+
+        ctx.stroke();
+
+        // Pontos
+        sequencia.forEach((valor, indice) => {
+          const x = xParaPixel(indice);
+          const y = yParaPixel(valor);
+          const ultimo = indice === sequencia.length - 1;
+
+          ctx.fillStyle = ultimo ? "#16803c" : "#2563eb";
+          ctx.beginPath();
+          ctx.arc(x, y, ultimo ? 5 : 3, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      // Rótulo do eixo X
+      ctx.fillStyle = "#344054";
+      ctx.font = "bold 13px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText(
+        "Iteração",
+        margem.esquerda + larguraUtil / 2,
+        altura - 15
+      );
+
+      // Rótulo do eixo Y
+      ctx.save();
+      ctx.translate(18, margem.topo + alturaUtil / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText("Valor de n", 0, 0);
+      ctx.restore();
+    }
+
+    botaoIniciar.addEventListener("click", iniciarAnimacao);
+    botaoPausar.addEventListener("click", pausarAnimacao);
+    botaoPasso.addEventListener("click", avancarUmPasso);
+    botaoReiniciar.addEventListener("click", reiniciar);
+
+    entrada.addEventListener("keydown", evento => {
+      if (evento.key === "Enter") {
+        iniciarAnimacao();
+      }
+    });
+
+    seletorVelocidade.addEventListener("change", () => {
+      if (executando) {
+        clearTimeout(temporizador);
+        temporizador = null;
+      }
+    });
+
+    window.addEventListener("resize", desenharGrafico);
+
+    atualizarInterface();
+  </script>
+</body>
+</html>
