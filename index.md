@@ -33,6 +33,9 @@ exclude_from_localizations: ["assets", "images"]
 
 - Conheça a página da [Sociedade Espírita Jorge](https://wwww.sej.org.br) e os vídeos de [algumas palestras](https://www.youtube.com/c/SociedadeEspíritaJorge/streams).
 - Visite minha página do [Instagram](https://www.instagram.com/gpsilva2003) para ver algumas das minhas fotos, o meu hobby favorito.
+  
+### Alguns Aplicativos:
+
 - Pequeno aplicativo para [gerar cola para a votação de 2026](./colinha_eleitoral.html)
 - Visualizador da [conjectura de Collatz](./collatz_visualizador.html)
 
