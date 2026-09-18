@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jogo da Cobrinha</title>
+
+<style>
+    body {
+        margin: 0;
+        background: #111;
+        color: white;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        overflow-x: hidden;
+    }
+
+    h1 {
+        margin: 10px 0 5px;
+        font-size: 24px;
+    }
+
+    #score {
+        font-size: 20px;
+        margin-bottom: 10px;
+    }
+
+    canvas {
+        background: #222;
+        display: block;
+        margin: auto;
+        border: 3px solid #555;
+        touch-action: none;
+        cursor: crosshair;
+    }
+
+    #instrucoes {
+        max-width: 560px;
+        margin: 8px auto 12px;
+        padding: 0 12px;
+        color: #ccc;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    button {
+        margin-top: 12px;
+        padding: 12px 20px;
+        font-size: 18px;
+        border: none;
+        border-radius: 8px;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>Jogo da Cobrinha</h1>
+<div id="score">Pontos: 0 | Recorde da sessão: 0</div>
+<canvas id="game" aria-label="Tabuleiro do jogo da cobrinha" aria-describedby="instrucoes"></canvas>
+<p id="instrucoes">Use as setas do teclado ou clique no tabuleiro na direção desejada em relação à cabeça da cobrinha. No celular, deslize o dedo. Cuidado: as minas vermelhas são fatais!</p>
+<button onclick="reiniciarJogo()">Reiniciar</button>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const scoreDiv = document.getElementById("score");
+
+const tamanhoCelula = 20;
+const quantidadeMinas = 5;
+let colunas, linhas;
+
+let cobra;
+let direcao;
+let proximaDirecao;
+let comida;
+let minas;
+let pontos;
+let recorde = 0;
+let fimDeJogo;
+let intervalo;
+
+let toqueInicialX = 0;
+let toqueInicialY = 0;
+
+function ajustarCanvas() {
+    const tamanho = Math.max(140, Math.min(window.innerWidth - 20, window.innerHeight - 220));
+    canvas.width = Math.floor(tamanho / tamanhoCelula) * tamanhoCelula;
+    canvas.height = canvas.width;
+
+    colunas = canvas.width / tamanhoCelula;
+    linhas = canvas.height / tamanhoCelula;
+}
+
+function beep() {
+    const audio = new (window.AudioContext || window.webkitAudioContext)();
+
+    const osc = audio.createOscillator();
+    const gain = audio.createGain();
+
+    osc.type = "square";      // som tipo videogame
+    osc.frequency.value = 700;
+
+    osc.connect(gain);
+    gain.connect(audio.destination);
+
+    gain.gain.setValueAtTime(0.15, audio.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.08);
+
+    osc.start();
+    osc.stop(audio.currentTime + 0.08);
+}
+
+function somGameOver() {
+    const audio = new (window.AudioContext || window.webkitAudioContext)();
+
+    const notas = [700, 620, 540, 460, 380];
+    const duracao = 0.12;
+
+    notas.forEach((freq, i) => {
+        const osc = audio.createOscillator();
+        const gain = audio.createGain();
+
+        osc.type = "square";
+        osc.frequency.value = freq;
+
+        osc.connect(gain);
+        gain.connect(audio.destination);
+
+        const inicio = audio.currentTime + i * duracao;
+
+        gain.gain.setValueAtTime(0.15, inicio);
+        gain.gain.exponentialRampToValueAtTime(0.001, inicio + duracao);
+
+        osc.start(inicio);
+        osc.stop(inicio + duracao);
+    });
+}
+
+function iniciarJogo() {
+    ajustarCanvas();
+
+    cobra = [
+        { x: 5, y: 5 },
+        { x: 4, y: 5 },
+        { x: 3, y: 5 }
+    ];
+
+    direcao = { x: 1, y: 0 };
+    proximaDirecao = { x: 1, y: 0 };
+
+    pontos = 0;
+    fimDeJogo = false;
+
+    criarMinas();
+    criarComida();
+    atualizarPlacar();
+    desenhar();
+
+    clearInterval(intervalo);
+    intervalo = setInterval(atualizarJogo, 230);
+}
+
+function reiniciarJogo() {
+    iniciarJogo();
+}
+
+function atualizarPlacar() {
+    recorde = Math.max(recorde, pontos);
+    scoreDiv.textContent = "Pontos: " + pontos + " | Recorde da sessão: " + recorde;
+}
+
+function criarMinas() {
+    const posicoesLivres = [];
+    for (let y = 0; y < linhas; y++) {
+        for (let x = 0; x < colunas; x++) {
+            const ocupada = cobra.some(parte => parte.x === x && parte.y === y);
+            // Deixa espaço para o jogador reagir ao começar a partida.
+            const pertoDaCabeca = Math.abs(x - cobra[0].x) + Math.abs(y - cobra[0].y) <= 2;
+            if (!ocupada && !pertoDaCabeca) posicoesLivres.push({ x, y });
+        }
+    }
+
+    minas = [];
+    while (minas.length < quantidadeMinas && posicoesLivres.length > 0) {
+        const indice = Math.floor(Math.random() * posicoesLivres.length);
+        minas.push(posicoesLivres.splice(indice, 1)[0]);
+    }
+}
+
+function criarComida() {
+    let posicaoValida = false;
+
+    while (!posicaoValida) {
+        comida = {
+            x: Math.floor(Math.random() * colunas),
+            y: Math.floor(Math.random() * linhas),
+            cor: gerarCor()
+        };
+
+        posicaoValida = !cobra.some(parte =>
+            parte.x === comida.x && parte.y === comida.y
+        ) && !minas.some(mina => mina.x === comida.x && mina.y === comida.y);
+    }
+}
+
+function gerarCor() {
+    const cores = ["yellow", "lime", "cyan", "orange", "magenta"];
+    return cores[Math.floor(Math.random() * cores.length)];
+}
+
+function atualizarJogo() {
+    if (fimDeJogo) return;
+
+    direcao = proximaDirecao;
+
+    const cabeca = {
+        x: cobra[0].x + direcao.x,
+        y: cobra[0].y + direcao.y
+    };
+
+    if (
+        cabeca.x < 0 || cabeca.x >= colunas ||
+        cabeca.y < 0 || cabeca.y >= linhas
+    ) {
+        encerrarJogo();
+        return;
+    }
+
+    if (
+        cobra.some(parte => parte.x === cabeca.x && parte.y === cabeca.y) ||
+        minas.some(mina => mina.x === cabeca.x && mina.y === cabeca.y)
+    ) {
+        encerrarJogo();
+        return;
+    }
+
+    cobra.unshift(cabeca);
+
+    if (cabeca.x === comida.x && cabeca.y === comida.y) {
+        pontos++;
+        atualizarPlacar();
+        beep();
+        criarComida();
+    } else {
+        cobra.pop();
+    }
+
+    desenhar();
+}
+
+function desenhar() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    minas.forEach(mina => {
+        const x = (mina.x + 0.5) * tamanhoCelula;
+        const y = (mina.y + 0.5) * tamanhoCelula;
+        ctx.strokeStyle = "#ff3333";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let i = 0; i < 8; i++) {
+            const angulo = i * Math.PI / 4;
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + Math.cos(angulo) * 9, y + Math.sin(angulo) * 9);
+        }
+        ctx.stroke();
+        ctx.fillStyle = "#ff3333";
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(x - 2, y - 3, 2, 2);
+    });
+
+    ctx.fillStyle = comida.cor;
+    ctx.fillRect(
+        comida.x * tamanhoCelula,
+        comida.y * tamanhoCelula,
+        tamanhoCelula,
+        tamanhoCelula
+    );
+
+    ctx.fillStyle = "#00ff66";
+    cobra.forEach((parte, index) => {
+        ctx.fillStyle = index === 0 ? "#00ffaa" : "#00cc55";
+        ctx.fillRect(
+            parte.x * tamanhoCelula,
+            parte.y * tamanhoCelula,
+            tamanhoCelula - 2,
+            tamanhoCelula - 2
+        );
+    });
+}
+
+function encerrarJogo() {
+    fimDeJogo = true;
+    clearInterval(intervalo);
+     somGameOver();
+
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "white";
+    ctx.font = "28px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Fim de jogo", canvas.width / 2, canvas.height / 2 - 10);
+
+    ctx.font = "18px Arial";
+    ctx.fillText(
+        "Pontos: " + pontos,
+        canvas.width / 2,
+        canvas.height / 2 + 25
+    );
+}
+
+function mudarDirecao(novaDirecao) {
+    if (fimDeJogo) return;
+
+    if (
+        novaDirecao.x === -direcao.x &&
+        novaDirecao.y === -direcao.y
+    ) {
+        return;
+    }
+
+    proximaDirecao = novaDirecao;
+}
+
+window.addEventListener("keydown", function(event) {
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
+
+    const direcoes = {
+        ArrowUp: { x: 0, y: -1 },
+        ArrowDown: { x: 0, y: 1 },
+        ArrowLeft: { x: -1, y: 0 },
+        ArrowRight: { x: 1, y: 0 }
+    };
+
+    if (Object.hasOwn(direcoes, event.key)) {
+        event.preventDefault();
+        mudarDirecao(direcoes[event.key]);
+    }
+});
+
+canvas.addEventListener("pointerdown", function(event) {
+    // O toque continua usando os gestos de deslizar abaixo.
+    if (event.pointerType !== "mouse" || event.button !== 0) return;
+
+    const limites = canvas.getBoundingClientRect();
+    const x = (event.clientX - limites.left - canvas.clientLeft) * canvas.width / canvas.clientWidth;
+    const y = (event.clientY - limites.top - canvas.clientTop) * canvas.height / canvas.clientHeight;
+    const dx = x - (cobra[0].x + 0.5) * tamanhoCelula;
+    const dy = y - (cobra[0].y + 0.5) * tamanhoCelula;
+
+    if (Math.abs(dx) < tamanhoCelula / 2 && Math.abs(dy) < tamanhoCelula / 2) return;
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+        mudarDirecao({ x: Math.sign(dx), y: 0 });
+    } else {
+        mudarDirecao({ x: 0, y: Math.sign(dy) });
+    }
+});
+
+canvas.addEventListener("touchstart", function(event) {
+    event.preventDefault();
+    const toque = event.touches[0];
+    toqueInicialX = toque.clientX;
+    toqueInicialY = toque.clientY;
+});
+
+canvas.addEventListener("touchmove", function(event) {
+    event.preventDefault();
+
+    const toque = event.touches[0];
+    const dx = toque.clientX - toqueInicialX;
+    const dy = toque.clientY - toqueInicialY;
+
+    if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 0) {
+            mudarDirecao({ x: 1, y: 0 });
+        } else {
+            mudarDirecao({ x: -1, y: 0 });
+        }
+    } else {
+        if (dy > 0) {
+            mudarDirecao({ x: 0, y: 1 });
+        } else {
+            mudarDirecao({ x: 0, y: -1 });
+        }
+    }
+
+    toqueInicialX = toque.clientX;
+    toqueInicialY = toque.clientY;
+});
+
+window.addEventListener("resize", iniciarJogo);
+
+iniciarJogo();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jogo do Paredão</title>
+
+<style>
+body {
+    margin: 0;
+    background: #111;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    overflow: hidden;
+}
+
+h1 {
+    margin: 8px 0 4px;
+    font-size: 22px;
+}
+
+#info {
+    font-size: 18px;
+    margin-bottom: 6px;
+}
+
+canvas {
+    background: #000;
+    display: block;
+    margin: auto;
+    border: 3px solid #555;
+    touch-action: none;
+}
+
+button {
+    margin-top: 8px;
+    padding: 10px 18px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Jogo do Paredão</h1>
+<div id="info">Pontos: 0 | Vidas: 3</div>
+<canvas id="game"></canvas>
+<button onclick="reiniciarJogo()">Jogar novamente</button>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const info = document.getElementById("info");
+
+let bola;
+let raquete;
+let tijolos;
+
+let pontos = 0;
+let vidas = 3;
+let fimDeJogo = false;
+let animacao = null;
+
+const linhasTijolos = 5;
+const colunasTijolos = 7;
+const espacoTijolo = 6;
+const alturaTijolo = 22;
+
+function ajustarCanvas() {
+    canvas.width = window.innerWidth - 20;
+    canvas.height = window.innerHeight - 155;
+}
+
+function iniciarJogo() {
+    if (animacao !== null) {
+        cancelAnimationFrame(animacao);
+    }
+
+    ajustarCanvas();
+
+    pontos = 0;
+    vidas = 3;
+    fimDeJogo = false;
+
+    raquete = {
+        largura: 110,
+        altura: 14,
+        x: canvas.width / 2 - 55,
+        y: canvas.height - 35
+    };
+
+    bola = {
+        x: canvas.width / 2,
+        y: canvas.height - 70,
+        raio: 8,
+        vx: 4,
+        vy: -4
+    };
+
+    criarTijolos();
+    atualizarInfo();
+    loop();
+}
+
+function reiniciarJogo() {
+    iniciarJogo();
+}
+
+function criarTijolos() {
+    tijolos = [];
+
+    const margem = 10;
+    const larguraTijolo =
+        (canvas.width - margem * 2 - espacoTijolo * (colunasTijolos - 1)) /
+        colunasTijolos;
+
+    const cores = ["#ff4444", "#ffaa00", "#ffff33", "#44ff44", "#44aaff"];
+
+    for (let linha = 0; linha < linhasTijolos; linha++) {
+        for (let coluna = 0; coluna < colunasTijolos; coluna++) {
+            tijolos.push({
+                x: margem + coluna * (larguraTijolo + espacoTijolo),
+                y: 45 + linha * (alturaTijolo + espacoTijolo),
+                largura: larguraTijolo,
+                altura: alturaTijolo,
+                ativo: true,
+                cor: cores[linha]
+            });
+        }
+    }
+}
+
+function atualizarInfo() {
+    info.textContent = "Pontos: " + pontos + " | Vidas: " + vidas;
+}
+
+function loop() {
+    if (fimDeJogo) return;
+
+    moverBola();
+    detectarColisoes();
+    desenhar();
+
+    animacao = requestAnimationFrame(loop);
+}
+
+function moverBola() {
+    bola.x += bola.vx;
+    bola.y += bola.vy;
+}
+
+function detectarColisoes() {
+    if (bola.x - bola.raio <= 0 || bola.x + bola.raio >= canvas.width) {
+        bola.vx *= -1;
+        beep(500, 0.04);
+    }
+
+    if (bola.y - bola.raio <= 0) {
+        bola.vy *= -1;
+        beep(500, 0.04);
+    }
+
+    for (let tijolo of tijolos) {
+        if (!tijolo.ativo) continue;
+
+        if (
+            bola.x + bola.raio > tijolo.x &&
+            bola.x - bola.raio < tijolo.x + tijolo.largura &&
+            bola.y + bola.raio > tijolo.y &&
+            bola.y - bola.raio < tijolo.y + tijolo.altura
+        ) {
+            tijolo.ativo = false;
+            bola.vy *= -1;
+
+            pontos += 10;
+            atualizarInfo();
+            beep(900, 0.06);
+
+            if (tijolos.every(t => !t.ativo)) {
+                encerrarVitoria();
+            }
+
+            break;
+        }
+    }
+
+    if (
+        bola.y + bola.raio >= raquete.y &&
+        bola.y - bola.raio <= raquete.y + raquete.altura &&
+        bola.x >= raquete.x &&
+        bola.x <= raquete.x + raquete.largura &&
+        bola.vy > 0
+    ) {
+        bola.vy *= -1;
+
+        const centro = raquete.x + raquete.largura / 2;
+        const distancia = bola.x - centro;
+
+        bola.vx = distancia * 0.08;
+
+        beep(800, 0.07);
+    }
+
+    if (bola.y - bola.raio > canvas.height) {
+        vidas--;
+        atualizarInfo();
+        somVidaPerdida();
+
+        if (vidas <= 0) {
+            encerrarJogo();
+        } else {
+            reposicionarBola();
+        }
+    }
+}
+
+function reposicionarBola() {
+    bola.x = canvas.width / 2;
+    bola.y = canvas.height - 70;
+    bola.vx = 4 * (Math.random() > 0.5 ? 1 : -1);
+    bola.vy = -4;
+}
+
+function desenhar() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (let tijolo of tijolos) {
+        if (tijolo.ativo) {
+            ctx.fillStyle = tijolo.cor;
+            ctx.fillRect(tijolo.x, tijolo.y, tijolo.largura, tijolo.altura);
+        }
+    }
+
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.arc(bola.x, bola.y, bola.raio, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#00aaff";
+    ctx.fillRect(raquete.x, raquete.y, raquete.largura, raquete.altura);
+}
+
+function telaFinal(mensagem) {
+    desenhar();
+
+    ctx.fillStyle = "rgba(0,0,0,0.75)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.font = "30px Arial";
+    ctx.fillText(mensagem, canvas.width / 2, canvas.height / 2 - 20);
+
+    ctx.font = "20px Arial";
+    ctx.fillText("Pontuação: " + pontos, canvas.width / 2, canvas.height / 2 + 20);
+}
+
+function encerrarJogo() {
+    fimDeJogo = true;
+    somGameOver();
+    telaFinal("Game Over");
+}
+
+function encerrarVitoria() {
+    fimDeJogo = true;
+    beep(1200, 0.2);
+    telaFinal("Você venceu!");
+}
+
+canvas.addEventListener("touchmove", function(event) {
+    event.preventDefault();
+
+    const toque = event.touches[0];
+    const rect = canvas.getBoundingClientRect();
+
+    raquete.x = toque.clientX - rect.left - raquete.largura / 2;
+    limitarRaquete();
+});
+
+canvas.addEventListener("mousemove", function(event) {
+    const rect = canvas.getBoundingClientRect();
+
+    raquete.x = event.clientX - rect.left - raquete.largura / 2;
+    limitarRaquete();
+});
+
+function limitarRaquete() {
+    if (raquete.x < 0) {
+        raquete.x = 0;
+    }
+
+    if (raquete.x + raquete.largura > canvas.width) {
+        raquete.x = canvas.width - raquete.largura;
+    }
+}
+
+function beep(frequencia, duracao) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audio = new AudioContext();
+
+    const osc = audio.createOscillator();
+    const gain = audio.createGain();
+
+    osc.type = "square";
+    osc.frequency.value = frequencia;
+
+    osc.connect(gain);
+    gain.connect(audio.destination);
+
+    gain.gain.setValueAtTime(0.12, audio.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + duracao);
+
+    osc.start();
+    osc.stop(audio.currentTime + duracao);
+}
+
+function somVidaPerdida() {
+    beep(250, 0.15);
+}
+
+function somGameOver() {
+    const notas = [700, 600, 500, 400, 300, 220];
+
+    notas.forEach((freq, i) => {
+        setTimeout(() => beep(freq, 0.1), i * 120);
+    });
+}
+
+window.addEventListener("resize", iniciarJogo);
+
+iniciarJogo();
+</script>
+
+</body>
+</html>

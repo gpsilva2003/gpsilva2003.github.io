@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cubo • Laboratório 3D</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; color: #edf2f7; background: #10131a; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    main { min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr) 320px; }
+    #stage { position: relative; min-height: 580px; background: radial-gradient(ellipse at 45% 40%, #242c3b, #10131a 72%); overflow: hidden; }
+    canvas { width: 100%; height: 100%; display: block; touch-action: none; }
+    header { position: absolute; top: 32px; left: 36px; pointer-events: none; }
+    .eyebrow { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: #92a2ba; }
+    h1 { font-size: clamp(26px, 4vw, 42px); margin: 8px 0; letter-spacing: -.05em; font-weight: 600; }
+    header p { color: #98a7bc; font-size: 13px; }
+    #badge { position: absolute; bottom: 28px; left: 36px; font-size: 12px; border: 1px solid #384359; padding: 9px 14px; border-radius: 99px; background: #111722bb; }
+    aside { padding: 34px 26px; border-left: 1px solid #29303d; background: #151922; display: flex; flex-direction: column; gap: 24px; }
+    h2 { font-size: 16px; margin: 0 0 14px; font-weight: 550; }
+    .muted, .hint { color: #99a5b8; font-size: 12px; line-height: 1.7; }
+    .stats { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2a3241; padding-bottom: 20px; }
+    #count { font-size: 28px; font-variant-numeric: tabular-nums; }
+    .moves { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    button { font: inherit; cursor: pointer; border: 1px solid #354056; background: #222b3a; color: #edf2f7; border-radius: 10px; padding: 12px; transition: background .15s, transform .15s; }
+    button:hover { background: #334157; }
+    button:active { transform: translateY(1px); }
+    button:focus-visible, input:focus-visible { outline: 2px solid #a7f3d0; outline-offset: 3px; }
+    button:disabled { opacity: .4; cursor: wait; }
+    .move { border-top: 3px solid var(--face); font-weight: 650; font-size: 17px; }
+    .move small { display: block; font-size: 10px; color: #a8b4c5; font-weight: 400; margin-top: 4px; }
+    .inverse { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 12px; color: #bec8d7; }
+    input { accent-color: #97ebc7; }
+    .actions { display: grid; gap: 8px; }
+    #scramble { background: #a7f3d0; color: #14271f; border-color: #a7f3d0; font-weight: 650; }
+    #scramble:hover { background: #c2ffe3; }
+    #history { min-height: 54px; max-height: 105px; overflow: auto; color: #b5c6dc; font: 12px/1.8 ui-monospace, monospace; overflow-wrap: anywhere; }
+    .hint { margin: 0; }
+    .footer { margin-top: auto; color: #61728b; font-size: 10px; letter-spacing: .14em; }
+    #error { position: absolute; top: 45%; left: 10%; right: 10%; padding: 20px; background: #42252c; border: 1px solid #bc6379; border-radius: 12px; line-height: 1.6; }
+    [hidden] { display: none !important; }
+    @media (max-width: 760px) {
+      main { grid-template-columns: 1fr; }
+      #stage { height: 60dvh; min-height: 390px; }
+      header { top: 20px; left: 22px; } header p { display: none; }
+      #badge { bottom: 16px; left: 22px; }
+      aside { border-left: 0; border-top: 1px solid #29303d; padding: 22px; gap: 20px; }
+      .moves { grid-template-columns: repeat(6, 1fr); } .move { padding: 10px 4px; }
+      .actions { grid-template-columns: 1fr 1fr; } .footer { display: none; }
+    }
+  </style>
+  <!-- Núcleo e addons usam exatamente a mesma versão do CDN. -->
+  <script type="importmap">
+    { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+    } }
+  </script>
+</head>
+<body>
+<main>
+  <section id="stage" aria-label="Cubo mágico interativo em 3D">
+    <header><div class="eyebrow">Laboratório interativo / 001</div><h1>Cubo mágico.</h1><p>Seis cores. Infinitas possibilidades.</p></header>
+    <div id="badge" role="status">Carregando o motor 3D…</div>
+    <div id="error" role="alert" hidden></div>
+  </section>
+  <aside>
+    <div class="stats"><div><div class="eyebrow">Seu cubo / 3 × 3 × 3</div><div class="muted">Giros realizados</div></div><span id="count">0</span></div>
+    <section><h2>Gire uma face</h2><div id="moves" class="moves"></div>
+      <label class="inverse"><input type="checkbox" id="inverse"> Sentido inverso (′)</label>
+      <p class="hint">Horário ao olhar diretamente para a face. As letras permanecem ligadas ao cubo ao orbitar a câmera.</p>
+    </section>
+    <div class="actions"><button id="scramble" disabled>Embaralhar ↗</button><button id="reset" disabled>Reiniciar ↺</button></div>
+    <section><h2>Últimos movimentos</h2><div id="history">Nenhum movimento ainda.</div></section>
+    <p class="hint">Arraste um adesivo para girar sua camada, inclusive a central.<br>Arraste o fundo ou use o botão direito para orbitar. Role para aproximar.<br><br>Teclado: <b>U D L R F B</b>. Segure <b>Shift</b> para inverter.</p>
+    <div class="footer">EXPLORE · EMBARALHE · RESOLVA</div>
+  </aside>
+</main>
+<noscript>Ative o JavaScript para usar o simulador.</noscript>
+<script type="module">
+  const $ = id => document.getElementById(id);
+  try {
+    const THREE = await import('three');
+    const { OrbitControls } = await import('three/addons/controls/OrbitControls.js');
+    const { RoundedBoxGeometry } = await import('three/addons/geometries/RoundedBoxGeometry.js');
+
+    const stage = $('stage');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+    camera.position.set(6, 5, 7);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.25;
+    stage.prepend(renderer.domElement);
+    const canvas = renderer.domElement;
+    canvas.setAttribute('aria-label', 'Arraste um adesivo para girar; arraste o fundo para orbitar.');
+
+    scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+    const sun = new THREE.DirectionalLight(0xffffff, 3);
+    sun.position.set(3, 7, 5);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    Object.assign(sun.shadow.camera, { left: -6, right: 6, top: 6, bottom: -6, near: 0.1, far: 25 });
+    sun.shadow.normalBias = 0.035;
+    sun.shadow.bias = -0.0001;
+    sun.shadow.radius = 4;
+    scene.add(sun);
+    const fill = new THREE.DirectionalLight(0xa7c8ff, 1.4);
+    fill.position.set(-5, 2, -4);
+    scene.add(fill);
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.ShadowMaterial({ opacity: 0.28 }));
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = -2.22; // Abaixo do alcance das quinas durante um giro.
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    const controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.enablePan = false;
+    controls.minDistance = 6;
+    controls.maxDistance = 17;
+    controls.maxPolarAngle = Math.PI * 0.9;
+    controls.mouseButtons.RIGHT = THREE.MOUSE.ROTATE;
+
+    // Coordenadas fixas: +X direita, +Y cima e +Z frente.
+    const faces = {
+      U: { axis: 'y', layer: 1, sign: -1, color: '#f6f6ef', name: 'Cima' },
+      D: { axis: 'y', layer: -1, sign: 1, color: '#ffd500', name: 'Baixo' },
+      L: { axis: 'x', layer: -1, sign: 1, color: '#ff7900', name: 'Esquerda' },
+      R: { axis: 'x', layer: 1, sign: -1, color: '#df1833', name: 'Direita' },
+      F: { axis: 'z', layer: 1, sign: -1, color: '#00ab66', name: 'Frente' },
+      B: { axis: 'z', layer: -1, sign: 1, color: '#145de0', name: 'Trás' }
+    };
+    const axes = { x: new THREE.Vector3(1, 0, 0), y: new THREE.Vector3(0, 1, 0), z: new THREE.Vector3(0, 0, 1) };
+    const cube = new THREE.Group();
+    scene.add(cube);
+    const cubies = [], stickers = [];
+    const plastic = new THREE.MeshStandardMaterial({ color: 0x101114, roughness: 0.32 });
+    const bodyGeometry = new RoundedBoxGeometry(0.96, 0.96, 0.96, 3, 0.065);
+    const stickerGeometry = new RoundedBoxGeometry(0.79, 0.79, 0.025, 3, 0.012);
+    const materials = Object.fromEntries(Object.entries(faces).map(([key, face]) => [key,
+      new THREE.MeshStandardMaterial({ color: face.color, roughness: 0.36, metalness: 0 })]));
+
+    // Cada peça é um grupo independente: plástico + adesivos apenas nas faces externas.
+    for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) for (let z = -1; z <= 1; z++) {
+      if (x === 0 && y === 0 && z === 0) continue;
+      const piece = new THREE.Group();
+      piece.position.set(x, y, z);
+      piece.userData.home = piece.position.clone();
+      const body = new THREE.Mesh(bodyGeometry, plastic);
+      body.castShadow = body.receiveShadow = true;
+      piece.add(body);
+      for (const [key, face] of Object.entries(faces)) {
+        if (piece.position[face.axis] !== face.layer) continue;
+        const normal = axes[face.axis].clone().multiplyScalar(face.layer);
+        const sticker = new THREE.Mesh(stickerGeometry, materials[key]);
+        sticker.position.copy(normal).multiplyScalar(0.482);
+        sticker.quaternion.setFromUnitVectors(axes.z, normal);
+        sticker.userData.normal = normal;
+        sticker.userData.piece = piece;
+        sticker.castShadow = true;
+        piece.add(sticker);
+        stickers.push(sticker);
+      }
+      cube.add(piece);
+      cubies.push(piece);
+    }
+
+    const queue = [], history = [];
+    let active = null, count = 0, dragging = null;
+    const busy = () => active !== null || queue.length > 0;
+
+    // Confere cores por orientação mundial; aceita o cubo resolvido em qualquer orientação.
+    function isSolved() {
+      const colors = new Map();
+      for (const sticker of stickers) {
+        const n = sticker.userData.normal.clone().applyQuaternion(sticker.userData.piece.quaternion).round();
+        const key = n.toArray().join(',');
+        if (colors.has(key) && colors.get(key) !== sticker.material) return false;
+        colors.set(key, sticker.material);
+      }
+      return true;
+    }
+    function updateUI() {
+      $('count').textContent = count;
+      $('history').textContent = history.slice(-40).join('  ') || 'Nenhum movimento ainda.';
+      $('history').scrollTop = $('history').scrollHeight;
+      $('badge').textContent = busy() ? `Girando · ${queue.length + (active ? 1 : 0)} na fila` : isSolved() ? '● Cubo resolvido' : '○ Continue explorando';
+      $('scramble').disabled = busy();
+    }
+    function enqueue(move) {
+      if (queue.length >= 80) return;
+      queue.push({ ...move });
+      updateUI();
+    }
+    function turnFace(key, inverse = false) {
+      const f = faces[key];
+      enqueue({ axis: f.axis, layer: f.layer, sign: f.sign * (inverse ? -1 : 1), label: key + (inverse ? '′' : '') });
+    }
+    function startMove(now) {
+      const move = queue.shift();
+      const pivot = new THREE.Group();
+      cube.add(pivot);
+      const selected = cubies.filter(p => Math.round(p.position[move.axis]) === move.layer);
+      for (const piece of selected) pivot.attach(piece);
+      active = { ...move, pivot, selected, start: now, duration: move.scramble ? 150 : 290 };
+      updateUI();
+    }
+    function finishMove() {
+      const move = active;
+      move.pivot.rotation[move.axis] = move.sign * Math.PI / 2;
+      move.pivot.updateMatrixWorld(true);
+      for (const piece of move.selected) {
+        cube.attach(piece);
+        piece.position.round();
+        // Projeta a orientação na grade ortogonal, evitando erros acumulados.
+        const matrix = new THREE.Matrix4().makeRotationFromQuaternion(piece.quaternion);
+        matrix.elements = matrix.elements.map(v => Math.round(v));
+        piece.quaternion.setFromRotationMatrix(matrix).normalize();
+      }
+      cube.remove(move.pivot);
+      history.push(move.label);
+      if (history.length > 200) history.shift();
+      count++;
+      active = null;
+      updateUI();
+    }
+
+    for (const [key, face] of Object.entries(faces)) {
+      const button = document.createElement('button');
+      button.className = 'move';
+      button.style.setProperty('--face', face.color);
+      button.innerHTML = `${key}<small>${face.name}</small>`;
+      button.setAttribute('aria-label', `Girar ${face.name} (${key})`);
+      button.addEventListener('click', event => turnFace(key, $('inverse').checked || event.shiftKey));
+      $('moves').append(button);
+    }
+    $('scramble').addEventListener('click', () => {
+      if (busy()) return;
+      let previousAxis = '';
+      for (let i = 0; i < 25; i++) {
+        const choices = Object.keys(faces).filter(key => faces[key].axis !== previousAxis);
+        const key = choices[Math.floor(Math.random() * choices.length)];
+        const face = faces[key], inverse = Math.random() < 0.5;
+        enqueue({ axis: face.axis, layer: face.layer, sign: face.sign * (inverse ? -1 : 1), label: key + (inverse ? '′' : ''), scramble: true });
+        previousAxis = face.axis;
+      }
+    });
+    function releaseDrag() {
+      if (dragging && canvas.hasPointerCapture(dragging.id)) canvas.releasePointerCapture(dragging.id);
+      dragging = null;
+      controls.enabled = true;
+      canvas.style.cursor = '';
+    }
+    $('reset').addEventListener('click', () => {
+      releaseDrag();
+      queue.length = 0;
+      // Reset também cancela com segurança uma animação em andamento.
+      if (active) {
+        for (const piece of active.selected) cube.attach(piece);
+        cube.remove(active.pivot);
+        active = null;
+      }
+      for (const piece of cubies) {
+        piece.position.copy(piece.userData.home);
+        piece.quaternion.identity();
+      }
+      history.length = 0;
+      count = 0;
+      updateUI();
+    });
+    window.addEventListener('keydown', event => {
+      if (event.ctrlKey || event.metaKey || event.altKey || event.repeat || /INPUT|TEXTAREA|SELECT|BUTTON/.test(event.target.tagName)) return;
+      const key = event.key.toUpperCase();
+      if (faces[key]) { event.preventDefault(); turnFace(key, event.shiftKey || $('inverse').checked); }
+    });
+
+    // O gesto começa num adesivo. Captura antes do OrbitControls para não mover a câmera junto.
+    const raycaster = new THREE.Raycaster();
+    function setRay(event) {
+      const r = canvas.getBoundingClientRect();
+      raycaster.setFromCamera(new THREE.Vector2((event.clientX - r.left) / r.width * 2 - 1, -(event.clientY - r.top) / r.height * 2 + 1), camera);
+    }
+    canvas.addEventListener('pointerdown', event => {
+      if (event.button !== 0 || dragging) return;
+      scene.updateMatrixWorld(true);
+      setRay(event);
+      const hit = raycaster.intersectObjects(stickers, false)[0];
+      if (!hit || busy()) return;
+      controls.enabled = false;
+      event.stopImmediatePropagation();
+      canvas.setPointerCapture(event.pointerId);
+      const normal = hit.object.userData.normal.clone().applyQuaternion(hit.object.userData.piece.quaternion).round();
+      dragging = { id: event.pointerId, x: event.clientX, y: event.clientY, point: hit.point.clone(),
+        plane: new THREE.Plane().setFromNormalAndCoplanarPoint(normal, hit.point), normal,
+        position: hit.object.userData.piece.position.clone() };
+      canvas.style.cursor = 'grabbing';
+    }, true);
+    canvas.addEventListener('pointermove', event => {
+      if (!dragging || event.pointerId !== dragging.id) return;
+      event.stopImmediatePropagation();
+      if (Math.hypot(event.clientX - dragging.x, event.clientY - dragging.y) < 14) return;
+      setRay(event);
+      const point = raycaster.ray.intersectPlane(dragging.plane, new THREE.Vector3());
+      if (!point) return;
+      const delta = point.sub(dragging.point);
+      if (delta.length() < 0.08) return;
+      // n × arraste define o eixo de giro. Escolhe o eixo cartesiano dominante.
+      const rotation = dragging.normal.clone().cross(delta);
+      const axis = ['x', 'y', 'z'].sort((a, b) => Math.abs(rotation[b]) - Math.abs(rotation[a]))[0];
+      const layer = Math.round(dragging.position[axis]);
+      const sign = Math.sign(rotation[axis]);
+      let label;
+      if (layer === 0) {
+        const middle = { x: ['M', 1], y: ['E', 1], z: ['S', -1] }[axis];
+        label = middle[0] + (sign !== middle[1] ? '′' : '');
+      } else {
+        const [key, face] = Object.entries(faces).find(([, f]) => f.axis === axis && f.layer === layer);
+        label = key + (sign !== face.sign ? '′' : '');
+      }
+      if (!busy()) enqueue({ axis, layer, sign, label });
+      releaseDrag();
+    }, true);
+    for (const name of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+      canvas.addEventListener(name, event => {
+        if (dragging?.id === event.pointerId) releaseDrag();
+      });
+    }
+    window.addEventListener('blur', releaseDrag);
+    canvas.addEventListener('contextmenu', event => event.preventDefault());
+    canvas.addEventListener('webglcontextlost', event => {
+      event.preventDefault();
+      $('error').hidden = false;
+      $('error').textContent = 'A renderização foi interrompida. Recarregue a página para restaurar o cubo.';
+    });
+    new ResizeObserver(() => {
+      const width = stage.clientWidth, height = stage.clientHeight;
+      renderer.setSize(width, height);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    }).observe(stage);
+    $('reset').disabled = false;
+    updateUI();
+    renderer.setAnimationLoop(now => {
+      if (!active && queue.length) startMove(now);
+      if (active) {
+        const t = Math.min((now - active.start) / active.duration, 1);
+        const eased = t * t * (3 - 2 * t);
+        active.pivot.rotation[active.axis] = active.sign * Math.PI / 2 * eased;
+        if (t === 1) finishMove();
+      }
+      controls.update();
+      renderer.render(scene, camera);
+    });
+  } catch (error) {
+    console.error(error);
+    $('badge').textContent = 'Falha ao iniciar';
+    $('error').hidden = false;
+    $('error').textContent = 'Não foi possível iniciar o 3D. Verifique a conexão com a internet (bibliotecas via CDN) e se o navegador permite WebGL. Depois recarregue a página.';
+  }
+</script>
+</body>
+</html>
