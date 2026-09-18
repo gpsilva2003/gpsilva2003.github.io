@@ -36,3 +36,13 @@ exclude_from_localizations: ["assets", "images"]
 - #### Visite minha página do [Instagram](https://www.instagram.com/gpsilva2003) para ver algumas das minhas fotos, o meu hobby favorito.
 
   Atualizado em: {{ site.time | date: "%d/%m/%Y" }}
+
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-66KJPFNWG1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-66KJPFNWG1');
+</script>
