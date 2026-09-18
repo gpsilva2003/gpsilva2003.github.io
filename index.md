@@ -17,8 +17,8 @@ exclude_from_localizations: ["assets", "images"]
 
 - Visite minha página profissional no [Instituto de Computação](https://www.ic.ufrj.br/~gabriel) da UFRJ.
 - Conheça a minha página no [Research Gate](https://www.researchgate.net/profile/Gabriel-Silva-130), com diversos artigos, apostilas e apresentações sobre Computação.
-- A minha página do [Linkedin](www.linkedin.com/in/gabrielsilvaufrj).
-- Meu currículo [Lattes]( http://lattes.cnpq.br/8636301961155552).
+- A minha página do [Linkedin](https://www.linkedin.com/in/gabrielsilvaufrj).
+- Meu currículo [Lattes]( https://lattes.cnpq.br/8636301961155552).
   
 - Alguns livros que publiquei:
   - [Arquitetura e Organização de Computadores - Uma Introdução](https://www.grupogen.com.br/livro-arquitetura-e-organizacao-de-computadores-uma-introducao-gabriel-pereira-da-silva-e-jose-antonio-dos-santos-borges-editora-ltc-9788521638650).
