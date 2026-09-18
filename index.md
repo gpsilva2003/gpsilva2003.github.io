@@ -15,10 +15,9 @@ exclude_from_localizations: ["assets", "images"]
 
 ### Profissionais:
 
-- #### Visite minha página profissional no [Instituto de Computação](https://www.ic.ufrj.br/~gabriel) da UFRJ.
-
-- #### Conheça a minha página no [Research Gate](https://www.researchgate.net/profile/Gabriel-Silva-130), com diversos artigos, apostilas e apresentações sobre Computação.
-- #### Meu currículo [Lattes]( http://lattes.cnpq.br/8636301961155552).
+- Visite minha página profissional no [Instituto de Computação](https://www.ic.ufrj.br/~gabriel) da UFRJ.
+- Conheça a minha página no [Research Gate](https://www.researchgate.net/profile/Gabriel-Silva-130), com diversos artigos, apostilas e apresentações sobre Computação.
+- Meu currículo [Lattes]( http://lattes.cnpq.br/8636301961155552).
   
 - #### Alguns livros que publiquei:
   - [Arquitetura e Organização de Computadores - Uma Introdução](https://www.grupogen.com.br/livro-arquitetura-e-organizacao-de-computadores-uma-introducao-gabriel-pereira-da-silva-e-jose-antonio-dos-santos-borges-editora-ltc-9788521638650).
@@ -32,14 +31,14 @@ exclude_from_localizations: ["assets", "images"]
     
 ### Pessoais:
 
-- #### Conheça a página da [Sociedade Espírita Jorge](https://wwww.sej.org.br) e os vídeos de [algumas palestras](https://www.youtube.com/c/SociedadeEspíritaJorge/streams).
-- #### Visite minha página do [Instagram](https://www.instagram.com/gpsilva2003) para ver algumas das minhas fotos, o meu hobby favorito.
-- #### Pequeno aplicativo para [gerar cola para a votação de 2026](./colinha_eleitoral.html)
+- Conheça a página da [Sociedade Espírita Jorge](https://wwww.sej.org.br) e os vídeos de [algumas palestras](https://www.youtube.com/c/SociedadeEspíritaJorge/streams).
+- Visite minha página do [Instagram](https://www.instagram.com/gpsilva2003) para ver algumas das minhas fotos, o meu hobby favorito.
+- Pequeno aplicativo para [gerar cola para a votação de 2026](./colinha_eleitoral.html)
 
 ### Alguns joguinhos, para distrair:
-- #### [Cobrinha](./cobrinha2.html)
-- #### [Paredão](./paredao.html)
-- #### [Cubo Mágico](./cubo-magico.html)
+- [Cobrinha](./cobrinha2.html)
+- [Paredão](./paredao.html)
+- [Cubo Mágico](./cubo-magico.html)
 
   Atualizado em: {{ site.time | date: "%d/%m/%Y" }}
 
