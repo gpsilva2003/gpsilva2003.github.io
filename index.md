@@ -41,7 +41,7 @@ exclude_from_localizations: ["assets", "images"]
   - Configurador de [RAID](./raid_configurator.html)
 - **Programação Paralela e Concorrente**
   - Visualizador da [Conjectura de Collatz](./collatz_visualizador.html)
-  - Simulador do [Jantar dos Filósofos](.jantar_filosofos_mutexes.html)
+  - Simulador do [Jantar dos Filósofos](./jantar_filosofos_mutexes.html)
   - Simulador de [Laços OpenMP](./simulador_lacos_openmp.html)
   - Simulador de [Collapse OpenMP](./simulador_openmp_collapse_tile.html)
   - Simulador de [Collapse OpenACC](./simulador_openacc_collapse_tile.html)
