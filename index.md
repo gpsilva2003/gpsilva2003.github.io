@@ -2,7 +2,7 @@
 layout: default
 title: "Gabriel P. Silva"
 date: 2025-09-14 22:20:00 -0300
-tags: [programação paralela, footgrafia, computação, arquitetura de computadores, organização de computadores, libguagem de montagem, computador, sistemas operacionais, javasccript, computer, computer architecture, multithreading, processor, parallel, operating systems, unix, linux, accessibility, collatz, cubo mágico, parallel programing, MPI, PVM, OpenMP, digital, circuits]
+tags: [programação paralela, fotografia, computação, arquitetura de computadores, organização de computadores, linguagem de montagem, computador, sistemas operacionais, javascript, computer, computer architecture, multithreading, processor, parallel, operating systems, unix, linux, accessibility, collatz, cubo mágico, parallel programing, MPI, PVM, OpenMP, digital, circuits]
 permalink:  /
 languages: ["pt-BR", "en"]
 default_lang: "pt-BR"
@@ -34,8 +34,10 @@ exclude_from_localizations: ["assets", "images"]
 ### Alguns Aplicativos Educacionais:
 - Arquitetura de Computadores e Sistemas Operacionais
   - Simulador de [Memória Cache](./simulador_cache_localidade.html)
+  - Simulador de [Substituição de Páginas Memória Virtual](./simulador_paginas.html)
 - Programação Paralela e Concorrente
   - Visualizador da [conjectura de Collatz](./collatz_visualizador.html)
+  -  Simulador de [Laços OpenMP](./simulador_lacos_openmp.html)
 
 ### Alguns joguinhos, para distrair:
 - [Cobrinha](./cobrinha2.html)
