@@ -33,11 +33,14 @@ exclude_from_localizations: ["assets", "images"]
   
 ### Alguns Aplicativos Educacionais:
 - Arquitetura de Computadores e Sistemas Operacionais
+  - Animação de [Latência ao Longo do Tempo](./latencia_interativa.html)
   - Simulador de [Memória Cache](./simulador_cache_localidade.html)
   - Simulador de [Substituição de Páginas Memória Virtual](./simulador_paginas.html)
+  - Classificação dos [Sistemas Operacionais](./classificacao_sistemas_operacionais.html)
 - Programação Paralela e Concorrente
-  - Visualizador da [conjectura de Collatz](./collatz_visualizador.html)
-  -  Simulador de [Laços OpenMP](./simulador_lacos_openmp.html)
+  - Visualizador da [Conjectura de Collatz](./collatz_visualizador.html)
+  - Simulador de [Laços OpenMP](./simulador_lacos_openmp.html)
+  - Animação de [False Sharing](./false_sharing_animacao.html)
 
 ### Alguns joguinhos, para distrair:
 - [Cobrinha](./cobrinha2.html)
