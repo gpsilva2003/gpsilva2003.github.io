@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<!-- saved from url=(0056)https://ic.ufrj.br/~gabriel/tools/raid_configurator.html -->
+<html lang="pt-BR"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurador de RAID</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 0;
+        }
+
+        .sidebar {
+            background: #f7fafc;
+            padding: 30px;
+            border-right: 2px solid #e2e8f0;
+        }
+
+        .main {
+            padding: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .raid-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .raid-option {
+            padding: 12px;
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .raid-option:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .raid-option.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .results {
+            background: #f7fafc;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .results h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .result-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-label {
+            font-size: 0.85em;
+            color: #718096;
+            margin-bottom: 5px;
+        }
+
+        .result-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .result-unit {
+            font-size: 0.9em;
+            color: #718096;
+            margin-left: 5px;
+        }
+
+        .visualization {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .visualization h3 {
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+
+        .disk-array {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .disk-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .disk {
+            width: 60px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85em;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .disk.parity {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .disk.mirror {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .disk-label {
+            font-size: 0.75em;
+            text-align: center;
+            color: #4a5568;
+            margin-top: 5px;
+        }
+
+        .description {
+            background: #edf2f7;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .description h4 {
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .description p {
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .pros, .cons {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .pros h5 {
+            color: #38a169;
+            margin-bottom: 10px;
+        }
+
+        .cons h5 {
+            color: #e53e3e;
+            margin-bottom: 10px;
+        }
+
+        .pros ul, .cons ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .pros li::before {
+            content: "✓ ";
+            color: #38a169;
+            font-weight: bold;
+        }
+
+        .cons li::before {
+            content: "✗ ";
+            color: #e53e3e;
+            font-weight: bold;
+        }
+
+        .pros li, .cons li {
+            margin-bottom: 5px;
+            color: #4a5568;
+            font-size: 0.9em;
+        }
+
+        .alert {
+            background: #fff5f5;
+            border-left: 4px solid #e53e3e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #742a2a;
+        }
+
+        .info {
+            background: #ebf8ff;
+            border-left: 4px solid #3182ce;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #2c5282;
+        }
+
+        @media (max-width: 968px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                border-right: none;
+                border-bottom: 2px solid #e2e8f0;
+            }
+
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .language-switch { display:flex; justify-content:center; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+        .language-switch button { padding:8px 16px; border:2px solid #cbd5e0; border-radius:8px; background:white; color:#2d3748; cursor:pointer; font:inherit; }
+        .language-switch button.active { background:#667eea; color:white; border-color:#667eea; }
+        .language-switch button:focus-visible { outline:3px solid #fbd38d; outline-offset:3px; }
+    </style>
+<style>:root [href="https://adstub.net/cina777/"], :root [href="https://adstub.net/judi89/"], :root [href^="//mage98rquewz.com/"], :root .inset-x-0[x-data="adblockBanner()"], :root #hero a[download="Unicore.zip"], :root body > div[data-captcha-enable="true"] > div.cleanslate[id^="google-captcha-"] > div.captcha-box, :root html > #__cf_challenge_host__, :root html[data-scrapbook-source][data-scrapbook-create][data-scrapbook-title] > body.no-js > div.main-wrapper[role="main"] > div.main-content, :root html > body.body > div.container > div.content > form > table.optoutForm, :root html > body > div.container > form#unsubscribe-form[onsubmit="submitUnsubscribeForm(event)"], :root html[lang] > body:not([class]):not([id]):not([style]) > div.background-container > div.container > div.captcha-box, :root div.grid[aria-hidden="true"]:not([id]):not([style]) + main:not([class]):not([id]):not([style]) ~ div[style="position: fixed; inset: 0px; z-index: 2147483647;"]:not([class]):not([id]), :root html[data-page="macos-download"] > body[data-platform="macos"] > .app_wrap, :root body > .main-wrapper > .main-content > .intro > .checkbox-window, :root html > .cfmd-shadow-host, :root .wp-singular > iframe[srcdoc][allowfullscreen][allow*="clipboard-write"][style*="2147483647"], :root html > #nc-cover:not(body), :root body > .cf-root, :root .cjs-container > #checkbox-window, :root .wp-singular > div[data-sm][style*="2147483647"] > iframe[style*="100%"][allow*="clipboard-write"], :root #ipBar + .main, :root #mainBtn[onclick="startVerify()"], :root #turnstile[onclick="handleClick()"], :root body > .page > .verify-row, :root body > .page > #mainVerifyRow, :root body.wp-singular > div[id$="-overlay"] > div[id$="-container"] > div[class*="-container"] > div[id$="-checkbox-window"], :root html[lang] > body.ishome > div.adult + main.main, :root .post-template-default a[href^="https://go."][href*="/smartpop/"], :root .container a[title="AI Jerk OFF"][href][target="_blank"], :root body > #mdl-register.modal.anm-e.regnow, :root .flex a[href^="http://adpostup.com/"], :root #app-root ~ a[href][target="_blank"][style="position: fixed;top: 0;left: 0;width: 100%;height: 100%;display: block;z-index: 9999999;cursor: auto"], :root #wrapper ~ a[href][target="_blank"][style="position: fixed;top: 0;left: 0;width: 100%;height: 100%;display: block;z-index: 9999999;cursor: auto"], :root .header ~ div[style^="position:fixed;inset:0;z-index:2147483647;background:black;opacity:0.01;height:"], :root #app a[href^="https://t.nettrck.store/"], :root img[width="728"][height="90"], :root button.btn[data-openuri*="/4/"], :root #adbtm[onclick="badr();"], :root a[href^="https://www.polybuzz.ai/"] img.responsive-image, :root .kln > a[href^="https://www.polybuzz.ai/"], :root html[lang][style^="--main-bg-color"] > body:not([class]):not([id]) > div#container[style="visibility: visible;"] > div#banner[style="opacity:0"] ~ main:not([class]):not([id]) > div#message, :root #donate > a[href][style][onclick="thank_you()"][target="_blank"][rel="nofollow"], :root .container a[href^="https://insensitiveshoweraudible.com/"], :root .jwplayer ~ div[style="position:absolute;top:0;left:0;width: 100%;height: 100%;z-index:2147483647"], :root iframe.lazyloaded[data-src^="https://rcm-fe.amazon-adsystem.com/"], :root div[style^="position: fixed; inset: 0px; z-index: 2147483647; background: black; opacity: 0.01"], :root .skel-layers-fixed a[href*=".com/smartpop/"], :root [style^="position: fixed; inset: 0px; z-index: 2147483647; background-color: transparent; pointer-events: auto; cursor: auto; margin: 0px; padding: 0px; display: block;"], :root .ads-iframe:not([style="position: absolute; left: -10px; top: -10px;"]), :root .ad-content:not(:empty), :root div[style="position: fixed; display: block; width: 100%; height: 100%; inset: 0px; background-color: rgba(0, 0, 0, 0); z-index: 300000;"], :root #weatherad:not(:empty), :root #topbannerad:not(:empty), :root #topBannerAd:not(:empty), :root #ad_img:not(:empty), :root #adContext:not(:empty), :root .ad-300x250:not(.ads), :root [data-ad-width]:not([style$="left: -10000px !important; top: -1000px !important;"]):not(.adsbygoogle), :root .adunit:not(.text-ad), :root .adslot_1:not(.text-ad), :root [href="https://adstub.net/ratu89/"], :root #ads-footer:not([style^="position: absolute; left: -5000px"]), :root a.tdn[href^="https://landing.brazzersnetwork.com/"], :root #ads-1:not([style^="position: absolute; left: -5000px"]), :root #adframe:not(frameset):not([style^="position: absolute; left: -5000px"]), :root #ad_slot:not([style^="position: absolute; left: -5000px"]), :root #ad_big:not([style^="position: absolute; left: -5000px"]), :root #ad_area:not([style^="position: absolute; left: -5000px"]), :root #ad_300:not([style^="position: absolute; left: -5000px"]), :root a[dontfo=""][style$="position: absolute; z-index: 2147483647;"], :root [href^="https://join.enjoyx.com/track/"], :root a[href*=".click/?z="][href*="&n"], :root [href^="//taghaugh.com/"], :root div[class$="player-promo-col"], :root [href^="https://www.safestcontentgate.com/"], :root [href^="//cadsecs.com/"], :root [href^="//mellowads.com/"], :root .cjs-container > #verify-window, :root [href^="https://fireads.online/"], :root html[lang="vi"] .sspp-area, :root html[lang="tr"] > body.has-footer-ad.has-pageskin-desktop a.pageskin-desktop-wrapper, :root html[lang="tr"] #aa-wp .container-ads-adjustment, :root body > a.visible[id][href][target="_blank"], :root body > div[style="position: fixed; inset: 0px; z-index: 2147483647; background: transparent; cursor: pointer;"], :root #videojs ~ div[style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; z-index: 2147483646;"], :root html > #bw-rc-host, :root .close-btn4[onclick="closeAd4()"], :root .close-btn3[onclick="closeAd3()"], :root .close-btn[onclick="closeAd()"], :root #go-to-top + div[id][class], :root .bb ~ main#container .containerAds, :root #midadd:not(:empty), :root #adzerk:not(:empty), :root [href^="//x4pollyxxpush.com/"], :root #advert-header:not(:empty), :root div.card > div#cbRow.checkbox-row[onclick="startVerify()"], :root #tongkatlol ~ script[src^="/shrinke/js/"] ~ .main-content-box > div[style="width:100%;height:110px"], :root body > div[style$="z-index: 2147483647; top: 0px; left: 0px; position: fixed; display: block;"], :root html > body > div.container.m-p > #checkbox-window.checkbox-window, :root .container a[href^="https://seduced.com"][href*="ref="], :root #kt_player .fp-brand, :root a[id][href="https://toolkitspro.com"][rel^="noopener noreferrer"], :root #kt_player #ads_iframe, :root .header-container a[href^="https://candyai.gg/"], :root [src^="//dombnrs.com/"], :root [href="https://adstub.net/arab777/"], :root #kt_player ~ #sp-player, :root [href^="https://klsdee.com/"], :root [href^="//producebreed.com/"], :root #modern-player-root ~ div[id^="custom-invisible-overlay-"][class^="custom-popup-overlay-"], :root [href="//xxxrevpushclcdu.com/app.webp"], :root [href^="https://adult.xyz/"], :root [href^="https://popcash.net/"], :root a[href^="http://www.poweredbyliquidfire.mobi/"], :root [href^="https://t.mobtyb.com/"], :root [data-lnguri*="vipbox"], :root .reklama:not(.ads), :root a[href^="https://syndication.exdynsrv.com/splash.php"], :root [href*="/afu.php"], :root span[id^="ezoic-pub-ad-placeholder-"], :root ins.adsbygoogle[data-ad-slot], :root ins.adsbygoogle[data-ad-client], :root img[src^="https://s-img.adskeeper.com/"], :root #download a[download="Unicore.zip"], :root guj-ad, :root body[data-clipboard-code] > .main-wrapper, :root gpt-ad, :root div#spot-holder.spot-holder[style="display: block;"], :root div[ow-ad-unit-wrapper], :root div[id^="zergnet-widget"], :root html[lang] > body:not([class]):not([id]):not([style]) > div.container > div.recaptcha-box, :root div[id^="vuukle-ad-"], :root div[id^="taboola-stream-"], :root div[id^="sticky_ad_"], :root div[id^="st"][style^="z-index: 999999999;"], :root div[id^="rc-widget-"], :root html > body > div.content > dl > dd.dd1 > div.min_sider > form#form1[action="unsubscribe.php"], :root div[id^="mrec-leaderboard-"], :root div[id^="gpt_ad_"], :root div[id^="ezoic-pub-ad-"], :root .code-block a[target="_blank"][href^="https://"][href*=".com/"][href*="?key="], :root div[id^="dfp-ad-"], :root div[id^="crt-"][style], :root div[id^="adspot-"], :root a[onclick="openAuc();"], :root ps-connatix-module, :root div[id^="ad_position_"], :root [data-ad-module]:not([style$="left: -10000px !important; top: -1000px !important;"]):not(.adsbygoogle), :root a[id][href="https://chpadblock.com/"][rel^="noopener noreferrer"], :root div[id^="ad-div-"], :root div[id*="ScriptRoot"], :root div[id*="MarketGid"], :root [href="https://adstub.net/rusia777/"], :root #banner468:not([style^="position: absolute; left: -5000px"]), :root div[data-id-advertdfpconf], :root div[data-dfp-id], :root div[style="top: 0px; left: 0px; width: 1287px; height: 500px; position: fixed; z-index: 2147483647;"], :root hl-adsense, :root div[data-contentexchange-widget], :root div[data-alias="300x250 Ad 2"], :root div[data-adzone], :root #buy-sell-ads:not(:empty), :root div[data-adunit-path], :root div[data-adname], :root div[data-ad-targeting], :root div[data-ad-region], :root div[data-ad-placeholder], :root div[aria-label="Ads"], :root .google-ad:not(.testAd), :root display-ads, :root #ad_space:not([style^="position: absolute; left: -5000px"]), :root display-ad-component, :root atf-ad-slot, :root aside[id^="adrotate_widgets-"], :root div[style^="position:fixed;inset:0px;z-index:2147483647;background:black;opacity:0.01"], :root aside[aria-label="retailmedia.complimentarySponsored"], :root html[lang] > body#body > * > div.cvh.BlockClicksActivityBusy, :root amp-fx-flying-carpet, :root amp-embed[type="taboola"], :root html > #nochain-demo-frame:not(body), :root html[lang="tr"] #aa-wp .rnd-ads-adjustment, :root amp-connatix-player, :root div[id^="google_dfp_"], :root ad-slot, :root a[href^="https://www.purevpn.com/"][href*="&utm_source=aff-"], :root a[href^="https://www.onlineusershielder.com/"], :root html[lang="tr"] > body.has-footer-ad.has-pageskin-desktop a.pageskin-click-right, :root a[href^="https://financeads.net/tc.php?"], :root a[href^="https://www.mrskin.com/tour"], :root a[href^="https://www.infowarsstore.com/"] > img, :root a[href^="https://www.highperformancecpmgate.com/"], :root amp-ad, :root a[href^="https://www.highcpmrevenuenetwork.com/"], :root a[href^="https://www.get-express-vpn.com/offer/"], :root a[href^="https://lnkxt.bannerator.com/"], :root a[href^="https://www.geekbuying.com/dynamic-ads/"], :root #cmdTextDisplay ~ *, :root [href^="https://groorsoa.net/"], :root a[href*=".sadbaguette.com/"], :root a[href^="https://www.financeads.net/tc.php?"], :root a[href^="https://www.effectiveratecpm.com/"], :root [href^="https://www.herbanomic.com/"] > img, :root a[href^="https://www.dql2clk.com/"], :root [data-template-type="nativead"], :root a[href^="https://www.adultempire.com/"][href*="?partner_id="], :root a[href^="https://www.nutaku.net/signup/landing/"], :root a[href^="https://www.dating-finder.com/signup/?ai_d="], :root a[href^="https://wolf-327b.com/"], :root body > .content-wrapper > .cf-wrap, :root [data-ad-manager-id]:not([style$="left: -10000px !important; top: -1000px !important;"]):not(.adsbygoogle), :root a[href^="https://voluum.prom-xcams.com/"], :root a[href^="https://twinrdsyte.com/"], :root .category-ads:not(html):not(body):not(.post), :root a[href^="https://twinrdsrv.com/"], :root [href="https://snvhost.com/"], :root a[href^="https://trk.nfl-online-streams.club/"], :root a[href^="https://tracking.avapartner.com/"], :root a[href^="https://track.wg-aff.com"], :root a[href^="https://track.ultravpn.com/"], :root a[href^="https://track.afcpatrk.com/"], :root [href="https://t.me/Russia_Vs_Ukraine_War3"], :root a[href^="https://track.adform.net/"], :root a[href^="https://torguard.net/aff.php"] > img, :root .menu-item a[href^="https://go.rmhfrtnd.com"], :root [data-identity="adhesive-ad"], :root a[href^="https://tc.tradetracker.net/"] > img, :root a[href^="https://tatrck.com/"], :root [href^="https://zstacklife.com/"] img, :root a[href^="https://click.candyoffers.com/"], :root a[href^="https://t.aslnk.link/"], :root .container a[href^="https://go.mavrtracktor.com/"], :root a[onmousedown^="this.href='https://paid.outbrain.com/network/redir?"], :root a[href^="https://t.ajump1.com/"], :root a[href^="https://t.adating.link/"], :root a[href^="https://go.trackitalltheway.com/"], :root [href^="https://track.fiverr.com/visit/"] > img, :root a[href^="https://syndication.exoclick.com/"], :root a[href^="https://syndication.dynsrvtbg.com/"], :root div[data-alias="300x250 Ad 1"], :root a[href^="https://syndicate.contentsserved.com/"], :root a[href^="https://svb-analytics.trackerrr.com/"], :root a[onmousedown^="this.href='https://paid.outbrain.com/network/redir?"] + .ob_source, :root a[href^="http://www.iyalc.com/"], :root a[href^="https://claring-loccelkin.com/"], :root a[href^="https://stardomcoit.com/"], :root a[href^="https://track.aftrk5.com/"], :root a[href^="https://slkmis.com/"], :root a[href^="https://myclick-2.com/"], :root a[href^="https://sexynearme.com/"], :root a[href^="https://s.zlinkt.com/"], :root a[href^="https://s.zlinkr.com/"], :root bottomadblock, :root a[href^="https://s.zlinkd.com/"], :root [href="https://adstub.net/gaza88/"], :root a[href^="https://ad.doubleclick.net/"], :root a[href^="https://static.fleshlight.com/images/banners/"], :root a[href^="https://s.zlink7.com/"], :root a[href^="https://s.ma3ion.com/"], :root a[href^="https://www.privateinternetaccess.com/"] > img, :root a[href^="https://s.gentlefieldpattern.com/"], :root a[href^="https://s.eunow4u.com/"], :root a[href^="https://random-affiliate.atimaze.com/"], :root #downloadAd:not(:empty), :root #kt_player > div[style$="display: block;"][style*="inset: 0px;"], :root a[href^="https://quotationfirearmrevision.com/"], :root a[href^="https://pubads.g.doubleclick.net/"], :root a[href^="https://prf.hn/click/"][href*="/camref:"] > img, :root a[href^="https://www.dating-finder.com/?ai_d="], :root a[href^="https://serve.awmdelivery.com/"], :root a[href^="https://prf.hn/click/"][href*="/adref:"] > img, :root .page-layout a[href^="https://hashcounts.com/"], :root app-ad, :root [href^="https://ap.octopuspop.com/click/"] > img, :root a[href^="https://postback1win.com/"], :root html[lang] > body#body > * > div.cv-xwrapper > div.cvc > div.cv-inner, :root [href^="https://go.mavrtracktor.com/"], :root a[href^="https://a.adtng.com/"], :root a[href^="https://playnano.online/offerwalls/?ref="], :root a[href^="https://mmwebhandler.aff-online.com/"], :root a[href^="https://www.bet365.com/"][href*="affiliate="], :root a[href^="https://pb-track.com/"], :root a[href^="https://pb-front.com/"], :root a[href^="https://paid.outbrain.com/network/redir?"], :root a[href^="https://streamate.com/landing/click/"], :root div[class^="Adstyled__AdWrapper-"], :root a[href^="https://osfultrbriolenai.info/"], :root a[href^="https://upsups.click/"], :root .ad-placeholder:not(#detect, #detect_ad_empire, #filter_ads_by_classname, .adsbox), :root a[href^="https://ndt5.net/"], :root a[href^="https://natour.naughtyamerica.com/track/"], :root a.poly-title[href^="https://www.polybuzz.ai/"], :root a[href^="https://mediaserver.entainpartners.com/renderBanner.do?"], :root [data-ad-name], :root a[href^="https://loboclick.com/"], :root a[href^="https://lead1.pl/"], :root .cta-button[onclick="openUpdateModal()"], :root a[href^="https://landing.brazzersnetwork.com/"], :root a[href^="https://join.bannedsextapes.com/track/"], :root [href^="https://exi8ef83z9.com/"], :root a[href^="https://jaxofuna.com/"], :root a[href^="https://italarizege.xyz/"], :root .category-ad:not(html):not(body):not(.post), :root a[href^="https://s.happyleafmotion.com/"], :root a[href^="https://identicaldrench.com/"], :root a[href^="https://helmethomicidal.com/"], :root #adsquare:not([style^="position: absolute; left: -5000px"]), :root a[href^="https://golinks.work/"], :root a[href^="https://go.xxxjmp.com"], :root [class^="div-gpt-ad"]:not([style^="width: 1px; height: 1px; position: absolute; left: -10000px; top: -"]), :root a[href^="https://zirdough.net/"], :root [class^="tile-picker__CitrusBannerContainer-sc-"], :root a[href^="https://go.xxxiijmp.com"], :root .ad-link:not(.adsbox), :root a[href^="https://go.xtbaffiliates.com/"], :root a[href^="https://go.xlviirdr.com"], :root div[class$="-adlabel"], :root a[href^="https://go.xlviiirdr.com"], :root a[href^="https://go.xlivrdr.com"], :root a[href^="https://ismlks.com/"], :root [href^="https://www.mypillow.com/"] > img, :root a[href^="https://go.xlirdr.com"], :root [data-css-class="dfp-inarticle"], :root a[href^="https://go.tmrjmp.com"], :root a[href^="https://go.markets.com/visit/?bta="], :root a[href^="https://billing.purevpn.com/aff.php"] > img, :root a[href^="https://go.hpyrdr.com/"], :root [data-lnguri^="https://s3.amazonaws.com"], :root a[href^="https://lijavaxa.com/"], :root a[href^="https://go.goaserv.com/"], :root a[href^="https://go.etoro.com/"] > img, :root a[href^="https://go.dmzjmp.com"], :root a[href^="https://www.bang.com/?aff="], :root #mgb-container > #mgb, :root a[href^="https://go.admjmp.com"], :root a[href^="https://get.surfshark.net/aff_c?"][href*="&aff_id="] > img, :root a[href^="https://datewhisper.life/"], :root a[href^="https://click.linksynergy.com/fs-bin/"] > img, :root a[href^="https://get-link.xyz/"], :root a[href^="https://www.mrskin.com/account/"], :root a[id][href="https://hamrocsit.com"][rel^="noopener noreferrer"], :root a[href^="https://www.adskeeper.com"], :root #vidcloud-player > #overlay-container, :root a[data-redirect^="https://paid.outbrain.com/network/redir?"], :root [href^="https://clicks.affstrack.com/"] > img, :root a[href^="https://engine.phn.doublepimp.com/"], :root a[href^="https://dl-protect.net/"], :root a[href*=".foxqck.com/"], :root a[href^="https://ctosrd.com/"], :root a[href^="https://clixtrac.com/"], :root a[href^="https://clicks.pipaffiliates.com/"], :root #ad_footer:not([style^="position: absolute; left: -5000px"]), :root app-advertisement, :root a[href^="https://getmatchedlocally.com/"], :root a[href^="https://clickins.slixa.com/"], :root a[href^="https://combodef.com/"], :root a[href^="https://click.hoolig.app/"], :root a[href^="https://track.totalav.com/"], :root a[href^="https://ctrdwm.com/"], :root img[src^="https://images.purevpnaffiliates.com"], :root a[href^="https://porntubemate.com/"], :root a[href^="https://clickadilla.com/"], :root a[href^="https://click.dtiserv2.com/"], :root a[href^="https://www.adxsrve.com/"], :root a[href^="https://click.Ggpickaff.com/"], :root a[href^="https://go.awdeliverynet.com/"], :root a[href^="https://go.xlvirdr.com"], :root a[href^="https://cam4com.go2cloud.org/"], :root a[onclick^="window.location.replace('https://random-affiliate.atimaze.com/"], :root a[href^="https://bongacams2.com/track?"], :root a[href^="https://t.ajrkm1.com/"], :root #main-content a[href^="https://hub.buzzaffiliates.com/"], :root a[href^="https://bongacams10.com/track?"], :root a[href^="//hoodingluster.com/"], :root a[href^="https://black77854.com/"], :root a[href^="https://rixofa.com/"], :root a[href^="https://best-experience-cool.com/"], :root [data-taboola-options], :root a[href^="https://believessway.com/"], :root a[href^="https://Click.ggpickaff.com/"], :root a[href^="https://banners.livepartners.com/"], :root a[href^="http://revolvemockerycopper.com/"], :root a[href^="https://awptjmp.com/"], :root a[href^="https://join.sexworld3d.com/track/"], :root a[href^="https://track.cam4tracking.com/"], :root a[href^="https://aweptjmp.com/"], :root a[href^="https://ausoafab.net/"], :root #tabVideo > .rmedia, :root a[href^="https://aj1070.online/"], :root a[href^="https://ads.planetwin365affiliate.com/"], :root a[href^="https://ads.leovegas.com/"], :root a[href^="https://a.medfoodhome.com/"], :root .nya-slot[style], :root a[href^="https://a.bestcontentweb.top/"], :root a[href^="https://adultfriendfinder.com/go/"], :root a[href^="https://a.bestcontentoperation.top/"], :root a[href^="https://a2.adform.net/"], :root a[href^="https://a.candyai.love/"], :root .banner-img > .pbl, :root [data-m-ad-id], :root a[href^="https://a-ads.com/"], :root [data-testid^="section-AdRowBillboard"], :root .ad-placeholder:not(#filter_ads_by_classname):not(#detect_ad_empire):not(#detect):not(.adsbox), :root broadstreet-zone-container, :root a[href^="https://ak.psaltauw.net/"], :root a[href^="https://1winpb.com/"], :root div[id^="optidigital-adslot"], :root [href^="https://wsup.ai/"], :root a[href^="https://123-stream.org/"], :root a[href^="https://in.rabbtrk.com/"], :root a[href^="http://www.h4trck.com/"], :root [href^="https://a.acebet.com/api/click?"], :root #video_player ~ div[id] div[style^="position:fixed;inset:0px;z-index:"], :root a[href^="http://www.friendlyduck.com/AF_"], :root .btn-primary[onclick="showVerification()"], :root a[href^="http://partners.etoro.com/"], :root [href="https://chaturbate.jjgirls.com/"] > img, :root body div#notificationPopup.notificationPopupBlock, :root a[href^="http://cam4com.go2cloud.org/aff_c?"], :root a[href^="https://ads.betfair.com/redirect.aspx?"], :root #leader_ad:not(:empty), :root amp-ad-custom, :root .home a[href^="https://s.zline0.com/"], :root a[href^="https://prf.hn/click/"][href*="/creativeref:"] > img, :root a[href*="&maxads="], :root a[href^="https://1betandgonow.com/"], :root a[href^="http://www.adultempire.com/unlimited/promo?"][href*="&partner_id="], :root [href^="http://referrer.website/"], :root a[href^="http://trk.globwo.online/"], :root a-ad, :root a[href^="https://offhandpump.com/"], :root a[href^="http://stickingrepute.com/"], :root #slashboxes > .deals-rail, :root [href^="http://mypillow.com/"] > img, :root a[href^="http://bongacams.com/track?"], :root .fp-ui > a[href][target="_blank"][style^="position: absolute; inset: 0px;"], :root a[href^="//startgaming.net/tienda/" i], :root a[href^="https://a.medfoodsafety.com/"], :root a[href^="//go.eabids.com/"], :root a[href^=" https://www.friendlyduck.com/AF_"], :root [data-cl-spot-id], :root a[href*="/jump/next.php?r="], :root a[href^="https://chaturbate.com/in/?"], :root div[style^="z-index: 999999; background-image: url(\"data:image/gif;base64,"][style$="position: absolute;"], :root [href^="https://affiliate.fastcomet.com/"] > img, :root #banner728x90:not([style^="position: absolute; left: -5000px"]), :root div[id^="lazyad-"], :root a[href^="http://com-1.pro/"], :root [href^="https://www.profitablegatecpm.com/"], :root a[href*=".cfm?domain="][href*="&fp="], :root #vstr ~ #overlay, :root [id^="section-ad-banner"], :root a[href^="https://go.bushheel.com/"], :root a[href^="https://ctjdwm.com/"], :root body > div.mw[role="main"] > .mc, :root a[href^="https://camfapr.com/landing/click/"], :root div[data-ad-wrapper], :root .gnt_em_vp_c[data-g-s="vp_dk"], :root [href="//sexcams.plus/"], :root a[href*="/go.php?a_aid="], :root [id^="google_ads_iframe_"], :root [id^="ad_slider"], :root html#html[sti][vic][lang] > body#allbody, :root [href^="https://www.onclickperformance.com/"], :root a[href^="https://www.goldenfrog.com/vyprvpn?offer_id="][href*="&aff_id="], :root a[href^="https://wmctjd.com/"], :root a[href*="//jjgirls.com/sex/Chaturbate"], :root [id^="ad-wrap-"], :root a[href^="http://sarcasmadvisor.com/"], :root .ad-slot:not(.adsbox):not(.adsbygoogle), :root [href^="https://www.restoro.com/"], :root [href^="https://www.targetingpartner.com/"], :root .close-btn2[onclick="closeAd2()"], :root a[href^="https://join.virtuallust3d.com/"], :root .section-subheader > .section-hotel-prices-header, :root [href^="https://www.hostg.xyz/"] > img, :root [href*="passtechusa.com"], :root a[href^="https://bngpt.com/"], :root a[href^="http://adultfriendfinder.com/go/"], :root a[href^="https://fastestvpn.com/lifetime-special-deal?a_aid="], :root a[href^="https://tour.mrskin.com/"], :root a[href^="https://s.zlink3.com/"], :root a[href^="http://sneakyadministration.com/"], :root .wrapper a[rel~="sponsored"][href^="https://"][href*=".com/"][href*="?key="], :root [href^="https://www.brighteonstore.com/products/"] img, :root citrus-ad-wrapper, :root a[href^="https://go.grinsbest.com/"], :root [href^="https://www.avantlink.com/click.php"] img, :root html.canvas > body.wp-singular + div[popover="manual"], :root #app a[href^="https://s.smartfloralab.com/"], :root a[href^="https://t.acam.link/"], :root a[href^="https://go.strpjmp.com/"], :root [href^="https://url.totaladblock.com/"], :root div[id^="ad-position-"], :root a[href^="https://www.toprevenuegate.com/"], :root a[href^="https://bc.game/"], :root a[href^="https://bngprm.com/"], :root [href^="https://shiftnetwork.infusionsoft.com/go/"] > img, :root a[href^="https://trk.softonixs.xyz/"], :root [href^="https://wct.link/click?"], :root [href^="//look.utndln.com/offer"], :root div[data-adunit], :root app-large-ad, :root [href^="https://turtlebids.irauctions.com/"] img, :root a[href^="https://iqbroker.com/"][href*="?aff="], :root .p-post-ad:not(html):not(body), :root #vplayer ~ img[id][onclick], :root [href^="https://rpwmct.com/"], :root a[href^="https://go.cmtaffiliates.com/"], :root [href^="https://mylead.global/stl/"] > img, :root [data-testid="adBanner-wrapper"], :root [href^="https://optimizedelite.com/"] > img, :root a[href^="https://go.rmishe.com/"], :root [href^="https://ilovemyfreedoms.com/landing-"], :root a[href^="https://go.xxxijmp.com"], :root [href^="https://istlnkcl.com/"], :root a[href^="https://go.nordvpn.net/aff"] > img, :root #tongkatlol ~ script[src^="/shrinke/js/"] ~ .main-content-box + .content-box > div[id][style^="position: fixed; display: block; width: 100%;"], :root .\[\&_\.gdprAdTransparencyCogWheelButton\]\:\!pjra-z-\[5\], :root [href^="http://clicks.totemcash.com/"], :root a[href^="https://ad.zanox.com/ppc/"] > img, :root [class~="mailpoet_form_popup_overlay"], :root a[href^="https://www.brazzersnetwork.com/landing/"], :root a[href^="https://explore-site.com/"], :root .AdBody:not(body), :root [href="https://adstub.net/indo666/"], :root [href^="https://glersakr.com/"], :root a[href^="https://tm-offers.gamingadult.com/"], :root [href^="https://charmingdatings.life/"], :root [data-id^="div-gpt-ad"], :root a[href^="https://tracker.loropartners.com/"], :root [href^="https://awbbjmp.com/"], :root .post-template-default a[href^="https://www.ourdreamersai13.com/"], :root [href^="http://www.mypillow.com/"] > img, :root a[href^="https://join.virtualtaboo.com/track/"], :root [id^="ad_sky"], :root [name^="google_ads_iframe"], :root [href^="https://go.xlrdr.com"], :root [href*="uselnk.com/"], :root a[href^="https://s.cant3am.com/"], :root .nav-item[href^="https://candyai.gg/"], :root [data-testid^="taboola-"], :root #teaser3[style^="width: 100%;height:0;text-align: center;display: scroll;position:fixed;"], :root a[href*=".adglare.net/"], :root a[href^="https://track.1234sd123.com/"], :root zeus-ad, :root [data-testid="prism-ad-wrapper"], :root [href^="https://antiagingbed.com/discount/"] > img, :root a[href*=".adsrv.eacdn.com/"], :root #teaser1[style^="width:autopx;"], :root [href^="https://www.cloudways.com/en/?id"], :root #modal[doskip][prclck], :root body > .main-wrapper > .main-content > .intro > #checkbox-window, :root [data-uri^="https://s3.amazonaws.com"], :root [href^="https://mypatriotsupply.com/"] > img, :root a[href^="https://bodelen.com/"], :root a[href*=".g2afse.com/"], :root a[href^="https://go.hpyjmp.com"], :root iframe[scrolling="no"][sandbox*="allow-popups allow-modals"][style^="width: 100%; height: 100%; border: none;"], :root [href^="https://mystore.com/"] > img, :root html[lang] > body.startnew > div#sections > section#section_uname, :root span[data-ez-ph-id], :root [href^="https://track.aftrk1.com/"], :root html[lang] > body:not([style]) > div.captchaBody, :root #adheader:not([style^="position: absolute; left: -5000px"]), :root div[id^="adngin-"], :root [data-rc-widget], :root a[href^="https://stellarcashflow.net/trck/"], :root [data-mobile-ad-id], :root [href^="https://join.playboyplus.com/track/"], :root html > #bw-cf-root, :root [href^="https://go.smljmp.com/"], :root a[href^="https://gamingadlt.com/?offer="], :root a[href^="https://go.bbrdbr.com"], :root a[href^="https://fc.lc/ref/"], :root body.user-clicked[style="cursor: auto;"] > #root > .app-container, :root a[href^="https://pb-imc.com/"], :root a[href^="https://www8.smartadserver.com/"], :root topadblock, :root a[href^="//s.zlinkd.com/"], :root a[href^="https://adclick.g.doubleclick.net/"], :root [data-freestar-ad][id], :root body > .cf-page-wrap, :root [data-dynamic-ads], :root [data-desktop-ad-id], :root [data-d-ad-id], :root [href^="https://track.wg-aff.com/click"], :root a[href^="https://go.rmhfrtnd.com"], :root [data-asg-ins], :root [data-block-type="ad"], :root [onclick*="content.ad/"], :root [href^="https://go.rdrjmp.com/"], :root a[href^="https://snowdayonline.xyz/"], :root a[href^="https://join.dreamsexworld.com/"], :root a[href^="http://join.brokestraightboys.com/track/"], :root div[id^="div-ads-"], :root [href^="https://rapidgator.net/article/premium/ref/"], :root a[href^="https://track.aftrk3.com/"], :root [href^="https://join3.bannedsextapes.com"], :root [href^="https://join.girlsoutwest.com/"], :root html > body.hold-transition.theme-primary.bg-img[style^="background-image"][style*="wallpaperaccess.com"][style*="background-repeat"][style*="background-size"], :root AMP-AD, :root [data-ad-cls], :root .ad-box:not(#ad-banner):not(:empty), :root body > .wrapper > .card-box > #step-1, :root [data-ez-name], :root a[style="width:100%;height:100%;z-index:10000000000000000;position:absolute;top:0;left:0;"], :root .ob_container .item-container-obpd, :root #ads_top:not(a), :root a[href^="https://go.mnaspm.com/"], :root a[href^="https://service.bv-aff-trx.com/"], :root .ad_slot:not(.text-ad), :root #st-ami + div[id][class*=" "], :root a[href^="https://6-partner.com/"], :root [class^="s2nPlayer"], :root a[href^="https://traffdaq.com/"], :root [data-testid="ad_testID"], :root [href^="https://ad.admitad.com/"], :root [href^="https://mypillow.com/"] > img, :root [data-testid="commercial-label-taboola"], :root a[href^="http://tc.tradetracker.net/"] > img, :root [class^="amp-ad-"], :root .ad_unit:not(.text-ad, .adsbox), :root [href="https://clickaine.com"], :root #playerOverlay[style="position:absolute; z-index:3"], :root a[href^="https://www.liquidfire.mobi/"], :root .grid > .container > #aside-promotion, :root DFP-AD, :root #hero + div.marquee-wrap + section#games + section#features + #download, :root #ads-banner:not([style^="position: absolute; left: -5000px"]), :root AD-SLOT, :root a[href^="https://www.googleadservices.com/pagead/aclk?"] > img, :root body > .security-container[style="opacity: 1; transform: translateY(0px);"], :root a[href^="https://a.bestcontentfood.top/"], :root #kt_player > a[target="_blank"], :root [href^="https://zone.gotrackier.com/"], :root .ad-area:not(.text-ad), :root a[href^="https://ab.advertiserurl.com/aff/"], :root #adSpecial:not(:empty), :root a[data-oburl^="https://paid.outbrain.com/network/redir?"], :root .sidebar-ad:not(.adsbygoogle), :root a[href^="https://s.zlinkn.com/"], :root a[href^="https://go.xxxvjmp.com/"], :root .ads_container:not(.text-ad), :root [class^="adDisplay-module"], :root a[href^="https://t.ajrkm3.com/"], :root in-page-message[doskip], :root [href^="https://aads.com/campaigns/"], :root a[href^="https://juicyads.in/"], :root #ad_728:not([style^="position: absolute; left: -5000px"]), :root div[id^="apn_native_ad_slot_"], :root .adhesion:not(body), :root body > div.captcha-container > div.captcha-card, :root ad-shield-ads, :root a[href^="https://hot-growngames.life/"], :root .ad_box:not(.text-ad), :root [href^="https://wap4dollar.com/ad/nonadult/serve.php"], :root [href="https://jdrucker.com/gold"] > img, :root .fp-player > div[style="position: absolute; inset: 0px; overflow: hidden; z-index: 160; background: transparent; display: block;"], :root .ad-wrap:not(#google_ads_iframe_checktag), :root a[href^="https://www.friendlyduck.com/AF_"], :root html[lang="tr"] #aa-wp + .fixed-footer .footer-ad-container, :root [href^="https://ad1.adfarm1.adition.com/"], :root #teaser3[style^="width:autopx;"], :root a[href^="https://gml-grp.com/"], :root a[href^="https://activate-game.com/"], :root .ob_dual_right > .ob_ads_header ~ .odb_div, :root a[href^="https://wittered-mainging.com/"], :root div[id][style^="position: fixed; inset: 0px; z-index: 2147483647; background: black"][style*="opacity: 0.01"], :root #teaser3[style="width: 100%;text-align: center;display: scroll;position:fixed;bottom: 0;margin: 0 auto;z-index: 103;"], :root html[lang="tr"] > body.has-footer-ad.has-pageskin-desktop a.pageskin-click-left, :root [data-revive-zoneid], :root a[href^="https://go.skinstrip.net"][href*="?campaignId="], :root figure.movie-detail-banner div[style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; z-index: 999; cursor: pointer;"], :root #teaser2[style^="width:autopx;"], :root a[href^="https://losingoldfry.com/"], :root #player div[style$="cursor: pointer; position: absolute; width: 100%; height: 100%; padding: 1rem; z-index: 2147483647;"], :root div[style="position: fixed; inset: 0px; z-index: 2147483647; pointer-events: auto;"], :root .scroll-fixable.rail-right > .deals-rail, :root div[id^="adrotate_widgets-"], :root .Ad-Container:not(.adsbygoogle) { display: none !important; }</style></head>
+<body>
+    <div class="container">
+        <header>
+            <div class="language-switch" role="group" aria-label="Idioma">
+                <button type="button" data-lang="pt" lang="pt-BR" aria-pressed="true">Português</button>
+                <button type="button" data-lang="en" lang="en" aria-pressed="false">English</button>
+                <button type="button" data-lang="es" lang="es" aria-pressed="false">Español</button>
+            </div>
+            <h1>⚡ Configurador de RAID</h1>
+            <p>Configure e visualize diferentes níveis de RAID</p>
+        </header>
+
+        <div class="content">
+            <div class="sidebar">
+                <div class="input-group">
+                    <label for="numDisks">Número de Discos:</label>
+                    <input type="number" id="numDisks" value="4" min="1" max="24">
+                </div>
+
+                <div class="input-group">
+                    <label for="diskCapacity">Capacidade por Disco (GB):</label>
+                    <input type="number" id="diskCapacity" value="1000" min="1" step="100">
+                </div>
+
+                <div class="input-group">
+                    <label for="readSpeed">Velocidade de Leitura (MB/s):</label>
+                    <input type="number" id="readSpeed" value="150" min="1">
+                </div>
+
+                <div class="input-group">
+                    <label for="writeSpeed">Velocidade de Escrita (MB/s):</label>
+                    <input type="number" id="writeSpeed" value="140" min="1">
+                </div>
+
+                <div class="input-group">
+                    <label>Selecione o Nível de RAID:</label>
+                    <div class="raid-selector">
+                        <div class="raid-option selected" data-raid="0">RAID 0</div>
+                        <div class="raid-option" data-raid="1">RAID 1</div>
+                        <div class="raid-option" data-raid="3">RAID 3</div>
+                        <div class="raid-option" data-raid="4">RAID 4</div>
+                        <div class="raid-option" data-raid="5">RAID 5</div>
+                        <div class="raid-option" data-raid="6">RAID 6</div>
+                        <div class="raid-option" data-raid="10">RAID 10</div>
+                        <div class="raid-option" data-raid="01">RAID 01</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="main">
+                <div id="alertContainer"></div>
+                
+                <div class="results">
+                    <h2>📊 Resultados da Configuração</h2>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <div class="result-label">Discos Mínimos</div>
+                            <div class="result-value" id="minDisks">2</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label">Capacidade Total</div>
+                            <div class="result-value" id="totalCapacity">4.000</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label">Eficiência de Armazenamento</div>
+                            <div class="result-value" id="efficiency">100</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label">Leitura Estimada</div>
+                            <div class="result-value" id="readPerformance">600</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label">Escrita Estimada</div>
+                            <div class="result-value" id="writePerformance">560</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label">Tolerância a Falhas</div>
+                            <div class="result-value" id="faultTolerance">Nenhuma</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="visualization">
+                    <h3>🔧 Visualização da Configuração</h3>
+                    <div id="diskVisualization"><div class="disk-array">
+                            <div class="disk-group">
+                                <div class="disk">D0</div>
+                                <div class="disk-label">Stripe 0</div>
+                            </div>
+                        
+                            <div class="disk-group">
+                                <div class="disk">D1</div>
+                                <div class="disk-label">Stripe 1</div>
+                            </div>
+                        
+                            <div class="disk-group">
+                                <div class="disk">D2</div>
+                                <div class="disk-label">Stripe 2</div>
+                            </div>
+                        
+                            <div class="disk-group">
+                                <div class="disk">D3</div>
+                                <div class="disk-label">Stripe 3</div>
+                            </div>
+                        </div></div>
+                </div>
+
+                <div class="description" id="raidDescription">
+                <h4>RAID 0 - Striping</h4>
+                <p>Distribui dados em stripes através de todos os discos, maximizando performance mas sem redundância.</p>
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h5>✓ Vantagens</h5>
+                        <ul>
+                            <li>Máxima performance de leitura e escrita</li><li>Aproveitamento 100% da capacidade</li><li>Simples de implementar</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h5>✗ Desvantagens</h5>
+                        <ul>
+                            <li>Zero tolerância a falhas</li><li>Perda de um disco = perda total de dados</li><li>Não recomendado para dados críticos</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        // Original text nodes are retained so language switches never translate translations.
+        const translations = [["Configurador de RAID","RAID Configurator","Configurador de RAID"],["Configure e visualize diferentes níveis de RAID","Configure and visualize different RAID levels","Configure y visualice diferentes niveles de RAID"],["Número de Discos:","Number of Disks:","Número de Discos:"],["Capacidade por Disco (GB):","Capacity per Disk (GB):","Capacidad por Disco (GB):"],["Velocidade de Leitura (MB/s):","Read Speed (MB/s):","Velocidad de Lectura (MB/s):"],["Velocidade de Escrita (MB/s):","Write Speed (MB/s):","Velocidad de Escritura (MB/s):"],["Selecione o Nível de RAID:","Select RAID Level:","Seleccione el Nivel de RAID:"],["Resultados da Configuração","Configuration Results","Resultados de la Configuración"],["Discos Mínimos","Minimum Disks","Discos Mínimos"],["Capacidade Total","Total Capacity","Capacidad Total"],["Eficiência de Armazenamento","Storage Efficiency","Eficiencia de Almacenamiento"],["Leitura Estimada","Estimated Read Speed","Lectura Estimada"],["Escrita Estimada","Estimated Write Speed","Escritura Estimada"],["Tolerância a Falhas","Fault Tolerance","Tolerancia a Fallos"],["Visualização da Configuração","Configuration Visualization","Visualización de la Configuración"],["Nenhuma","None","Ninguna"],["Vantagens","Advantages","Ventajas"],["Desvantagens","Disadvantages","Desventajas"],["Atenção:","Warning:","Atención:"],["RAID 0 - Striping","RAID 0 - Striping","RAID 0 - Distribución en bandas"],["RAID 1 - Mirroring","RAID 1 - Mirroring","RAID 1 - Espejado"],["RAID 3 - Byte-level Striping com Paridade Dedicada","RAID 3 - Byte-level Striping with Dedicated Parity","RAID 3 - Bandas a nivel de byte con Paridad Dedicada"],["RAID 4 - Block-level Striping com Paridade Dedicada","RAID 4 - Block-level Striping with Dedicated Parity","RAID 4 - Bandas a nivel de bloque con Paridad Dedicada"],["RAID 5 - Striping com Paridade Distribuída","RAID 5 - Striping with Distributed Parity","RAID 5 - Bandas con Paridad Distribuida"],["RAID 6 - Striping com Dupla Paridade","RAID 6 - Striping with Dual Parity","RAID 6 - Bandas con Doble Paridad"],["RAID 10 (1+0) - Striped Mirrors","RAID 10 (1+0) - Striped Mirrors","RAID 10 (1+0) - Espejos en bandas"],["RAID 01 (0+1) - Mirrored Stripes","RAID 01 (0+1) - Mirrored Stripes","RAID 01 (0+1) - Bandas espejadas"],["Distribui dados em stripes através de todos os discos, maximizando performance mas sem redundância.","Distributes data in stripes across all disks, maximizing performance without redundancy.","Distribuye datos en bandas entre todos los discos, maximizando el rendimiento sin redundancia."],["Máxima performance de leitura e escrita","Maximum read and write performance","Máximo rendimiento de lectura y escritura"],["Aproveitamento 100% da capacidade","100% capacity utilization","Aprovechamiento del 100% de la capacidad"],["Simples de implementar","Simple to implement","Fácil de implementar"],["Zero tolerância a falhas","No fault tolerance","Sin tolerancia a fallos"],["Perda de um disco = perda total de dados","One disk failure = total data loss","Fallo de un disco = pérdida total de datos"],["Não recomendado para dados críticos","Not recommended for critical data","No recomendado para datos críticos"],["Espelha dados completamente em pares de discos, oferecendo máxima redundância.","Fully mirrors data across disk pairs, providing maximum redundancy.","Replica todos los datos en pares de discos, ofreciendo máxima redundancia."],["Excelente tolerância a falhas","Excellent fault tolerance","Excelente tolerancia a fallos"],["Boa performance de leitura","Good read performance","Buen rendimiento de lectura"],["Recuperação rápida","Fast recovery","Recuperación rápida"],["Apenas 50% de aproveitamento","Only 50% capacity utilization","Solo un 50% de aprovechamiento"],["Performance de escrita limitada","Limited write performance","Rendimiento de escritura limitado"],["Custo por GB mais alto","Higher cost per GB","Mayor costo por GB"],["Dados em stripe byte-level com paridade dedicada em um disco separado. Otimizado para operações sequenciais grandes.","Byte-level striping with dedicated parity on a separate disk. Optimized for large sequential operations.","Bandas a nivel de byte con paridad dedicada en un disco separado. Optimizado para grandes operaciones secuenciales."],["Boa eficiência de armazenamento","Good storage efficiency","Buena eficiencia de almacenamiento"],["Excelente para transferências grandes","Excellent for large transfers","Excelente para grandes transferencias"],["Tolerância a falha de 1 disco","Tolerates one disk failure","Tolera el fallo de un disco"],["Disco de paridade pode ser gargalo","Parity disk can be a bottleneck","El disco de paridad puede ser un cuello de botella"],["Mal desempenho em I/O aleatório","Poor random I/O performance","Bajo rendimiento de E/S aleatoria"],["Raramente usado atualmente","Rarely used today","Raramente utilizado hoy"],["Similar ao RAID 3 mas com striping em nível de bloco. Melhor para operações mistas mas disco de paridade ainda é gargalo.","Similar to RAID 3 with block-level striping. Better for mixed workloads, but the parity disk remains a bottleneck.","Similar a RAID 3 con bandas a nivel de bloque. Mejor para operaciones mixtas, pero el disco de paridad sigue siendo un cuello de botella."],["Melhor que RAID 3 para I/O misto","Better than RAID 3 for mixed I/O","Mejor que RAID 3 para E/S mixta"],["Disco de paridade é gargalo em escrita","Parity disk is a write bottleneck","El disco de paridad limita la escritura"],["Superado pelo RAID 5","Superseded by RAID 5","Superado por RAID 5"],["Raramente usado","Rarely used","Raramente utilizado"],["Distribui paridade entre todos os discos, eliminando o gargalo do disco de paridade do RAID 4.","Distributes parity across all disks, eliminating the RAID 4 parity disk bottleneck.","Distribuye la paridad entre todos los discos, eliminando el cuello de botella del disco de paridad de RAID 4."],["Excelente custo-benefício","Excellent value for money","Excelente relación costo-beneficio"],["Paridade distribuída","Distributed parity","Paridad distribuida"],["Performance de escrita reduzida","Reduced write performance","Rendimiento de escritura reducido"],["Rebuild lento em discos grandes","Slow rebuild on large disks","Reconstrucción lenta en discos grandes"],["Risco durante rebuild","Risk during rebuild","Riesgo durante la reconstrucción"],["Similar ao RAID 5 mas com dupla paridade, permitindo falha simultânea de dois discos.","Similar to RAID 5 with dual parity, allowing two simultaneous disk failures.","Similar a RAID 5 con doble paridad, permitiendo el fallo simultáneo de dos discos."],["Tolerância a 2 falhas simultâneas","Tolerates two simultaneous failures","Tolera dos fallos simultáneos"],["Maior segurança durante rebuild","Greater safety during rebuild","Mayor seguridad durante la reconstrucción"],["Recomendado para discos grandes","Recommended for large disks","Recomendado para discos grandes"],["Menor eficiência que RAID 5","Lower efficiency than RAID 5","Menor eficiencia que RAID 5"],["Performance de escrita mais baixa","Lower write performance","Menor rendimiento de escritura"],["Overhead maior de processamento","Higher processing overhead","Mayor sobrecarga de procesamiento"],["Combina mirroring (RAID 1) e striping (RAID 0). Espelha dados e depois faz stripe dos espelhos.","Combines mirroring (RAID 1) and striping (RAID 0). Mirrors data, then stripes across the mirrors.","Combina espejado (RAID 1) y bandas (RAID 0). Replica los datos y luego distribuye bandas entre los espejos."],["Excelente performance de leitura/escrita","Excellent read/write performance","Excelente rendimiento de lectura/escritura"],["Alta tolerância a falhas","High fault tolerance","Alta tolerancia a fallos"],["Rebuild rápido","Fast rebuild","Reconstrucción rápida"],["Ideal para aplicações críticas","Ideal for critical applications","Ideal para aplicaciones críticas"],["Custo elevado","High cost","Costo elevado"],["Requer número par de discos","Requires an even number of disks","Requiere un número par de discos"],["Combina striping e mirroring de forma inversa ao RAID 10. Cria stripes e depois espelha.","Combines striping and mirroring in the reverse order of RAID 10. Creates stripes, then mirrors them.","Combina bandas y espejado en orden inverso a RAID 10. Crea bandas y luego las replica."],["Boa performance de leitura/escrita","Good read/write performance","Buen rendimiento de lectura/escritura"],["Redundância completa","Full redundancy","Redundancia completa"],["Útil em casos específicos","Useful in specific cases","Útil en casos específicos"],["Menor tolerância a falhas que RAID 10","Lower fault tolerance than RAID 10","Menor tolerancia a fallos que RAID 10"],["RAID 10 geralmente preferível","RAID 10 is generally preferable","RAID 10 suele ser preferible"],["Espelhos em stripe - melhor performance que RAID 01","Striped mirrors - better performance than RAID 01","Espejos en bandas - mejor rendimiento que RAID 01"],["Dupla paridade (P e Q) distribuída entre todos os discos","Dual parity (P and Q) distributed across all disks","Doble paridad (P y Q) distribuida entre todos los discos"],["Paridade distribuída entre todos os discos","Parity distributed across all disks","Paridad distribuida entre todos los discos"],["Dados+2Par","Data+2Parity","Datos+2Par"],["Dados+Par","Data+Parity","Datos+Par"],["Paridade","Parity","Paridad"],["Spare","Spare","Reserva"],["Espelho","Mirror","Espejo"],["Dados","Data","Datos"],["Stripe 2 (Espelho):","Stripe 2 (Mirror):","Banda 2 (Espejo):"],["Stripe","Stripe","Banda"],[" disco(s) (1 por espelho)"," disk(s) (1 per mirror)"," disco(s) (1 por espejo)"],[" disco(s) (tolerância reduzida)"," disk(s) (reduced tolerance)"," disco(s) (tolerancia reducida)"],[" disco(s)"," disk(s)"," disco(s)"],[" discos"," disks"," discos"],[" disco"," disk"," disco"],[" requer no mínimo "," requires at least "," requiere al menos "],["Você tem apenas ","You only have ","Solo tiene "]];
+        const originalText = new WeakMap();
+        let language = 'pt';
+        try { const saved = localStorage.getItem('raid-language'); if (['pt','en','es'].includes(saved)) language = saved; } catch {}
+        const locales = {pt: 'pt-BR', en: 'en-US', es: 'es-ES'};
+        const translationMap = new Map(translations.map(row => [row[0], row]));
+        const escapedKeys = translations.map(row => row[0]).sort((a,b) => b.length-a.length).map(key => Array.from(key, char => char.codePointAt(0) < 128 ? '\\x' + char.charCodeAt(0).toString(16).padStart(2, '0') : char).join(''));
+        const textPattern = new RegExp(escapedKeys.join('|'), 'g');
+        function translateText(text) {
+            const index = {pt:0, en:1, es:2}[language];
+            return text.replace(textPattern, match => translationMap.get(match)[index]);
+        }
+        function applyLanguage() {
+            document.documentElement.lang = locales[language];
+            document.title = translateText('Configurador de RAID');
+            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+            let node;
+            while ((node = walker.nextNode())) {
+                if (node.parentElement.closest('script, style, .language-switch')) continue;
+                if (!originalText.has(node)) originalText.set(node, node.nodeValue);
+                node.nodeValue = translateText(originalText.get(node));
+            }
+            document.querySelector('.language-switch').setAttribute('aria-label', {pt:'Idioma', en:'Language', es:'Idioma'}[language]);
+            document.querySelectorAll('[data-lang]').forEach(button => {
+                button.setAttribute('aria-pressed', String(button.dataset.lang === language));
+                button.classList.toggle('active', button.dataset.lang === language);
+            });
+        }
+        document.querySelectorAll('[data-lang]').forEach(button => button.addEventListener('click', () => {
+            language = button.dataset.lang;
+            try { localStorage.setItem('raid-language', language); } catch {}
+            updateCalculations();
+            applyLanguage();
+        }));
+
+        const raidConfigs = {
+            '0': {
+                name: 'RAID 0 - Striping',
+                minDisks: 2,
+                calculate: (numDisks, capacity, readSpeed, writeSpeed) => ({
+                    totalCapacity: numDisks * capacity,
+                    efficiency: 100,
+                    readPerformance: numDisks * readSpeed,
+                    writePerformance: numDisks * writeSpeed,
+                    faultTolerance: 'Nenhuma',
+                    faultToleranceNum: 0
+                }),
+                description: 'Distribui dados em stripes através de todos os discos, maximizando performance mas sem redundância.',
+                pros: ['Máxima performance de leitura e escrita', 'Aproveitamento 100% da capacidade', 'Simples de implementar'],
+                cons: ['Zero tolerância a falhas', 'Perda de um disco = perda total de dados', 'Não recomendado para dados críticos'],
+                visualize: (numDisks) => {
+                    let html = '<div class="disk-array">';
+                    for (let i = 0; i < numDisks; i++) {
+                        html += `
+                            <div class="disk-group">
+                                <div class="disk">D${i}</div>
+                                <div class="disk-label">Stripe ${i}</div>
+                            </div>
+                        `;
+                    }
+                    html += '</div>';
+                    return html;
+                }
+            },
+            '1': {
+                name: 'RAID 1 - Mirroring',
+                minDisks: 2,
+                calculate: (numDisks, capacity, readSpeed, writeSpeed) => ({
+                    totalCapacity: capacity * Math.floor(numDisks / 2),
+                    efficiency: 50,
+                    readPerformance: numDisks * readSpeed,
+                    writePerformance: writeSpeed,
+                    faultTolerance: `${Math.floor(numDisks / 2)} disco(s)`,
+                    faultToleranceNum: Math.floor(numDisks / 2)
+                }),
+                description: 'Espelha dados completamente em pares de discos, oferecendo máxima redundância.',
+                pros: ['Excelente tolerância a falhas', 'Boa performance de leitura', 'Recuperação rápida', 'Simples de implementar'],
+                cons: ['Apenas 50% de aproveitamento', 'Performance de escrita limitada', 'Custo por GB mais alto'],
+                visualize: (numDisks) => {
+                    let html = '<div class="disk-array">';
+                    const pairs = Math.floor(numDisks / 2);
+                    for (let i = 0; i < pairs; i++) {
+                        html += `
+                            <div class="disk-group">
+                                <div class="disk">D${i*2}</div>
+                                <div class="disk mirror">D${i*2+1}</div>
+                                <div class="disk-label">Espelho ${i+1}</div>
+                            </div>
+                        `;
+                    }
+                    if (numDisks % 2 === 1) {
+                        html += `
+                            <div class="disk-group">
+                                <div class="disk">D${numDisks-1}</div>
+                                <div class="disk-label">Spare</div>
+                            </div>
+                        `;
+                    }
+                    html += '</div>';
+                    return html;
+                }
+            },
+            '3': {
+                name: 'RAID 3 - Byte-level Striping com Paridade Dedicada',
+                minDisks: 3,
+                calculate: (numDisks, capacity, readSpeed, writeSpeed) => ({
+                    totalCapacity: (numDisks - 1) * capacity,
+                    efficiency: ((numDisks - 1) / numDisks * 100).toFixed(1),
+                    readPerformance: (numDisks - 1) * readSpeed,
+                    writePerformance: (numDisks - 1) * writeSpeed * 0.7,
+                    faultTolerance: '1 disco',
+                    faultToleranceNum: 1
+                }),
+                description: 'Dados em stripe byte-level com paridade dedicada em um disco separado. Otimizado para operações sequenciais grandes.',
+                pros: ['Boa eficiência de armazenamento', 'Excelente para transferências grandes', 'Tolerância a falha de 1 disco'],
+                cons: ['Disco de paridade pode ser gargalo', 'Mal desempenho em I/O aleatório', 'Raramente usado atualmente'],
+                visualize: (numDisks) => {
+                    let html = '<div class="disk-array">';
+                    for (let i = 0; i < numDisks - 1; i++) {
+                        html += `
+                            <div class="disk-group">
+                                <div class="disk">D${i}</div>
+                                <div class="disk-label">Dados ${i}</div>
+                            </div>
+                        `;
+                    }
+                    html += `
+                        <div class="disk-group">
+                            <div class="disk parity">P</div>
+                            <div class="disk-label">Paridade</div>
+                        </div>
+                    `;
+                    html += '</div>';
+                    return html;
+                }
+            },
+            '4': {
+                name: 'RAID 4 - Block-level Striping com Paridade Dedicada',
+                minDisks: 3,
+                calculate: (numDisks, capacity, readSpeed, writeSpeed) => ({
+                    totalCapacity: (numDisks - 1) * capacity,
+                    efficiency: ((numDisks - 1) / numDisks * 100).toFixed(1),
+                    readPerformance: (numDisks - 1) * readSpeed,
+                    writePerformance: writeSpeed * 0.5,
+                    faultTolerance: '1 disco',
+                    faultToleranceNum: 1
+                }),
+                description: 'Similar ao RAID 3 mas com striping em nível de bloco. Melhor para operações mistas mas disco de paridade ainda é gargalo.',
+                pros: ['Boa eficiência de armazenamento', 'Melhor que RAID 3 para I/O misto', 'Tolerância a falha de 1 disco'],
+                cons: ['Disco de paridade é gargalo em escrita', 'Superado pelo RAID 5', 'Raramente usado'],
+                visualize: (numDisks) => {
+                    let html = '<div class="disk-array">';
+                    for (let i = 0; i < numDisks - 1; i++) {
+                        html += `
+                            <div class="disk-group">
+                                <div class="disk">D${i}</div>
+                                <div class="disk-label">Dados ${i}</div>
+                            </div>
+                        `;
+                    }
+                    html += `
+                        <div class="disk-group">
+                            <div class="disk parity">P</div>
+                            <div class="disk-label">Paridade</div>
+                        </div>
+                    `;
+                    html += '</div>';
+                    return html;
+                }
+            },
+            '5': {
+                name: 'RAID 5 - Striping com Paridade Distribuída',
+                minDisks: 3,
+                calculate: (numDisks, capacity, readSpeed, writeSpeed) => ({
+                    totalCapacity: (numDisks - 1) * capacity,
+                    efficiency: ((numDisks - 1) / numDisks * 100).toFixed(1),
+                    readPerformance: (numDisks - 1) * readSpeed,
+                    writePerformance: (numDisks - 1) * writeSpeed * 0.5,
+                    faultTolerance: '1 disco',
+                    faultToleranceNum: 1
+                }),
+                description: 'Distribui paridade entre todos os discos, eliminando o gargalo do disco de paridade do RAID 4.',
+                pros: ['Boa eficiência de armazenamento', 'Excelente custo-benefício', 'Paridade distribuída', 'Boa performance de leitura'],
+                cons: ['Performance de escrita reduzida', 'Rebuild lento em discos grandes', 'Risco durante rebuild'],
+                visualize: (numDisks) => {
+                    let html = '<div class="disk-array">';
+                    for (let i = 0; i < numDisks; i++) {
+                        html += `
+                            <div class="disk-group">
+                                <div class="disk" style="background: linear-gradient(135deg, #667eea 0%, #f093fb 50%, #764ba2 100%);">D${i}<br>+P</div>
+                                <div class="disk-label">Dados+Par</div>
+                            </div>
+                        `;
+                    }
+                    html += '</div>';
+                    html += '<div class="info" style="margin-top: 15px;">Paridade distribuída entre todos os discos</div>';
+                    return html;
+                }
+            },
+            '6': {
+                name: 'RAID 6 - Striping com Dupla Paridade',
+                minDisks: 4,
+                calculate: (numDisks, capacity, readSpeed, writeSpeed) => ({
+                    totalCapacity: (numDisks - 2) * capacity,
+                    efficiency: ((numDisks - 2) / numDisks * 100).toFixed(1),
+                    readPerformance: (numDisks - 2) * readSpeed,
+                    writePerformance: (numDisks - 2) * writeSpeed * 0.4,
+                    faultTolerance: '2 discos',
+                    faultToleranceNum: 2
+                }),
+                description: 'Similar ao RAID 5 mas com dupla paridade, permitindo falha simultânea de dois discos.',
+                pros: ['Tolerância a 2 falhas simultâneas', 'Maior segurança durante rebuild', 'Recomendado para discos grandes', 'Boa performance de leitura'],
+                cons: ['Menor eficiência que RAID 5', 'Performance de escrita mais baixa', 'Overhead maior de processamento'],
+                visualize: (numDisks) => {
+                    let html = '<div class="disk-array">';
+                    for (let i = 0; i < numDisks; i++) {
+                        html += `
+                            <div class="disk-group">
+                                <div class="disk" style="background: linear-gradient(135deg, #667eea 0%, #f093fb 33%, #f5576c 66%, #764ba2 100%);">D${i}<br>+P+Q</div>
+                                <div class="disk-label">Dados+2Par</div>
+                            </div>
+                        `;
+                    }
+                    html += '</div>';
+                    html += '<div class="info" style="margin-top: 15px;">Dupla paridade (P e Q) distribuída entre todos os discos</div>';
+                    return html;
+                }
+            },
+            '10': {
+                name: 'RAID 10 (1+0) - Striped Mirrors',
+                minDisks: 4,
+                calculate: (numDisks, capacity, readSpeed, writeSpeed) => {
+                    const evenDisks = Math.floor(numDisks / 2) * 2;
+                    return {
+                        totalCapacity: (evenDisks / 2) * capacity,
+                        efficiency: 50,
+                        readPerformance: evenDisks * readSpeed,
+                        writePerformance: (evenDisks / 2) * writeSpeed,
+                        faultTolerance: `${evenDisks / 2} disco(s) (1 por espelho)`,
+                        faultToleranceNum: evenDisks / 2
+                    };
+                },
+                description: 'Combina mirroring (RAID 1) e striping (RAID 0). Espelha dados e depois faz stripe dos espelhos.',
+                pros: ['Excelente performance de leitura/escrita', 'Alta tolerância a falhas', 'Rebuild rápido', 'Ideal para aplicações críticas'],
+                cons: ['Apenas 50% de aproveitamento', 'Custo elevado', 'Requer número par de discos'],
+                visualize: (numDisks) => {
+                    let html = '<div class="disk-array">';
+                    const pairs = Math.floor(numDisks / 2);
+                    for (let i = 0; i < pairs; i++) {
+                        html += `
+                            <div class="disk-group">
+                                <div class="disk">D${i*2}</div>
+                                <div class="disk mirror">D${i*2+1}</div>
+                                <div class="disk-label">Espelho ${i+1}</div>
+                            </div>
+                        `;
+                    }
+                    html += '</div>';
+                    html += '<div class="info" style="margin-top: 15px;">Espelhos em stripe - melhor performance que RAID 01</div>';
+                    return html;
+                }
+            },
+            '01': {
+                name: 'RAID 01 (0+1) - Mirrored Stripes',
+                minDisks: 4,
+                calculate: (numDisks, capacity, readSpeed, writeSpeed) => {
+                    const evenDisks = Math.floor(numDisks / 2) * 2;
+                    return {
+                        totalCapacity: (evenDisks / 2) * capacity,
+                        efficiency: 50,
+                        readPerformance: evenDisks * readSpeed * 0.9,
+                        writePerformance: (evenDisks / 2) * writeSpeed,
+                        faultTolerance: `${evenDisks / 2} disco(s) (tolerância reduzida)`,
+                        faultToleranceNum: evenDisks / 2
+                    };
+                },
+                description: 'Combina striping e mirroring de forma inversa ao RAID 10. Cria stripes e depois espelha.',
+                pros: ['Boa performance de leitura/escrita', 'Redundância completa', 'Útil em casos específicos'],
+                cons: ['Apenas 50% de aproveitamento', 'Menor tolerância a falhas que RAID 10', 'RAID 10 geralmente preferível'],
+                visualize: (numDisks) => {
+                    let html = '<div class="disk-array">';
+                    const halfDisks = Math.floor(numDisks / 2);
+                    html += '<div style="margin-bottom: 15px;"><strong>Stripe 1:</strong></div>';
+                    html += '<div class="disk-array" style="margin-bottom: 20px;">';
+                    for (let i = 0; i < halfDisks; i++) {
+                        html += `
+                            <div class="disk-group">
+                                <div class="disk">D${i}</div>
+                                <div class="disk-label">Dados ${i}</div>
+                            </div>
+                        `;
+                    }
+                    html += '</div>';
+                    html += '<div style="margin-bottom: 15px;"><strong>Stripe 2 (Espelho):</strong></div>';
+                    html += '<div class="disk-array">';
+                    for (let i = 0; i < halfDisks; i++) {
+                        html += `
+                            <div class="disk-group">
+                                <div class="disk mirror">D${i+halfDisks}</div>
+                                <div class="disk-label">Espelho ${i}</div>
+                            </div>
+                        `;
+                    }
+                    html += '</div>';
+                    html += '<div class="alert" style="margin-top: 15px;">⚠️ Menor tolerância a falhas que RAID 10</div>';
+                    return html;
+                }
+            }
+        };
+
+        let currentRaid = '0';
+
+        function updateCalculations() {
+            const numDisks = parseInt(document.getElementById('numDisks').value);
+            const capacity = parseInt(document.getElementById('diskCapacity').value);
+            const readSpeed = parseInt(document.getElementById('readSpeed').value);
+            const writeSpeed = parseInt(document.getElementById('writeSpeed').value);
+
+            const config = raidConfigs[currentRaid];
+            
+            // Check minimum disks
+            const alertContainer = document.getElementById('alertContainer');
+            if (numDisks < config.minDisks) {
+                alertContainer.innerHTML = `
+                    <div class="alert">
+                        ⚠️ <strong>Atenção:</strong> ${config.name} requer no mínimo ${config.minDisks} discos. 
+                        Você tem apenas ${numDisks} disco(s).
+                    </div>
+                `;
+                document.getElementById('minDisks').textContent = config.minDisks;
+                document.getElementById('totalCapacity').textContent = '-';
+                document.getElementById('efficiency').textContent = '-';
+                document.getElementById('readPerformance').textContent = '-';
+                document.getElementById('writePerformance').textContent = '-';
+                document.getElementById('faultTolerance').textContent = '-';
+                document.getElementById('diskVisualization').innerHTML = '';
+                document.getElementById('raidDescription').innerHTML = '';
+                applyLanguage();
+                return;
+            } else {
+                alertContainer.innerHTML = '';
+            }
+
+            const results = config.calculate(numDisks, capacity, readSpeed, writeSpeed);
+
+            document.getElementById('minDisks').textContent = config.minDisks;
+            document.getElementById('totalCapacity').textContent = results.totalCapacity.toLocaleString(locales[language]);
+            document.getElementById('efficiency').textContent = Number(results.efficiency).toLocaleString(locales[language]);
+            document.getElementById('readPerformance').textContent = Math.round(results.readPerformance).toLocaleString(locales[language]);
+            document.getElementById('writePerformance').textContent = Math.round(results.writePerformance).toLocaleString(locales[language]);
+            document.getElementById('faultTolerance').textContent = results.faultTolerance;
+
+            // Visualization
+            document.getElementById('diskVisualization').innerHTML = config.visualize(numDisks);
+
+            // Description
+            let descHtml = `
+                <h4>${config.name}</h4>
+                <p>${config.description}</p>
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h5>✓ Vantagens</h5>
+                        <ul>
+                            ${config.pros.map(pro => `<li>${pro}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h5>✗ Desvantagens</h5>
+                        <ul>
+                            ${config.cons.map(con => `<li>${con}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `;
+            document.getElementById('raidDescription').innerHTML = descHtml;
+            applyLanguage();
+        }
+
+        // Event listeners
+        document.querySelectorAll('.raid-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.raid-option').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+                currentRaid = this.dataset.raid;
+                updateCalculations();
+            });
+        });
+
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('input', updateCalculations);
+        });
+
+        // Initial calculation
+        updateCalculations();
+    </script>
+
+
+</body></html>

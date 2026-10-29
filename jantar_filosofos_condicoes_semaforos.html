@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Jantar dos filósofos — Estado e sinalização</title><style>
+:root{--ink:#192e3b;--muted:#607480;--line:#dbe3e6;--paper:#f3f6f5;--green:#0b775a;--green-soft:#e5f3ec;--red:#bd3346;--red-soft:#fff0f1;--amber:#965c0a;--blue:#3266b9;--radius:18px}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Segoe UI,Arial,sans-serif;font-size:15px;line-height:1.5}button,select,input{font:inherit}button,select{min-height:42px}button{cursor:pointer;border:1px solid var(--line);border-radius:10px;background:white;color:var(--ink);padding:9px 15px;font-weight:650}button:hover{border-color:var(--green);background:#f4faf7}button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #27a884;outline-offset:3px}button:disabled{opacity:.45;cursor:not-allowed}header{background:#142f31;color:#fff;padding:25px max(22px,calc((100vw - 1340px)/2));border-bottom:4px solid #70cba4}.topline{display:flex;justify-content:space-between;align-items:center;gap:20px}.eyebrow{font-size:11px;font-weight:800;letter-spacing:2.2px;color:#9fdec7}.languages{display:flex;gap:5px;flex-wrap:wrap}.languages button{min-height:34px;padding:5px 9px;background:transparent;color:#d4ece2;border-color:#42625d;font-size:12px}.languages button[aria-pressed=true]{background:#d5f4e5;color:#153c30;border-color:#d5f4e5}.hero{display:grid;grid-template-columns:1fr auto;align-items:center;gap:35px;margin:20px 0 8px}h1{font-size:clamp(27px,3vw,40px);line-height:1.15;letter-spacing:-1.3px;margin:0 0 12px}.intro{margin:0;color:#c0d5d0;max-width:690px}.metrics{display:flex;gap:25px}.metric{min-width:100px;border-left:1px solid #46615c;padding-left:18px}.metric strong{font-size:32px;display:block;color:#a4e4c8;line-height:1.1;font-variant-numeric:tabular-nums}.metric span{font-size:11px;color:#b5cbc4;display:block;max-width:110px;margin-top:7px}.workspace{max-width:1384px;margin:0 auto;padding:23px 22px 40px}.panel{background:white;border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 3px 8px #17332c03}.setup{padding:17px 20px}.strategy-row{display:flex;align-items:center;gap:18px}.label{font-size:11px;text-transform:uppercase;letter-spacing:1.1px;font-weight:750;color:var(--muted)}.strategies{display:flex;gap:6px;flex:1}.strategies button{flex:1;background:#f4f7f6;border-color:transparent}.strategies button[aria-pressed=true]{background:var(--green);color:#fff}.setup-options{display:flex;align-items:flex-end;gap:18px;margin-top:14px;padding-top:14px;border-top:1px solid #edf1ef;flex-wrap:wrap}.control{display:grid;gap:5px;min-width:170px}.control label{font-size:12px;font-weight:650;color:var(--muted)}select{background:#fff;color:var(--ink);padding:7px 30px 7px 10px;border:1px solid var(--line);border-radius:8px;max-width:100%}.speed-control{min-width:155px;flex:1;max-width:240px}.speed-line{display:flex;align-items:center;gap:9px;height:42px}.speed-line input{width:100%;accent-color:var(--green)}output{font-size:12px;min-width:52px;font-variant-numeric:tabular-nums}.toolbar{display:flex;justify-content:space-between;gap:12px;padding:17px 0;flex-wrap:wrap}.toolbar-group{display:flex;gap:7px;flex-wrap:wrap}.primary{background:var(--green);color:white;border-color:var(--green)}.primary:hover{background:#09654b;color:white}.scenario{background:#e8efeb;border-color:#d6e2da;font-size:13px}.main-grid{display:grid;grid-template-columns:minmax(0,1.13fr) minmax(0,1fr);gap:18px;align-items:start}.panel-head{padding:17px 20px 0;display:flex;justify-content:space-between;align-items:center;gap:10px}h2{font-size:17px;margin:0;font-weight:750;letter-spacing:-.3px}.caption{font-size:12px;color:var(--muted);margin:5px 0 0}.diagram-caption{padding:0 20px}.table-svg{display:block;width:100%;height:auto;max-height:560px;margin:0 auto}.philosopher{cursor:pointer;outline:none}.philosopher:focus-visible circle{stroke:#172f34;stroke-width:4}.philosopher:hover .avatar{filter:brightness(.94)}.selected-ring{stroke:#183f37;stroke-width:2.5;fill:none;stroke-dasharray:4 4}.person-name{font-weight:800;font-size:20px;fill:var(--ink)}.person-state{font-size:13px;font-weight:650}.person-meals{font-size:11px;fill:var(--muted)}.fork-label{font-size:14px;font-weight:800;fill:#243e46}.fork-owner{font-size:10px;fill:#4f6470}.fork-line{stroke-linecap:round;opacity:.55}.wait-line{stroke:var(--red);stroke-width:2;stroke-dasharray:5 5;fill:none}.flash{animation:flash .65s ease-out}@keyframes flash{0%{filter:drop-shadow(0 0 8px #28b384)}100%{filter:none}}.legend{display:flex;justify-content:center;gap:15px;padding:0 10px 16px;flex-wrap:wrap;font-size:11px;color:var(--muted)}.legend span{display:flex;align-items:center;gap:5px}.dot{width:8px;height:8px;display:inline-block;border-radius:50%}.selection{padding:16px 20px;border-top:1px solid #e7eeea;background:#fbfcfb;border-radius:0 0 var(--radius) var(--radius)}.selection-title{display:flex;justify-content:space-between;align-items:center;gap:12px}.selection-title strong{font-size:17px}.people-buttons{display:flex;gap:5px;margin:10px 0}.people-buttons button{flex:1;padding:6px;min-height:35px;font-size:13px}.people-buttons button[aria-pressed=true]{border-color:var(--green);background:var(--green-soft);color:var(--green)}.person-facts{display:flex;gap:20px;flex-wrap:wrap;font-size:12px;margin:7px 0 11px}.person-facts b{font-weight:650}.manual-step{width:100%;font-size:13px}.code-panel{overflow:hidden}.code-meta{padding:5px 20px 15px}.code{margin:0;background:#172e36;color:#d4e4df;padding:16px 0;font:12.5px/1.75 Consolas,monospace;overflow:auto;tab-size:2}.code-line{display:block;white-space:pre;padding:1px 17px;border-left:3px solid transparent;min-width:max-content}.code-line.active{background:#2a514b;border-color:#95dfb9;color:#fff}.code-line.blocked{background:#552f3b;border-color:#f69aa9}.code-line .num{display:inline-block;width:24px;color:#7d9b9b;user-select:none}.code-note{padding:12px 20px;font-size:12px;color:var(--muted)}.status-banner{margin-top:15px;padding:14px 17px;background:var(--green-soft);border-radius:12px;border:1px solid #c5e3d3}.status-banner.warning{background:#fff7e7;border-color:#efdcaf}.status-banner.danger{background:var(--red-soft);border-color:#f0bcc6}.status-banner strong{font-size:14px}.status-banner p{font-size:12px;line-height:1.55;margin:5px 0 0}.cycle{font:700 15px Consolas,monospace;color:var(--red);margin-top:10px}.graph{padding:18px 20px;margin-top:18px}.wait-list{display:grid;gap:7px;min-height:32px;padding:12px 0 0}.wait-row{font-size:12px;background:#fff4f4;border-left:3px solid #c85060;border-radius:4px;padding:7px 10px}.wait-row b{font-family:Consolas,monospace}.below-grid{display:grid;grid-template-columns:1.13fr 1fr;gap:18px;margin-top:18px;align-items:start}.lesson{padding:20px}.lesson p{font-size:13px;line-height:1.75;margin:12px 0 0}.fairness{padding-top:12px;border-top:1px solid #e3eae6;color:var(--muted)}.conditions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:15px}.condition{background:#f3f7f4;border-radius:8px;padding:10px;font-size:12px}.condition b{display:block;font-size:12px}.condition small{font-size:11px;color:var(--muted)}.condition.bad{background:var(--red-soft)}.history{padding:20px}.history ol{margin:13px 0 0;padding:0;list-style:none;max-height:280px;overflow:auto}.history li{display:flex;gap:10px;padding:8px 2px;border-top:1px solid #edf1ee;font-size:12px}.history .tick{font:11px Consolas,monospace;color:var(--muted);min-width:30px}.history li.wait{color:var(--red)}.history li.eat{color:var(--green);font-weight:650}.scenario-note{font-size:13px;padding:11px 15px;margin-bottom:15px;border-radius:9px;background:#e5eefc;color:#294f88}.help{font-size:12px;color:var(--muted);padding:16px 2px 0;margin:0;line-height:1.7}details{margin-top:18px;padding:14px 18px}summary{cursor:pointer;font-size:13px;font-weight:650}details p{font-size:12px;color:var(--muted)}footer{padding-top:15px;font-size:11px;color:var(--muted)}[hidden]{display:none!important}@media(max-width:1000px){.hero{grid-template-columns:1fr}.metrics{gap:25px}.metric{min-width:0}.main-grid,.below-grid{grid-template-columns:1fr}.table-svg{max-height:590px}.main-grid .side{display:grid;grid-template-columns:1fr 1fr;gap:15px;align-items:start}.side .graph{margin-top:0}.code{font-size:11.5px}.strategy-row{align-items:stretch;flex-direction:column;gap:8px}}@media(max-width:650px){header{padding:20px 17px}.workspace{padding:17px 12px 28px}.eyebrow{font-size:9px;letter-spacing:1px}.topline{gap:9px}.languages button{font-size:10px;padding:4px 7px}.intro{font-size:13px}.hero{gap:20px;margin-top:20px}.metric strong{font-size:27px}.metric span{font-size:10px}.metrics{justify-content:space-between;gap:10px}.metric{padding-left:12px}.setup{padding:14px}.strategies{gap:4px}.strategies button{font-size:11px;padding:8px 5px}.control{min-width:0;max-width:100%;width:100%}.speed-control{max-width:none}.setup-options{gap:11px}.toolbar button{font-size:12px;padding:8px 10px}.main-grid .side{display:block}.side .graph{margin-top:15px}.panel-head{padding:15px 16px 0}.diagram-caption{padding:0 16px}.selection,.lesson,.history,.graph{padding:16px}.code{font-size:11px}.conditions{grid-template-columns:1fr 1fr}.table-svg{min-height:0}.selection-title{align-items:flex-start;flex-direction:column;gap:4px}.person-facts{gap:8px 20px}}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.state-matrix{padding:0 18px 18px;overflow:auto}.state-matrix table{width:100%;border-collapse:collapse;font-size:11px}.state-matrix th{text-align:left;color:var(--muted);font-weight:650;padding:9px 5px;border-bottom:1px solid var(--line)}.state-matrix td{padding:9px 5px;border-bottom:1px solid #edf2ef;vertical-align:top}.state-matrix tr.selected{background:#edf7f1}.logical-state{font-size:10px;font-weight:750;white-space:nowrap}.logical-state.eating{color:#0b775a}.logical-state.hungry{color:#965c0a}.thread-state{display:block;font-size:11px}.mechanism-state{font:10px Consolas,monospace;display:block;color:var(--muted);margin-top:3px}.monitor-tag{font:11px Consolas,monospace;background:#edf5ef;border:1px solid #c7dfce;border-radius:6px;padding:4px 7px;color:#234c39}.scenario-select{display:flex;gap:8px;align-items:end;flex-wrap:wrap}.scenario-select .control{min-width:205px;gap:3px}.scenario-select label{font-size:11px}.toolbar{align-items:end}.setup-options{padding-top:12px}.table-panel .selection{border-radius:0}.table-panel .table-svg{max-height:525px}.helper{border-radius:var(--radius);overflow:hidden;margin-top:18px}.helper .code{font-size:11.5px;line-height:1.65}.helper .code-line.test-highlight{background:#274941;border-color:#7cbd99}.helper .caption{padding:9px 18px 15px}.helper h2{padding:16px 18px 0}.compare-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}.compare-card{padding:13px;background:#f0f6f1;border-radius:10px}.compare-card b{font-size:12px}.compare-card p{font-size:12px;margin:7px 0 0}.spurious-button{width:100%;margin-top:12px;background:#fff7e7;border-color:#ead4a1;font-size:12px}.mechanism-caption{padding:10px 18px;font-size:12px;color:var(--muted);border-top:1px solid var(--line)}.state-panel-label{padding:16px 18px 3px;font-size:13px;margin:0}.physical-tag{font:11px Consolas,monospace;fill:#607480}.logical-hint{font-size:12px;color:var(--green);line-height:1.55;margin:0 0 10px}.blocked-note{font-size:12px;color:var(--muted);padding:12px 0 0}.event-detail{font-size:11px;color:var(--muted);display:block}.history li.grant{color:var(--green)}.history li.condWait,.history li.semBlocked{color:var(--red)}.comparison-panel{padding:20px}.lesson{margin-top:18px}.thread-mechanism{font-size:11px;fill:#586e67}.legend{gap:11px}.legend span{white-space:nowrap}.helper-target{font-size:11px;color:var(--muted);padding:0 18px 9px}.code-meta{padding-bottom:12px}.helper .code{max-height:none}details summary{line-height:1.65}.back-link{color:var(--green);font-weight:650;margin-left:10px}@media(max-width:1000px){.main-grid .side{display:block}.main-grid{grid-template-columns:1fr 1fr}.table-panel .table-svg{max-height:none}.below-grid{grid-template-columns:1fr 1fr}.state-matrix{padding:0 8px 10px}.state-matrix th,.state-matrix td{padding:8px 4px}.logical-state{font-size:9px}}@media(max-width:760px){.main-grid,.below-grid{grid-template-columns:1fr}.scenario-select{width:100%}.scenario-select .control{flex:1}.toolbar-group{width:100%}.table-panel .table-svg{max-height:580px}.compare-cards{grid-template-columns:1fr}.state-matrix{padding:0 14px 14px}.state-matrix table{font-size:11px}.logical-state{font-size:10px}.setup .strategies button{font-size:12px}.helper .code{font-size:10.5px}.state-matrix td{padding:10px 5px}.scenario-select select{font-size:12px}.person-facts{margin-top:10px}}
+
+.main-grid > *, .below-grid > *{min-width:0}.state-matrix{max-width:100%}@media(max-width:760px){.logical-state{white-space:normal}.state-matrix th,.state-matrix td{overflow-wrap:anywhere}.state-matrix td:last-child{max-width:90px}}
+</style><style id="mobile-presentation">
+/* Mobile presentation: comfortable touch targets, readable form fields. */
+.mobile-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+@media screen and (max-width:760px), screen and (pointer:coarse) {
+  html body button, html body [role="button"], html body select,
+  html body input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+  html body .file-label { min-height:44px!important; }
+  html body button { min-width:44px!important; touch-action:manipulation; }
+  html body input[type="range"] { height:44px!important; padding-block:0; }
+  html body input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+  html body select, html body textarea { font-size:16px!important; max-width:100%; }
+  button, input, select, textarea { scroll-margin-block:16px; }
+}
+@media screen and (max-width:760px) {
+  html { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+  pre { max-width:100%; overflow-x:auto; }
+  .mobile-scroll { max-width:100%; overflow-x:auto; overscroll-behavior-x:contain; }
+  .mobile-scroll:focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
+  .mobile-scroll-hint { display:block; font:500 12px/1.5 system-ui,sans-serif; color:#526273; margin:8px 0; }
+  .mobile-scroll-hint::before { content:'↔ Deslize para ver todo o conteúdo'; }
+  html[lang^="en"] .mobile-scroll-hint::before { content:'↔ Swipe to see all the content'; }
+  html[lang^="es"] .mobile-scroll-hint::before { content:'↔ Desliza para ver todo el contenido'; }
+}
+@media screen and (min-width:761px) { .mobile-scroll-hint { display:none; } }
+</style>
+<style>
+.mobile-visual-controls{display:none}
+@media screen and (max-width:760px){
+  .table-panel{min-width:0}.mobile-visual-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px}
+  .mobile-visual-controls button{font-size:13px;padding:8px 10px}.mobile-visual-controls .mobile-scroll-hint{margin:0}
+  .mobile-visual-scroll{overflow-x:auto;max-width:100%;overscroll-behavior-x:contain;scroll-padding:10px}
+  .mobile-visual-scroll[data-zoomed="true"] .table-svg{width:640px;min-width:640px;height:auto;max-height:none;margin:0}
+  .mobile-visual-scroll[data-zoomed="false"] .table-svg{width:100%;min-width:0;height:auto;max-height:none}
+}
+</style><style>@media screen and (max-width:760px){.mobile-visual-scroll[data-zoomed="false"] .table-svg .person-name{font-size:28px}.mobile-visual-scroll[data-zoomed="false"] .table-svg .person-state{font-size:21px}.mobile-visual-scroll[data-zoomed="false"] .table-svg .person-meals,.mobile-visual-scroll[data-zoomed="false"] .table-svg .thread-mechanism{display:none}.mobile-visual-scroll[data-zoomed="false"] .table-svg .fork-label{font-size:24px}.mobile-visual-scroll[data-zoomed="false"] .table-svg .fork-owner{font-size:18px}}</style></head><body>
+<header><div class="topline"><span class="eyebrow" data-i18n="eyebrow"></span><div class="languages" role="group" aria-label="Idioma"><button type="button" data-lang="pt" lang="pt-BR" title="Português" aria-label="Português" aria-pressed="true">PT</button><button type="button" data-lang="es" lang="es" title="Español" aria-label="Español" aria-pressed="false">ES</button><button type="button" data-lang="en" lang="en" title="English" aria-label="English" aria-pressed="false">EN</button></div></div><div class="hero"><div><h1 data-i18n="title"></h1><p class="intro" data-i18n="intro"></p></div><div class="metrics"><div class="metric"><strong id="ticks">0</strong><span data-i18n="stepCount"></span></div><div class="metric"><strong id="meals">0</strong><span data-i18n="totalMeals"></span></div><div class="metric"><strong id="peak">0</strong><span data-i18n="parallel"></span></div></div></div></header>
+<main class="workspace"><section class="panel setup"><div class="strategy-row"><span class="label" id="strategy-label" data-i18n="strategy"></span><div class="strategies" role="group" aria-labelledby="strategy-label"><button type="button" data-mode="condition" data-i18n="condition" aria-pressed="true"></button><button type="button" data-mode="semaphore" data-i18n="semaphore" aria-pressed="false"></button></div></div><div class="setup-options"><div class="control"><label for="scheduler" data-i18n="scheduler"></label><select id="scheduler"><option value="round" data-i18n="round"></option><option value="random" data-i18n="random"></option><option value="manual" data-i18n="manual"></option></select></div><div class="control speed-control"><label for="speed" data-i18n="speed"></label><div class="speed-line"><input id="speed" type="range" min="150" max="1500" value="650" step="50"><output id="speed-value" for="speed">650 ms</output></div></div></div></section>
+<div class="toolbar"><div class="toolbar-group"><button type="button" class="primary" id="play" data-i18n="play"></button><button type="button" id="step" data-i18n="step"></button><button type="button" id="reset" data-i18n="reset"></button></div><div class="scenario-select"><div class="control"><label for="scenario" data-i18n="scenario"></label><select id="scenario"><option value="reservation" data-i18n="reservationScenario"></option><option value="parallel" data-i18n="parallelScenario"></option><option value="waiting" data-i18n="waitingScenario"></option><option value="notification" data-i18n="notificationScenario"></option></select></div><button type="button" class="scenario" id="prepare" data-i18n="prepare"></button></div></div>
+<div id="scenario-note" class="scenario-note" role="status" hidden></div>
+<div class="main-grid"><section class="panel table-panel"><div class="panel-head"><h2 data-i18n="diagram"></h2><span class="monitor-tag" id="mutex-tag"></span></div><p class="caption diagram-caption" data-i18n="clickHelp"></p><svg id="table" class="table-svg" viewBox="0 0 640 595" role="group" aria-label="Mesa dos filósofos"></svg><div class="legend"><span><i class="dot" style="background:#d8e3e0"></i><span data-i18n="thinking"></span></span><span><i class="dot" style="background:#efbd62"></i><span data-i18n="hungry"></span></span><span><i class="dot" style="background:#97b4ef"></i><span data-i18n="authorized"></span></span><span><i class="dot" style="background:#e47e8d"></i><span data-i18n="waiting"></span></span><span><i class="dot" style="background:#6bc59b"></i><span data-i18n="eating"></span></span></div><p class="caption diagram-caption" style="text-align:center;margin:0 0 15px" data-i18n="lineLegend"></p><div class="selection"><div class="selection-title"><span class="label" data-i18n="selected"></span><strong id="reservation"></strong></div><div class="people-buttons" id="people-buttons"></div><p class="logical-hint" id="neighbors"></p><div class="person-facts"><span><b data-i18n="logical"></b>: <span id="person-logical"></span></span><span><b data-i18n="thread"></b>: <span id="person-state"></span></span></div><button type="button" class="manual-step" id="person-step"></button><div id="spurious-control"><button type="button" id="spurious" class="spurious-button"></button><p class="caption" data-i18n="spuriousHelp"></p></div></div><h3 class="state-panel-label" data-i18n="statePanel"></h3><div class="state-matrix"><table><thead><tr><th>Pᵢ</th><th data-i18n="logical"></th><th data-i18n="thread"></th><th data-i18n="mechanism"></th></tr></thead><tbody id="state-rows"></tbody></table></div><div class="mechanism-caption" id="mechanism-caption"></div></section>
+<div class="side"><section class="panel code-panel"><div class="panel-head"><h2 data-i18n="pseudo"></h2></div><div class="code-meta"><p class="caption" id="code-caption"></p></div><pre class="code" id="code"></pre><div class="code-note" id="next-instruction"></div></section><section class="panel helper"><h2 data-i18n="testTitle"></h2><p class="caption" data-i18n="helperHint"></p><div class="helper-target" id="helper-target"></div><pre class="code" id="helper-code"></pre></section><div id="status" class="status-banner" role="status" aria-live="polite"><strong id="status-title"></strong><p id="status-description"></p></div></div></div>
+<div class="below-grid"><section class="panel comparison-panel"><h2 data-i18n="compare"></h2><div class="compare-cards"><div class="compare-card"><b data-i18n="condition"></b><p data-i18n="condMemory"></p><p data-i18n="resumeCond"></p></div><div class="compare-card"><b data-i18n="semaphore"></b><p data-i18n="semMemory"></p><p data-i18n="resumeSem"></p></div></div><p class="caption" data-i18n="activityDesc"></p><section class="lesson"><h2 data-i18n="lesson"></h2><p id="lesson-text"></p><p class="fairness" data-i18n="fairness"></p></section></section><section class="panel history"><h2 data-i18n="log"></h2><ol id="log"></ol></section></div>
+<details class="panel"><summary data-i18n="model"></summary><p data-i18n="selectionTip"></p><p data-i18n="source"></p></details><footer><span data-i18n="source"></span><a class="back-link" href="jantar_filosofos_mutexes.html" data-i18n="mutexVersion"></a></footer></main>
+<script id="simulation-engine">class StateDiningSimulation {
+  constructor(mode = 'condition') { this.reset(mode); }
+
+  reset(mode = this.mode) {
+    if (!['condition', 'semaphore'].includes(mode)) throw new Error('Invalid mode');
+    this.mode = mode;
+    this.mutex = null;
+    this.permits = Array(5).fill(0);
+    this.conditionWaiters = Array(5).fill(false);
+    this.tick = 0;
+    this.cursor = 0;
+    this.seed = 2026;
+    this.maxEating = 0;
+    this.history = [];
+    this.people = Array.from({ length: 5 }, (_, id) => ({
+      id, pc: 0, logical: 'thinking', phase: 'thinking', waiting: null,
+      meals: 0, semGranted: false
+    }));
+  }
+
+  left(id) { return (id + 4) % 5; }
+  right(id) { return (id + 1) % 5; }
+
+  // COMENDO reserves both forks before the awakened thread actually runs.
+  get forks() {
+    const owners = Array(5).fill(null);
+    for (const person of this.people) {
+      if (person.logical !== 'eating') continue;
+      for (const fork of [person.id, this.right(person.id)]) {
+        if (owners[fork] !== null) throw new Error('Duplicate fork reservation');
+        owners[fork] = person.id;
+      }
+    }
+    return owners;
+  }
+
+  program() {
+    return this.mode === 'condition'
+      ? ['thinkStart', 'lockRequest', 'setHungry', 'testSelf', 'checkCondition',
+         'unlockRequest', 'eat', 'lockRelease', 'setThinking', 'testLeft',
+         'testRight', 'unlockRelease', 'thinkEnd']
+      : ['thinkStart', 'lockRequest', 'setHungry', 'testSelf', 'unlockRequest',
+         'semWait', 'eat', 'lockRelease', 'setThinking', 'testLeft',
+         'testRight', 'unlockRelease', 'thinkEnd'];
+  }
+
+  action(id) {
+    const person = this.person(id);
+    if (person.waiting === 'reacquire') return 'reacquire';
+    if (person.semGranted) return 'semResume';
+    return this.program()[person.pc];
+  }
+
+  person(id) {
+    if (!Number.isInteger(id) || id < 0 || id >= 5) throw new Error('Invalid philosopher');
+    return this.people[id];
+  }
+
+  canStep(id) {
+    const person = this.person(id);
+    if (person.waiting === 'condition' || person.waiting === 'semaphore') return false;
+    if (person.waiting === 'mutex' || person.waiting === 'reacquire') return this.mutex === null;
+    return true;
+  }
+
+  runnable() { return this.people.filter(person => this.canStep(person.id)).map(person => person.id); }
+
+  choose(mode = 'round') {
+    const candidates = this.runnable();
+    if (!candidates.length) return null;
+    if (mode === 'random') {
+      this.seed = (Math.imul(1664525, this.seed) + 1013904223) >>> 0;
+      return candidates[this.seed % candidates.length];
+    }
+    for (let offset = 0; offset < 5; offset++) {
+      const id = (this.cursor + offset) % 5;
+      if (candidates.includes(id)) { this.cursor = (id + 1) % 5; return id; }
+    }
+    return null;
+  }
+
+  // All calls to test occur under the monitor mutex. Reservation and notification
+  // form one simulated atomic monitor operation, exactly as in tentar_liberar().
+  test(caller, target) {
+    if (this.mutex !== caller) throw new Error('test requires monitor ownership');
+    const person = this.person(target);
+    if (person.logical !== 'hungry') return { kind: 'skip', target };
+    if (this.people[this.left(target)].logical === 'eating' ||
+        this.people[this.right(target)].logical === 'eating') return { kind: 'deny', target };
+    person.logical = 'eating';
+    person.phase = 'authorized';
+    let woke = false;
+    if (this.mode === 'condition') {
+      if (this.conditionWaiters[target]) {
+        this.conditionWaiters[target] = false;
+        person.waiting = 'reacquire';
+        woke = true;
+      }
+      // No condition signal is stored when nobody is waiting.
+    } else if (person.waiting === 'semaphore') {
+      person.waiting = null;
+      person.semGranted = true;
+      woke = true;
+    } else {
+      this.permits[target]++;
+    }
+    return { kind: 'grant', target, notify: this.mode === 'condition' ? 'signal' : 'post', woke };
+  }
+
+  record(event) {
+    this.maxEating = Math.max(this.maxEating, this.people.filter(person => person.phase === 'eating').length);
+    this.assertInvariants();
+    this.history.push(event);
+    if (this.history.length > 120) this.history.shift();
+    return event;
+  }
+
+  step(id) {
+    const person = this.person(id);
+    if (!this.canStep(id)) return null; // A blocked thread does not busy-wait.
+    const action = this.action(id);
+    const event = { tick: ++this.tick, id, action, kind: action };
+
+    if (action === 'lockRequest' || action === 'lockRelease' || action === 'reacquire') {
+      if (action === 'lockRelease') person.phase = 'releasing';
+      if (this.mutex !== null) {
+        person.waiting = action === 'reacquire' ? 'reacquire' : 'mutex';
+        event.kind = 'waitMutex';
+        event.owner = this.mutex;
+      } else {
+        this.mutex = id;
+        person.waiting = null;
+        event.kind = action === 'reacquire' ? 'reacquired' : 'lock';
+        person.phase = action === 'lockRelease' ? 'releasing'
+          : person.logical === 'eating' ? 'authorized' : 'requesting';
+        if (action !== 'reacquire') person.pc++;
+      }
+      return this.record(event);
+    }
+
+    if (action === 'thinkStart') {
+      person.phase = 'requesting';
+      person.pc++;
+      event.kind = 'request';
+    } else if (action === 'setHungry') {
+      this.requireMutex(id);
+      person.logical = 'hungry';
+      person.pc++;
+      event.kind = 'hungry';
+    } else if (['testSelf', 'testLeft', 'testRight'].includes(action)) {
+      const target = action === 'testSelf' ? id : action === 'testLeft' ? this.left(id) : this.right(id);
+      Object.assign(event, this.test(id, target));
+      person.pc++;
+    } else if (action === 'checkCondition') {
+      this.requireMutex(id);
+      if (person.logical === 'eating') {
+        person.phase = 'authorized';
+        person.pc++;
+        event.kind = 'check';
+      } else {
+        // Predicate check, release of M and queue entry are atomic together.
+        this.mutex = null;
+        this.conditionWaiters[id] = true;
+        person.waiting = 'condition';
+        person.phase = 'waiting';
+        event.kind = 'condWait';
+      }
+    } else if (action === 'unlockRequest' || action === 'unlockRelease') {
+      this.requireMutex(id);
+      this.mutex = null;
+      person.pc++;
+      event.kind = 'unlock';
+    } else if (action === 'semWait') {
+      if (this.mutex === id) throw new Error('sem_wait must occur outside monitor');
+      if (this.permits[id] > 0) {
+        this.permits[id]--;
+        person.phase = 'authorized';
+        person.pc++;
+        event.kind = 'semWait';
+      } else {
+        person.waiting = 'semaphore';
+        person.phase = 'waiting';
+        event.kind = 'semBlocked';
+      }
+    } else if (action === 'semResume') {
+      person.semGranted = false;
+      person.phase = 'authorized';
+      person.pc++;
+      event.kind = 'semResume';
+    } else if (action === 'eat') {
+      if (person.logical !== 'eating' || this.mutex === id) throw new Error('Invalid meal authorization');
+      person.phase = 'eating';
+      person.meals++;
+      person.pc++;
+      event.kind = 'eat';
+    } else if (action === 'setThinking') {
+      this.requireMutex(id);
+      person.logical = 'thinking';
+      person.phase = 'releasing';
+      person.pc++;
+      event.kind = 'thinking';
+    } else if (action === 'thinkEnd') {
+      person.phase = 'thinking';
+      person.pc = 0;
+      event.kind = 'think';
+    } else {
+      throw new Error('Unknown action: ' + action);
+    }
+    return this.record(event);
+  }
+
+  requireMutex(id) {
+    if (this.mutex !== id) throw new Error('Monitor mutex required');
+  }
+
+  spuriousWake(id) {
+    const person = this.person(id);
+    if (this.mode !== 'condition' || !this.conditionWaiters[id]) return null;
+    this.conditionWaiters[id] = false;
+    person.waiting = 'reacquire';
+    return this.record({ tick: ++this.tick, id, action: 'spuriousWake', kind: 'spurious' });
+  }
+
+  assertInvariants() {
+    const forks = this.forks;
+    if (this.mutex !== null && (!Number.isInteger(this.mutex) || this.mutex < 0 || this.mutex > 4)) throw new Error('Invalid mutex owner');
+    for (const person of this.people) {
+      if (person.logical === 'eating' && this.people[this.right(person.id)].logical === 'eating') throw new Error('Adjacent reservations');
+      if (person.phase === 'eating' && (person.logical !== 'eating' || forks[person.id] !== person.id || forks[this.right(person.id)] !== person.id)) throw new Error('Eating without reserved forks');
+      if (person.phase === 'eating' && this.mutex === person.id) throw new Error('Eating while holding monitor');
+      if (this.permits[person.id] < 0 || this.permits[person.id] > 1) throw new Error('Invalid permit count');
+      if (this.conditionWaiters[person.id] !== (person.waiting === 'condition')) throw new Error('Condition wait queue mismatch');
+      if (person.waiting === 'condition' && this.mutex === person.id) throw new Error('Condition waiter retains mutex');
+      if (person.waiting === 'semaphore' && this.mutex === person.id) throw new Error('Semaphore waiter retains mutex');
+      if (person.semGranted && (this.mode !== 'semaphore' || person.logical !== 'eating' || person.waiting !== null)) throw new Error('Invalid transferred permit');
+      if (this.permits[person.id] > 0 && (this.mode !== 'semaphore' || person.logical !== 'eating')) throw new Error('Stored permit without reservation');
+      if (person.logical !== 'eating' && (this.permits[person.id] > 0 || person.semGranted)) throw new Error('Stale authorization');
+    }
+    if (this.people.filter(person => person.phase === 'eating').length > 2) throw new Error('Too many diners');
+  }
+}
+if (typeof window !== 'undefined') window.StateDiningSimulation = StateDiningSimulation;
+</script><script id="simulation-ui">'use strict';
+const messages = {
+  "eyebrow": [
+    "CONCORRÊNCIA · ESTADO E SINALIZAÇÃO",
+    "CONCURRENCY · STATE AND SIGNALING",
+    "CONCURRENCIA · ESTADO Y SEÑALIZACIÓN"
+  ],
+  "stepCount": [
+    "Passos",
+    "Steps",
+    "Pasos"
+  ],
+  "totalMeals": [
+    "Refeições iniciadas",
+    "Meals started",
+    "Comidas iniciadas"
+  ],
+  "parallel": [
+    "Máximo comendo juntos",
+    "Peak concurrent diners",
+    "Máximo comiendo a la vez"
+  ],
+  "strategy": [
+    "Estratégia",
+    "Strategy",
+    "Estrategia"
+  ],
+  "scheduler": [
+    "Escalonamento",
+    "Scheduling",
+    "Planificación"
+  ],
+  "round": [
+    "Alternado (round-robin)",
+    "Round-robin",
+    "Por turnos (round-robin)"
+  ],
+  "random": [
+    "Pseudoaleatório",
+    "Pseudorandom",
+    "Pseudoaleatorio"
+  ],
+  "manual": [
+    "Manual",
+    "Manual",
+    "Manual"
+  ],
+  "speed": [
+    "Intervalo entre passos",
+    "Step interval",
+    "Intervalo entre pasos"
+  ],
+  "play": [
+    "▶ Executar",
+    "▶ Run",
+    "▶ Ejecutar"
+  ],
+  "pause": [
+    "Ⅱ Pausar",
+    "Ⅱ Pause",
+    "Ⅱ Pausar"
+  ],
+  "step": [
+    "Próximo passo →",
+    "Next step →",
+    "Siguiente paso →"
+  ],
+  "reset": [
+    "↺ Reiniciar",
+    "↺ Reset",
+    "↺ Reiniciar"
+  ],
+  "diagram": [
+    "A mesa em execução",
+    "The table in action",
+    "La mesa en ejecución"
+  ],
+  "clickHelp": [
+    "Clique em um filósofo para inspecionar sua próxima instrução.",
+    "Click a philosopher to inspect their next instruction.",
+    "Haz clic en un filósofo para inspeccionar su siguiente instrucción."
+  ],
+  "table": [
+    "MESA",
+    "TABLE",
+    "MESA"
+  ],
+  "forks": [
+    "Garfos",
+    "Forks",
+    "Tenedores"
+  ],
+  "free": [
+    "livre",
+    "free",
+    "libre"
+  ],
+  "thinking": [
+    "Pensando",
+    "Thinking",
+    "Pensando"
+  ],
+  "hungry": [
+    "Com fome",
+    "Hungry",
+    "Con hambre"
+  ],
+  "waiting": [
+    "Bloqueado",
+    "Blocked",
+    "Bloqueado"
+  ],
+  "eating": [
+    "Comendo",
+    "Eating",
+    "Comiendo"
+  ],
+  "releasing": [
+    "Devolvendo",
+    "Releasing",
+    "Devolviendo"
+  ],
+  "selected": [
+    "Filósofo selecionado",
+    "Selected philosopher",
+    "Filósofo seleccionado"
+  ],
+  "runPerson": [
+    "Executar 1 instrução de P{0}",
+    "Run 1 instruction of P{0}",
+    "Ejecutar 1 instrucción de P{0}"
+  ],
+  "nextInstruction": [
+    "Próxima instrução",
+    "Next instruction",
+    "Siguiente instrucción"
+  ],
+  "pseudo": [
+    "Código equivalente em C / Pthreads",
+    "Equivalent C / Pthreads code",
+    "Código equivalente en C / Pthreads"
+  ],
+  "highlightHelp": [
+    "A linha marcada é a próxima instrução de P{0}. Cada passo executa uma instrução de uma thread.",
+    "The highlighted line is P{0}’s next instruction. Each step executes one thread instruction.",
+    "La línea resaltada es la siguiente instrucción de P{0}. Cada paso ejecuta una instrucción de un hilo."
+  ],
+  "stateLabel": [
+    "Estado",
+    "State",
+    "Estado"
+  ],
+  "held": [
+    "Em posse",
+    "Held",
+    "En posesión"
+  ],
+  "none": [
+    "nenhum",
+    "none",
+    "ninguno"
+  ],
+  "running": [
+    "Execução em andamento",
+    "Simulation running",
+    "Ejecución en curso"
+  ],
+  "paused": [
+    "Pronto para avançar",
+    "Ready to step",
+    "Listo para avanzar"
+  ],
+  "log": [
+    "Histórico de instruções",
+    "Instruction history",
+    "Historial de instrucciones"
+  ],
+  "logEmpty": [
+    "A simulação está pronta. Execute um passo para começar.",
+    "The simulation is ready. Execute a step to start.",
+    "La simulación está lista. Ejecuta un paso para comenzar."
+  ],
+  "lesson": [
+    "O que esta estratégia ensina",
+    "What this strategy teaches",
+    "Qué enseña esta estrategia"
+  ],
+  "selectedHint": [
+    "Para escolher exatamente a próxima thread, use o modo Manual.",
+    "Use Manual mode to choose the next thread explicitly.",
+    "Utiliza el modo Manual para elegir el siguiente hilo."
+  ],
+  "language": [
+    "Idioma",
+    "Language",
+    "Idioma"
+  ],
+  "personMeals": [
+    "refeições",
+    "meals",
+    "comidas"
+  ],
+  "initialized": [
+    "N = 5; mutexes inicializados antes das threads",
+    "N = 5; mutexes initialized before threads",
+    "N = 5; mutexes inicializados antes de los hilos"
+  ],
+  "title": [
+    "Jantar dos filósofos: estado e sinalização",
+    "Dining philosophers: state and signaling",
+    "Cena de filósofos: estado y señalización"
+  ],
+  "intro": [
+    "Variáveis de condição e semáforos: acompanhe a reserva dos garfos, o bloqueio e a retomada de cada thread.",
+    "Condition variables and semaphores: follow fork reservation, blocking and resumption of each thread.",
+    "Variables de condición y semáforos: sigue la reserva de tenedores, el bloqueo y la reanudación de cada hilo."
+  ],
+  "condition": [
+    "1 · Variáveis de condição",
+    "1 · Condition variables",
+    "1 · Variables de condición"
+  ],
+  "semaphore": [
+    "2 · Semáforos privados",
+    "2 · Private semaphores",
+    "2 · Semáforos privados"
+  ],
+  "prepare": [
+    "Preparar cenário",
+    "Prepare scenario",
+    "Preparar escenario"
+  ],
+  "scenario": [
+    "Cenário didático",
+    "Teaching scenario",
+    "Escenario didáctico"
+  ],
+  "reservationScenario": [
+    "Autorização antes da espera",
+    "Authorization before waiting",
+    "Autorización antes de esperar"
+  ],
+  "parallelScenario": [
+    "P0 e P2 comendo",
+    "P0 and P2 eating",
+    "P0 y P2 comiendo"
+  ],
+  "waitingScenario": [
+    "P1 espera por P0",
+    "P1 waits for P0",
+    "P1 espera a P0"
+  ],
+  "notificationScenario": [
+    "P1 é notificado",
+    "P1 is notified",
+    "P1 recibe una notificación"
+  ],
+  "spurious": [
+    "Simular despertar espúrio de P{0}",
+    "Simulate a spurious wakeup of P{0}",
+    "Simular un despertar espurio de P{0}"
+  ],
+  "spuriousHelp": [
+    "Selecione uma thread na fila de condição para observar por que o teste usa while.",
+    "Select a thread in a condition queue to see why the test uses while.",
+    "Selecciona un hilo en la cola de condición para observar por qué se usa while."
+  ],
+  "statePanel": [
+    "Estado lógico e mecanismo privado",
+    "Logical state and private mechanism",
+    "Estado lógico y mecanismo privado"
+  ],
+  "logical": [
+    "Estado lógico",
+    "Logical state",
+    "Estado lógico"
+  ],
+  "thread": [
+    "Thread",
+    "Thread",
+    "Hilo"
+  ],
+  "mechanism": [
+    "Mecanismo",
+    "Mechanism",
+    "Mecanismo"
+  ],
+  "logicalThinking": [
+    "PENSANDO",
+    "THINKING",
+    "PENSANDO"
+  ],
+  "logicalHungry": [
+    "COM_FOME",
+    "HUNGRY",
+    "CON_HAMBRE"
+  ],
+  "logicalEating": [
+    "COMENDO · reserva",
+    "EATING · reserved",
+    "COMIENDO · reserva"
+  ],
+  "authorized": [
+    "Autorizado",
+    "Authorized",
+    "Autorizado"
+  ],
+  "requesting": [
+    "Solicitando",
+    "Requesting",
+    "Solicitando"
+  ],
+  "queueCondition": [
+    "na condição",
+    "in condition queue",
+    "en la condición"
+  ],
+  "queueSemaphore": [
+    "no semáforo",
+    "in semaphore queue",
+    "en el semáforo"
+  ],
+  "waitMutex": [
+    "aguarda M",
+    "waiting for M",
+    "espera M"
+  ],
+  "reacquire": [
+    "readquirir M",
+    "reacquire M",
+    "readquirir M"
+  ],
+  "notified": [
+    "notificado",
+    "notified",
+    "notificado"
+  ],
+  "noQueue": [
+    "sem espera",
+    "no waiters",
+    "sin espera"
+  ],
+  "count": [
+    "contador = {0}",
+    "count = {0}",
+    "contador = {0}"
+  ],
+  "gateLabel": [
+    "Mutex do estado M",
+    "State mutex M",
+    "Mutex del estado M"
+  ],
+  "reserved": [
+    "reservado",
+    "reserved",
+    "reservado"
+  ],
+  "inUse": [
+    "em uso",
+    "in use",
+    "en uso"
+  ],
+  "reservation": [
+    "Reserva de garfos: G{0} e G{1}",
+    "Fork reservation: G{0} and G{1}",
+    "Reserva de tenedores: G{0} y G{1}"
+  ],
+  "noReservation": [
+    "Garfos ainda não reservados",
+    "Forks not reserved yet",
+    "Tenedores aún sin reservar"
+  ],
+  "neighbors": [
+    "Vizinhos de P{0}: P{1} e P{2}",
+    "P{0}’s neighbors: P{1} and P{2}",
+    "Vecinos de P{0}: P{1} y P{2}"
+  ],
+  "selectionTip": [
+    "Escolha Manual para executar a thread selecionada. Uma thread bloqueada precisa ser acordada ou obter M.",
+    "Choose Manual to execute the selected thread. A blocked thread must be awakened or obtain M.",
+    "Elige Manual para ejecutar el hilo seleccionado. Un hilo bloqueado necesita despertar u obtener M."
+  ],
+  "blockedTip": [
+    "Thread bloqueada: avance outra thread ou simule um despertar espúrio quando disponível.",
+    "Thread blocked: advance another thread or simulate a spurious wakeup when available.",
+    "Hilo bloqueado: avanza otro hilo o simula un despertar espurio cuando esté disponible."
+  ],
+  "activity": [
+    "Reserva ≠ refeição",
+    "Reservation ≠ meal",
+    "Reserva ≠ comida"
+  ],
+  "activityDesc": [
+    "COMENDO no vetor de estados reserva os dois garfos. O destaque verde indica quem já entrou na refeição; uma autorização pode anteceder essa execução.",
+    "EATING in the state array reserves both forks. Green highlights who has actually entered the meal; authorization may precede execution.",
+    "COMIENDO en el vector de estados reserva ambos tenedores. El verde indica quién inició realmente la comida; la autorización puede preceder a la ejecución."
+  ],
+  "condLesson": [
+    "O mutex M protege o vetor de estados e os testes dos vizinhos. cond_wait entra na fila e libera M atomicamente. Um signal não acumula uma permissão; quem é acordado readquire M e volta a testar o predicado no while.",
+    "Mutex M protects the state array and neighbor tests. cond_wait enters the queue and releases M atomically. A signal stores no permit; a woken thread reacquires M and checks the while predicate again.",
+    "El mutex M protege el vector de estados y las pruebas de los vecinos. cond_wait entra en la cola y libera M atómicamente. Un signal no acumula permisos; el hilo despertado readquiere M y comprueba de nuevo el predicado en while."
+  ],
+  "semLesson": [
+    "Cada filósofo possui um semáforo privado inicializado em zero. O teste reserva os garfos e executa sem_post. A autorização fica disponível mesmo se sem_wait ainda não foi chamado. A thread libera M antes de esperar no semáforo.",
+    "Each philosopher owns a private semaphore initialized to zero. The test reserves the forks and calls sem_post. Authorization remains available even if sem_wait has not run yet. The thread releases M before waiting on the semaphore.",
+    "Cada filósofo tiene un semáforo privado inicializado en cero. La prueba reserva los tenedores y ejecuta sem_post. La autorización queda disponible aunque sem_wait aún no se haya ejecutado. El hilo libera M antes de esperar en el semáforo."
+  ],
+  "fairness": [
+    "Estas versões permitem refeições de não vizinhos e evitam deadlock no protocolo modelado, mas não estabelecem atendimento FIFO. Testes finitos não demonstram ausência de inanição.",
+    "These versions allow non-neighbors to eat together and prevent deadlock in the modeled protocol, but do not establish FIFO service. Finite tests do not prove starvation freedom.",
+    "Estas versiones permiten comer a los no vecinos y evitan el deadlock en el protocolo modelado, pero no establecen atención FIFO. Las pruebas finitas no demuestran ausencia de inanición."
+  ],
+  "testTitle": [
+    "O teste que concede autorização",
+    "The authorization test",
+    "La prueba que concede autorización"
+  ],
+  "helperHint": [
+    "tentar_liberar(j) é executado com M retido. A verificação, a reserva e a notificação formam uma operação indivisível neste modelo.",
+    "tentar_liberar(j) runs while M is held. The check, reservation and notification are one indivisible operation in this model.",
+    "tentar_liberar(j) se ejecuta reteniendo M. La comprobación, la reserva y la notificación forman una operación indivisible en este modelo."
+  ],
+  "initialCondition": [
+    "M inicializado; estado[5] = PENSANDO; pode_comer[5] inicializadas.",
+    "M initialized; estado[5] = THINKING; pode_comer[5] initialized.",
+    "M inicializado; estado[5] = PENSANDO; pode_comer[5] inicializadas."
+  ],
+  "initialSemaphore": [
+    "M inicializado; estado[5] = PENSANDO; sem_init(&permissao[i], 0, 0).",
+    "M initialized; estado[5] = THINKING; sem_init(&permissao[i], 0, 0).",
+    "M inicializado; estado[5] = PENSANDO; sem_init(&permissao[i], 0, 0)."
+  ],
+  "reservationCond": [
+    "P0 já recebeu a reserva lógica. O signal não encontrou uma thread esperando e não ficou armazenado. Ao chegar ao while, P0 verá COMENDO e não executará cond_wait.",
+    "P0 already has the logical reservation. The signal found no waiter and was not stored. At the while, P0 will see EATING and skip cond_wait.",
+    "P0 ya tiene la reserva lógica. El signal no encontró un hilo esperando y no quedó almacenado. Al llegar a while, P0 verá COMIENDO y omitirá cond_wait."
+  ],
+  "reservationSem": [
+    "P0 já recebeu a reserva lógica. sem_post deixou uma autorização no semáforo privado (contador 1). Depois de liberar M, sem_wait consumirá essa autorização.",
+    "P0 already has the logical reservation. sem_post left one authorization in the private semaphore (count 1). After releasing M, sem_wait will consume it.",
+    "P0 ya tiene la reserva lógica. sem_post dejó una autorización en el semáforo privado (contador 1). Después de liberar M, sem_wait la consumirá."
+  ],
+  "parallelNote": [
+    "P0 e P2 comem juntos. Os testes reservaram pares de garfos distintos e nenhuma dessas refeições retém M.",
+    "P0 and P2 eat together. The tests reserved disjoint fork pairs and neither meal holds M.",
+    "P0 y P2 comen a la vez. Las pruebas reservaron pares de tenedores distintos y ninguna comida retiene M."
+  ],
+  "waitCondNote": [
+    "P1 espera em pode_comer[1], sem reter M nem reservar garfos. P0 ainda come. Use o despertar espúrio ou avance a devolução de P0.",
+    "P1 waits on pode_comer[1], holding neither M nor reserved forks. P0 is still eating. Try a spurious wakeup or advance P0’s release.",
+    "P1 espera en pode_comer[1], sin retener M ni reservar tenedores. P0 aún come. Prueba el despertar espurio o avanza la devolución de P0."
+  ],
+  "waitSemNote": [
+    "P1 espera em permissao[1], com contador 0 e sem reter M. P0 ainda come. Avance a devolução de P0 para observar sem_post acordando P1.",
+    "P1 waits on permissao[1], with count 0 and without M. P0 is still eating. Advance P0’s release to observe sem_post wake P1.",
+    "P1 espera en permissao[1], con contador 0 y sin retener M. P0 aún come. Avanza la devolución de P0 para observar cómo sem_post despierta a P1."
+  ],
+  "notifyCondNote": [
+    "P0 reservou os garfos para P1 e executou signal, mas ainda retém M. P1 precisa readquirir M antes de retornar de cond_wait; não pode começar a comer agora.",
+    "P0 reserved the forks for P1 and signaled, but still holds M. P1 must reacquire M before returning from cond_wait; it cannot start eating yet.",
+    "P0 reservó los tenedores para P1 y ejecutó signal, pero aún retiene M. P1 debe readquirir M antes de retornar de cond_wait; todavía no puede empezar a comer."
+  ],
+  "notifySemNote": [
+    "P0 reservou os garfos para P1 e executou sem_post. A autorização foi entregue à thread que esperava. P1 pode retornar de sem_wait sem readquirir M.",
+    "P0 reserved the forks for P1 and called sem_post. Authorization was delivered to the waiting thread. P1 can return from sem_wait without reacquiring M.",
+    "P0 reservó los tenedores para P1 y ejecutó sem_post. La autorización se entregó al hilo que esperaba. P1 puede retornar de sem_wait sin readquirir M."
+  ],
+  "spuriousNote": [
+    "P{0} despertou sem receber autorização. Depois de readquirir M, o while ainda encontrará COM_FOME e a thread voltará a esperar.",
+    "P{0} woke without authorization. After reacquiring M, the while will still find HUNGRY and the thread will wait again.",
+    "P{0} despertó sin autorización. Tras readquirir M, while aún encontrará CON_HAMBRE y el hilo volverá a esperar."
+  ],
+  "wakeTitle": [
+    "Acordar não é possuir M",
+    "Waking does not mean owning M",
+    "Despertar no significa poseer M"
+  ],
+  "wakeDesc": [
+    "Uma thread notificada pela variável de condição deve readquirir o mutex antes de testar novamente o estado.",
+    "A thread notified by a condition variable must reacquire the mutex before checking the state again.",
+    "Un hilo notificado por una variable de condición debe readquirir el mutex antes de comprobar de nuevo el estado."
+  ],
+  "outsideTitle": [
+    "Espera com M liberado",
+    "Waiting with M released",
+    "Espera con M liberado"
+  ],
+  "outsideDesc": [
+    "O bloqueio no mecanismo privado não prende o mutex do estado. Outras threads podem entrar e conceder autorizações.",
+    "Blocking on the private mechanism does not hold the state mutex. Other threads can enter and grant authorizations.",
+    "El bloqueo en el mecanismo privado no retiene el mutex del estado. Otros hilos pueden entrar y conceder autorizaciones."
+  ],
+  "readyDesc": [
+    "Avance as instruções para acompanhar estado, reserva, notificação e refeição.",
+    "Step through the instructions to follow state, reservation, notification and eating.",
+    "Avanza las instrucciones para seguir estado, reserva, notificación y comida."
+  ],
+  "model": [
+    "Modelo didático: instruções intercaladas; lock/unlock e cond_wait atômicos; tentar_liberar indivisível sob M. A fila do mecanismo privado é distinta da espera pelo mutex.",
+    "Teaching model: interleaved instructions; atomic lock/unlock and cond_wait; tentar_liberar is indivisible under M. The private mechanism queue is distinct from mutex waiting.",
+    "Modelo didáctico: instrucciones intercaladas; lock/unlock y cond_wait atómicos; tentar_liberar es indivisible bajo M. La cola privada es distinta de la espera por el mutex."
+  ],
+  "source": [
+    "Base: slides “O Jantar dos Filósofos”, pp. 19–33.",
+    "Based on “O Jantar dos Filósofos” slides, pp. 19–33.",
+    "Basado en las diapositivas “O Jantar dos Filósofos”, pp. 19–33."
+  ],
+  "compare": [
+    "Comparar os mecanismos",
+    "Compare the mechanisms",
+    "Comparar los mecanismos"
+  ],
+  "condMemory": [
+    "signal sem fila não armazena autorização; o estado lógico preserva a decisão.",
+    "signal without a waiter stores no authorization; logical state preserves the decision.",
+    "signal sin hilos esperando no almacena autorización; el estado lógico preserva la decisión."
+  ],
+  "semMemory": [
+    "post antes de wait deixa uma autorização que será consumida.",
+    "post before wait leaves an authorization to be consumed.",
+    "post antes de wait deja una autorización para consumir."
+  ],
+  "resumeCond": [
+    "Ao acordar: readquirir M → testar while → liberar M → comer.",
+    "After wakeup: reacquire M → check while → release M → eat.",
+    "Al despertar: readquirir M → comprobar while → liberar M → comer."
+  ],
+  "resumeSem": [
+    "Ao acordar: retornar de sem_wait → comer, sem readquirir M.",
+    "After wakeup: return from sem_wait → eat, without reacquiring M.",
+    "Al despertar: retornar de sem_wait → comer, sin readquirir M."
+  ],
+  "mutexVersion": [
+    "Versão com mutexes →",
+    "Mutex version →",
+    "Versión con mutexes →"
+  ],
+  "queue": [
+    "fila",
+    "queue",
+    "cola"
+  ],
+  "delivered": [
+    "entregue",
+    "delivered",
+    "entregada"
+  ],
+  "noStoredSignal": [
+    "sinais armazenados: nenhum",
+    "stored signals: none",
+    "señales almacenadas: ninguna"
+  ],
+  "privatePermit": [
+    "autorização entregue",
+    "authorization delivered",
+    "autorización entregada"
+  ],
+  "target": [
+    "Próximo teste: P{0}",
+    "Next test: P{0}",
+    "Siguiente prueba: P{0}"
+  ],
+  "noTarget": [
+    "O teste só concede autorização a quem está com fome e tem os dois vizinhos sem reserva.",
+    "The test grants authorization only to a hungry philosopher whose two neighbors have no reservation.",
+    "La prueba solo autoriza a quien tiene hambre y cuyos dos vecinos no tienen reserva."
+  ],
+  "eventRequest": [
+    "P{0} terminou de pensar e vai solicitar os garfos.",
+    "P{0} finished thinking and will request the forks.",
+    "P{0} terminó de pensar y solicitará los tenedores."
+  ],
+  "eventLock": [
+    "P{0} adquiriu M.",
+    "P{0} acquired M.",
+    "P{0} adquirió M."
+  ],
+  "eventWaitMutex": [
+    "P{0} aguarda M, retido por P{1}.",
+    "P{0} waits for M, held by P{1}.",
+    "P{0} espera M, retenido por P{1}."
+  ],
+  "eventReacquired": [
+    "P{0} readquiriu M; agora pode reavaliar o while.",
+    "P{0} reacquired M and can now reevaluate the while.",
+    "P{0} readquirió M y ahora puede reevaluar while."
+  ],
+  "eventHungry": [
+    "P{0} definiu estado[{0}] = COM_FOME sob M.",
+    "P{0} set estado[{0}] = COM_FOME under M.",
+    "P{0} estableció estado[{0}] = COM_FOME bajo M."
+  ],
+  "eventGrant": [
+    "P{0} reservou os dois garfos para P{1}.",
+    "P{0} reserved both forks for P{1}.",
+    "P{0} reservó ambos tenedores para P{1}."
+  ],
+  "signalWake": [
+    "signal acorda P{0}, que precisa readquirir M.",
+    "signal wakes P{0}, which must reacquire M.",
+    "signal despierta a P{0}, que debe readquirir M."
+  ],
+  "signalEmpty": [
+    "signal sem thread na fila: nenhum sinal armazenado.",
+    "signal with no queued thread: no signal stored.",
+    "signal sin hilos en la cola: no se almacena la señal."
+  ],
+  "postWake": [
+    "sem_post entrega autorização ao waiter P{0}; contador continua 0.",
+    "sem_post delivers authorization to waiter P{0}; count remains 0.",
+    "sem_post entrega autorización al hilo P{0}; el contador sigue en 0."
+  ],
+  "postStored": [
+    "sem_post deixa uma autorização no contador de P{0}.",
+    "sem_post leaves one authorization in P{0}’s count.",
+    "sem_post deja una autorización en el contador de P{0}."
+  ],
+  "eventDeny": [
+    "P{0} testou P{1}: um vizinho ainda reserva os garfos; sem autorização.",
+    "P{0} tested P{1}: a neighbor still reserves the forks; no authorization.",
+    "P{0} evaluó a P{1}: un vecino aún reserva los tenedores; sin autorización."
+  ],
+  "eventSkip": [
+    "P{0} testou P{1}: não está COM_FOME; nenhuma nova autorização.",
+    "P{0} tested P{1}: not HUNGRY; no new authorization.",
+    "P{0} evaluó a P{1}: no está CON_HAMBRE; sin nueva autorización."
+  ],
+  "eventCheck": [
+    "P{0} verificou o while: já está COMENDO; pode sair da espera.",
+    "P{0} checked the while: already EATING; it can leave the wait loop.",
+    "P{0} comprobó while: ya está COMIENDO; puede salir de la espera."
+  ],
+  "eventCondWait": [
+    "P{0} entra em cond_wait: libera M e entra na fila atomicamente.",
+    "P{0} enters cond_wait: releases M and enters the queue atomically.",
+    "P{0} entra en cond_wait: libera M y entra en la cola atómicamente."
+  ],
+  "eventUnlock": [
+    "P{0} liberou M.",
+    "P{0} released M.",
+    "P{0} liberó M."
+  ],
+  "eventSemWait": [
+    "P{0} consumiu a autorização de sem_wait; contador passa a 0.",
+    "P{0} consumed the sem_wait authorization; count becomes 0.",
+    "P{0} consumió la autorización de sem_wait; el contador pasa a 0."
+  ],
+  "eventSemBlocked": [
+    "P{0} bloqueou em sem_wait, com contador 0 e sem reter M.",
+    "P{0} blocked in sem_wait, with count 0 and without M.",
+    "P{0} se bloqueó en sem_wait, con contador 0 y sin retener M."
+  ],
+  "eventSemResume": [
+    "P{0} retorna de sem_wait com a autorização entregue, sem readquirir M.",
+    "P{0} returns from sem_wait with the delivered authorization, without reacquiring M.",
+    "P{0} retorna de sem_wait con la autorización entregada, sin readquirir M."
+  ],
+  "eventEat": [
+    "P{0} começou a refeição fora de M.",
+    "P{0} started the meal outside M.",
+    "P{0} inició la comida fuera de M."
+  ],
+  "eventThinking": [
+    "P{0} definiu PENSANDO e liberou a reserva dos dois garfos sob M.",
+    "P{0} set THINKING and released both fork reservations under M.",
+    "P{0} estableció PENSANDO y liberó la reserva de ambos tenedores bajo M."
+  ],
+  "eventThink": [
+    "P{0} voltou a pensar.",
+    "P{0} returned to thinking.",
+    "P{0} volvió a pensar."
+  ],
+  "eventSpurious": [
+    "Despertar espúrio de P{0}: saiu da fila sem receber autorização.",
+    "Spurious wakeup of P{0}: left the queue without authorization.",
+    "Despertar espurio de P{0}: salió de la cola sin autorización."
+  ],
+  "mechanismCondCaption": [
+    "Cada CVᵢ tem uma fila de espera, sem contador de sinais. Uma thread acordada sai dessa fila e disputa M antes de retornar.",
+    "Each CVᵢ has a wait queue, with no signal counter. An awakened thread leaves that queue and competes for M before returning.",
+    "Cada CVᵢ tiene una cola de espera, sin contador de señales. Un hilo despertado sale de esa cola y compite por M antes de retornar."
+  ],
+  "mechanismSemCaption": [
+    "Cada Sᵢ começa em 0. Uma autorização pode ficar no contador ou ser entregue a quem já espera; sem_wait a consome uma única vez.",
+    "Each Sᵢ starts at 0. An authorization may stay in the count or be delivered to an existing waiter; sem_wait consumes it once.",
+    "Cada Sᵢ comienza en 0. Una autorización puede quedar en el contador o entregarse a quien ya espera; sem_wait la consume una sola vez."
+  ],
+  "lineLegend": [
+    "Tracejado: garfos reservados. Contínuo: refeição em execução.",
+    "Dashed: forks reserved. Solid: meal in progress.",
+    "Discontinuo: tenedores reservados. Continuo: comida en curso."
+  ],
+  "blockedMutex": [
+    "Aguarda M, retido por P{0}. Avance essa thread para liberar o mutex.",
+    "Waiting for M, held by P{0}. Advance that thread to release the mutex.",
+    "Espera M, retenido por P{0}. Avanza ese hilo para liberar el mutex."
+  ],
+  "blockedCondition": [
+    "Na fila de condição, sem reter M. Avance um vizinho ou simule um despertar espúrio.",
+    "In the condition queue, without M. Advance a neighbor or simulate a spurious wakeup.",
+    "En la cola de condición, sin M. Avanza un vecino o simula un despertar espurio."
+  ],
+  "blockedSemaphore": [
+    "Em sem_wait, sem reter M. Avance um vizinho até ele conceder autorização com sem_post.",
+    "In sem_wait, without M. Advance a neighbor until it grants authorization with sem_post.",
+    "En sem_wait, sin M. Avanza un vecino hasta que conceda autorización con sem_post."
+  ]
+};
+let lang='pt', selected=0, timer=null, playing=false, note=null;
+const simulation=new StateDiningSimulation();
+const $=id=>document.getElementById(id);
+const t=(key,...args)=>messages[key][{pt:0,en:1,es:2}[lang]].replace(/\{(\d+)\}/g,(_,i)=>String(args[Number(i)]));
+const escapeHTML=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const colours=['#3675ba','#ad6a39','#7c5eae','#0d8a78','#b14f70'];
+const logicalKey=person=>'logical'+person.logical[0].toUpperCase()+person.logical.slice(1);
+function stop(){clearTimeout(timer);timer=null;playing=false;}
+function reset(){stop();simulation.reset();selected=0;note=null;render();}
+function threadText(person){
+  if(person.waiting==='condition')return t('queueCondition');
+  if(person.waiting==='semaphore')return t('queueSemaphore');
+  if(person.waiting==='reacquire')return t('reacquire');
+  if(person.waiting==='mutex')return t('waitMutex');
+  if(person.semGranted)return t('privatePermit');
+  return t(person.phase);
+}
+function blockedReason(person){if(person.waiting==='mutex'||person.waiting==='reacquire')return t('blockedMutex',simulation.mutex);return t(person.waiting==='condition'?'blockedCondition':'blockedSemaphore');}
+function stateOf(person){
+  if(person.waiting&&!simulation.canStep(person.id))return 'waiting';
+  if(person.logical==='eating'&&person.phase!=='eating'&&person.phase!=='releasing')return 'authorized';
+  if(person.phase==='requesting'&&person.logical==='hungry')return 'hungry';
+  return person.phase;
+}
+function act(id){if(!simulation.canStep(id))return;selected=id;simulation.step(id);note=null;render();}
+function advance(){const id=$('scheduler').value==='manual'?selected:simulation.choose($('scheduler').value);if(id===null){stop();render();return;}act(id);}
+function loop(){if(!playing)return;advance();if(playing)timer=setTimeout(loop,Number($('speed').value));}
+function setLanguage(value){
+ lang=value;document.documentElement.lang=value==='pt'?'pt-BR':value;document.title=t('title');
+ document.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=t(el.dataset.i18n));
+ document.querySelectorAll('[data-lang]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.lang===lang)));
+ document.querySelector('.languages').setAttribute('aria-label',t('language'));render();
+}
+function codeLines(){
+ const cond=simulation.mode==='condition';
+ const lines=[['','// '+t(cond?'initialCondition':'initialSemaphore')],['','pensar(i);'],['thinkStart','// '+t('requesting')],['lockRequest','pthread_mutex_lock(&M);'],['setHungry','estado[i] = COM_FOME;'],['testSelf','tentar_liberar(i);']];
+ if(cond)lines.push(['checkCondition','while (estado[i] != COMENDO) {'],['condWait','  pthread_cond_wait(&pode_comer[i], &M);'],['','}'],['unlockRequest','pthread_mutex_unlock(&M);']);
+ else lines.push(['unlockRequest','pthread_mutex_unlock(&M);'],['semWait','sem_wait(&permissao[i]);']);
+ lines.push(['eat','faz_refeicao(i);'],['lockRelease','pthread_mutex_lock(&M);'],['setThinking','estado[i] = PENSANDO;'],['testLeft','tentar_liberar((i + N - 1) % N);'],['testRight','tentar_liberar((i + 1) % N);'],['unlockRelease','pthread_mutex_unlock(&M);'],['thinkEnd','// '+t('thinking')+' → ...']);return lines;
+}
+function renderCode(){
+ const person=simulation.people[selected],action=simulation.action(selected);
+ const row=action==='reacquire'||person.waiting==='condition'?'condWait':action==='semResume'?'semWait':action;
+ $('code').innerHTML=codeLines().map(([key,line],i)=>'<span class="code-line '+(key===row?'active ':'')+(key===row&&!simulation.canStep(selected)?'blocked':'')+'"><span class="num">'+(i+1)+'</span>'+escapeHTML(line)+'</span>').join('');
+ $('code-caption').textContent=t('highlightHelp',selected);
+ const line=codeLines().find(([key])=>key===row)?.[1]||action;
+ $('next-instruction').textContent=!simulation.canStep(selected)?blockedReason(person):action==='reacquire'?t('reacquire')+' → pthread_cond_wait':t('nextInstruction')+': '+line.trim();
+ const testAction=['testSelf','testLeft','testRight'].includes(action),target=action==='testLeft'?simulation.left(selected):action==='testRight'?simulation.right(selected):selected;
+ $('helper-target').textContent=testAction?t('target',target):t('noTarget');
+ const notify=simulation.mode==='condition'?'pthread_cond_signal(&pode_comer[j]);':'sem_post(&permissao[j]);';
+ const helper=['void tentar_liberar(int j) {','  if (estado[j] == COM_FOME &&','      estado[(j+N-1)%N] != COMENDO &&','      estado[(j+1)%N] != COMENDO) {','    estado[j] = COMENDO;','    '+notify,'  }','}'];
+ $('helper-code').innerHTML=helper.map((line,i)=>'<span class="code-line '+(testAction&&i>0&&i<6?'test-highlight':'')+'"><span class="num">'+(i+1)+'</span>'+escapeHTML(line)+'</span>').join('');
+}
+function position(index,radius,offset=-90){const a=(index*72+offset)*Math.PI/180;return{x:320+radius*Math.cos(a),y:285+radius*Math.sin(a)};}
+function privateText(person,short=false){
+ const id=person.id;
+ if(simulation.mode==='condition')return 'CV'+id+': '+(simulation.conditionWaiters[id]?t('queue'):short?'—':t('noQueue'));
+ return 'S'+id+': '+(person.semGranted?'0 · '+t('delivered'):simulation.permits[id]+(person.waiting==='semaphore'?' · '+t('queue'):''));
+}
+function renderTable(){
+ const people=simulation.people,ph=people.map((_,i)=>position(i,215)),fork=people.map((_,i)=>position(i,149,-126)),forks=simulation.forks,last=simulation.history.at(-1);
+ let svg='<circle cx="320" cy="285" r="155" fill="#f6f9f7" stroke="#e1eae4" stroke-width="2"/><circle cx="320" cy="285" r="112" fill="#edf4ee" stroke="#d8e5dc"/><text x="320" y="263" text-anchor="middle" fill="#739083" font-size="11" font-weight="800" letter-spacing="3">'+escapeHTML(t('table'))+'</text>';
+ svg+='<rect x="245" y="283" width="150" height="54" rx="12" fill="'+(simulation.mutex===null?'#fff':'#d8e9df')+'" stroke="#d3e1d6"/><text x="320" y="303" text-anchor="middle" fill="#537065" font-size="10">'+escapeHTML(t('gateLabel'))+'</text><text x="320" y="323" text-anchor="middle" fill="#203f32" font-size="14" font-weight="750">'+escapeHTML(simulation.mutex===null?t('free'):'P'+simulation.mutex)+'</text>';
+ forks.forEach((owner,i)=>{if(owner!==null){const eating=people[owner].phase==='eating';svg+='<line class="fork-line" x1="'+fork[i].x+'" y1="'+fork[i].y+'" x2="'+ph[owner].x+'" y2="'+ph[owner].y+'" stroke="'+colours[owner]+'" stroke-width="5" '+(eating?'':'stroke-dasharray="5 4"')+'/>';}});
+ fork.forEach((pos,i)=>{const owner=forks[i],active=last&&last.kind==='grant'&&last.target===owner;
+ svg+='<g class="'+(active?'flash':'')+'"><rect x="'+(pos.x-31)+'" y="'+(pos.y-23)+'" width="62" height="46" rx="12" fill="'+(owner===null?'white':colours[owner]+'20')+'" stroke="'+(owner===null?'#c9d8cf':colours[owner])+'" stroke-width="2"/><text class="fork-label" x="'+pos.x+'" y="'+(pos.y-2)+'" text-anchor="middle">G'+i+'</text><text class="fork-owner" x="'+pos.x+'" y="'+(pos.y+14)+'" text-anchor="middle">'+escapeHTML(owner===null?t('free'):'P'+owner)+'</text></g>';});
+ people.forEach((person,i)=>{const pos=ph[i],state=stateOf(person),fill=state==='eating'?'#c9eedb':state==='authorized'?'#dce6ff':state==='waiting'?'#fbe0e4':state==='thinking'?'#e4ece8':'#fceacb';
+ svg+='<g class="philosopher" data-person="'+i+'" tabindex="0" role="button" aria-label="P'+i+' · '+escapeHTML(threadText(person))+'" aria-pressed="'+(selected===i)+'">'+(selected===i?'<circle class="selected-ring" cx="'+pos.x+'" cy="'+pos.y+'" r="49"/>':'')+'<circle class="avatar" cx="'+pos.x+'" cy="'+pos.y+'" r="42" fill="'+fill+'" stroke="'+colours[i]+'" stroke-width="2"/><text class="person-name" x="'+pos.x+'" y="'+(pos.y+7)+'" text-anchor="middle">P'+i+'</text><text class="person-state" x="'+pos.x+'" y="'+(pos.y+63)+'" text-anchor="middle" fill="'+(state==='waiting'?'#bd3346':'#294c42')+'">'+escapeHTML(t(state))+'</text><text class="thread-mechanism" x="'+pos.x+'" y="'+(pos.y+79)+'" text-anchor="middle">'+escapeHTML(privateText(person,true))+'</text><text class="person-meals" x="'+pos.x+'" y="'+(pos.y+95)+'" text-anchor="middle">'+person.meals+' '+escapeHTML(t('personMeals'))+'</text></g>';});
+ $('table').innerHTML=svg;$('table').setAttribute('aria-label',t('diagram'));
+}
+function eventText(event){
+ const keys={request:'eventRequest',lock:'eventLock',waitMutex:'eventWaitMutex',reacquired:'eventReacquired',hungry:'eventHungry',grant:'eventGrant',deny:'eventDeny',skip:'eventSkip',check:'eventCheck',condWait:'eventCondWait',unlock:'eventUnlock',semWait:'eventSemWait',semBlocked:'eventSemBlocked',semResume:'eventSemResume',eat:'eventEat',thinking:'eventThinking',think:'eventThink',spurious:'eventSpurious'};
+ return t(keys[event.kind],event.id,event.kind==='waitMutex'?event.owner:event.target);
+}
+function grantDetail(event){return event.kind==='grant'?t(event.notify==='signal'?(event.woke?'signalWake':'signalEmpty'):(event.woke?'postWake':'postStored'),event.target):'';}
+function render(){
+ const person=simulation.people[selected],manual=$('scheduler').value==='manual',runnable=simulation.canStep(selected);
+ $('ticks').textContent=simulation.tick;$('meals').textContent=simulation.people.reduce((sum,p)=>sum+p.meals,0);$('peak').textContent=simulation.maxEating;
+ $('mutex-tag').textContent='M: '+(simulation.mutex===null?t('free'):'P'+simulation.mutex);
+ document.querySelectorAll('[data-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.mode===simulation.mode)));
+ $('play').textContent=t(playing?'pause':'play');$('play').disabled=manual;$('step').disabled=manual&&!runnable;$('person-step').disabled=!manual||!runnable;
+ $('person-step').textContent=t('runPerson',selected);$('person-step').title=!runnable?blockedReason(person):manual?'':t('selectionTip');$('step').title=manual&&!runnable?blockedReason(person):'';
+ $('spurious-control').hidden=simulation.mode!=='condition';$('spurious').disabled=!simulation.conditionWaiters[selected];$('spurious').textContent=t('spurious',selected);
+ $('people-buttons').innerHTML=simulation.people.map(p=>'<button type="button" data-person="'+p.id+'" aria-pressed="'+(p.id===selected)+'">P'+p.id+'</button>').join('');
+ $('reservation').textContent=person.logical==='eating'?t('reservation',selected,simulation.right(selected)):t('noReservation');
+ $('neighbors').textContent=t('neighbors',selected,simulation.left(selected),simulation.right(selected));$('person-logical').textContent=t(logicalKey(person));$('person-state').textContent=threadText(person);
+ $('state-rows').innerHTML=simulation.people.map(p=>'<tr class="'+(selected===p.id?'selected':'')+'"><td><b>P'+p.id+'</b></td><td><span class="logical-state '+p.logical+'">'+escapeHTML(t(logicalKey(p)))+'</span></td><td><span class="thread-state">'+escapeHTML(threadText(p))+'</span></td><td><span class="mechanism-state">'+escapeHTML(privateText(p))+'</span></td></tr>').join('');
+ $('mechanism-caption').textContent=t(simulation.mode==='condition'?'mechanismCondCaption':'mechanismSemCaption');
+ $('lesson-text').textContent=t(simulation.mode==='condition'?'condLesson':'semLesson');
+ const reacquire=simulation.people.some(p=>p.waiting==='reacquire'),privateWait=simulation.people.some(p=>['condition','semaphore'].includes(p.waiting)),authorized=simulation.people.some(p=>p.logical==='eating'&&p.phase!=='eating'&&p.phase!=='releasing');
+ $('status').className='status-banner'+(reacquire||privateWait?' warning':'');
+ $('status-title').textContent=t(reacquire?'wakeTitle':privateWait?'outsideTitle':authorized?'activity':playing?'running':'paused');
+ $('status-description').textContent=t(reacquire?'wakeDesc':privateWait?'outsideDesc':authorized?'activityDesc':'readyDesc');
+ $('scenario-note').hidden=!note;if(note)$('scenario-note').textContent=t(note.key,...(note.args||[]));
+ $('log').innerHTML=simulation.history.length?simulation.history.slice(-40).reverse().map(event=>'<li class="'+event.kind+'"><span class="tick">#'+event.tick+'</span><span>'+escapeHTML(eventText(event))+(event.kind==='grant'?'<span class="event-detail">'+escapeHTML(grantDetail(event))+'</span>':'')+'</span></li>').join(''):'<li>'+escapeHTML(t('logEmpty'))+'</li>';
+ renderCode();renderTable();
+}
+function drive(id,predicate){for(let n=0;n<30;n++){if(!simulation.canStep(id))throw Error('Scenario thread is blocked');const event=simulation.step(id);if(predicate(simulation.people[id],event))return;}throw Error('Scenario did not finish');}
+function prepareScenario(){
+ stop();simulation.reset();selected=0;const scenario=$('scenario').value,cond=simulation.mode==='condition';
+ if(scenario==='reservation'){drive(0,p=>p.logical==='eating');note={key:cond?'reservationCond':'reservationSem'};}
+ else if(scenario==='parallel'){for(const id of [0,2])drive(id,p=>p.phase==='eating');selected=2;note={key:'parallelNote'};}
+ else {drive(0,p=>p.phase==='eating');drive(1,p=>p.waiting===(cond?'condition':'semaphore'));selected=1;
+   if(scenario==='notification'){drive(0,(_,event)=>event.kind==='grant'&&event.target===1);note={key:cond?'notifyCondNote':'notifySemNote'};}
+   else note={key:cond?'waitCondNote':'waitSemNote'};
+ }render();
+}
+document.querySelectorAll('[data-lang]').forEach(button=>button.addEventListener('click',()=>setLanguage(button.dataset.lang)));
+document.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener('click',()=>{stop();simulation.reset(button.dataset.mode);selected=0;note=null;render();}));
+$('scheduler').addEventListener('change',()=>{stop();render();});$('speed').addEventListener('input',()=>{$('speed-value').textContent=$('speed').value+' ms';});
+$('play').addEventListener('click',()=>{if(playing){stop();render();}else{playing=true;loop();}});$('step').addEventListener('click',()=>{stop();advance();});$('reset').addEventListener('click',reset);$('person-step').addEventListener('click',()=>{stop();act(selected);});$('prepare').addEventListener('click',prepareScenario);
+$('spurious').addEventListener('click',()=>{stop();if(simulation.spuriousWake(selected)){note={key:'spuriousNote',args:[selected]};render();}});
+function selectPerson(event){const element=event.target.closest('[data-person]');if(element){selected=Number(element.dataset.person);render();}}
+$('table').addEventListener('click',selectPerson);$('table').addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();selectPerson(event);}});$('people-buttons').addEventListener('click',selectPerson);
+window.addEventListener('pagehide',stop);setLanguage('pt');
+</script><script data-mobile-visual>
+(() => {
+  const svg=document.getElementById('table');
+  const region=document.createElement('div');region.className='mobile-visual-scroll';region.dataset.zoomed='false';region.tabIndex=0;region.setAttribute('role','region');
+  svg.before(region);region.append(svg);
+  const controls=document.createElement('div');controls.className='mobile-visual-controls';
+  const button=document.createElement('button');button.type='button';
+  const hint=document.createElement('span');hint.className='mobile-scroll-hint';hint.setAttribute('aria-hidden','true');controls.append(button,hint);region.before(controls);
+  const labels={pt:['Ver diagrama inteiro','Ampliar para leitura','Diagrama ampliado: deslize horizontalmente'],es:['Ver el diagrama completo','Ampliar para leer','Diagrama ampliado: desliza horizontalmente'],en:['Show entire diagram','Enlarge for reading','Enlarged diagram: swipe horizontally']};
+  function refresh(){const words=labels[document.documentElement.lang.slice(0,2)]||labels.pt;button.textContent=words[region.dataset.zoomed==='true'?0:1];button.setAttribute('aria-expanded',String(region.dataset.zoomed==='true'));region.setAttribute('aria-label',region.dataset.zoomed==='true'?words[2]:(svg.getAttribute('aria-label')||words[2]));hint.hidden=region.dataset.zoomed!=='true';}
+  button.addEventListener('click',()=>{region.dataset.zoomed=String(region.dataset.zoomed!=='true');refresh();});
+  new MutationObserver(refresh).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});refresh();
+})();
+</script>
+</body></html>

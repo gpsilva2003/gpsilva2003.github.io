@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classificação dos Sistemas Operacionais</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .classification-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .classification-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .classification-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .classification-card h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .categories {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .categories.single {
+            grid-template-columns: 1fr;
+        }
+
+        .categories.triple {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .category {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .category h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .examples {
+            color: #4a5568;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .examples div {
+            margin: 5px 0;
+            padding: 5px;
+            background: #f7fafc;
+            border-radius: 5px;
+            border-left: 3px solid #667eea;
+            padding-left: 10px;
+        }
+
+        .legend {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .legend h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .legend-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .legend-item {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            color: #4a5568;
+        }
+
+        .legend-item strong {
+            color: #667eea;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 20px;
+            width: 80%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: slideDown 0.4s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5em;
+            color: white;
+            border: none;
+            padding: 0;
+        }
+
+        .close {
+            color: white;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            line-height: 1;
+        }
+
+        .close:hover {
+            transform: scale(1.2);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .explanation-section {
+            margin-bottom: 25px;
+        }
+
+        .explanation-section h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .explanation-section p {
+            color: #4a5568;
+            line-height: 1.8;
+            text-align: justify;
+        }
+
+        .explanation-section ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .explanation-section li {
+            color: #4a5568;
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .click-hint {
+            text-align: center;
+            color: #667eea;
+            font-size: 0.9em;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+            .classification-card, .category { min-width: 0; }
+            h1, h2, h3, .examples { overflow-wrap: anywhere; }
+            .classification-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .categories.triple {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+
+            .modal-body {
+                padding: 20px;
+            }
+        }
+    </style>
+<style id="mobile-presentation">
+/* Mobile presentation: comfortable touch targets, readable form fields. */
+.mobile-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+@media screen and (max-width:760px), screen and (pointer:coarse) {
+  html body button, html body [role="button"], html body select,
+  html body input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+  html body .file-label { min-height:44px!important; }
+  html body button { min-width:44px!important; touch-action:manipulation; }
+  html body input[type="range"] { height:44px!important; padding-block:0; }
+  html body input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+  html body select, html body textarea { font-size:16px!important; max-width:100%; }
+  button, input, select, textarea { scroll-margin-block:16px; }
+}
+@media screen and (max-width:760px) {
+  html { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+  pre { max-width:100%; overflow-x:auto; }
+  .mobile-scroll { max-width:100%; overflow-x:auto; overscroll-behavior-x:contain; }
+  .mobile-scroll:focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
+  .mobile-scroll-hint { display:block; font:500 12px/1.5 system-ui,sans-serif; color:#526273; margin:8px 0; }
+  .mobile-scroll-hint::before { content:'↔ Deslize para ver todo o conteúdo'; }
+  html[lang^="en"] .mobile-scroll-hint::before { content:'↔ Swipe to see all the content'; }
+  html[lang^="es"] .mobile-scroll-hint::before { content:'↔ Desliza para ver todo el contenido'; }
+}
+@media screen and (min-width:761px) { .mobile-scroll-hint { display:none; } }
+</style>
+<style>.close{border:0;background:transparent;padding:0;min-width:44px;min-height:44px;display:grid;place-items:center;font-family:inherit}@media screen and (max-width:760px){.modal-content{margin:16px auto;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overscroll-behavior:contain}.modal-header{position:sticky;top:0;z-index:1;gap:10px}.modal-header h2{min-width:0;font-size:1.2rem}.categories{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}</style></head>
+<body>
+    <div class="container">
+        <h1>📊 Classificação dos Sistemas Operacionais</h1>
+        
+        <p class="click-hint">💡 Clique em qualquer classificação para ver detalhes e explicações</p>
+        
+        <div class="classification-grid" id="classificationsGrid"></div>
+        
+        <div class="legend">
+            <h3>💡 Sobre as Classificações</h3>
+            <div class="legend-content">
+                <div class="legend-item">
+                    <strong>Código Aberto:</strong> Código-fonte disponível publicamente
+                </div>
+                <div class="legend-item">
+                    <strong>Proprietário:</strong> Código-fonte fechado e controlado
+                </div>
+                <div class="legend-item">
+                    <strong>Multitarefa:</strong> Executa vários processos simultaneamente
+                </div>
+                <div class="legend-item">
+                    <strong>Multiprocessado:</strong> Utiliza múltiplos processadores/núcleos
+                </div>
+                <div class="legend-item">
+                    <strong>Multiusuário:</strong> Permite múltiplos usuários simultaneamente
+                </div>
+                <div class="legend-item">
+                    <strong>RTOS:</strong> Sistema de Tempo Real com latências previsíveis
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="explanationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle"></h2>
+                <button type="button" class="close" aria-label="Fechar">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <script data-tool-i18n>
+
+(() => {
+  'use strict';
+  const translations = {
+  "Fechar": {pt:"Fechar",en:"Close",es:"Cerrar"},
+  "Classificação dos Sistemas Operacionais": {
+    "pt": "Classificação dos Sistemas Operacionais",
+    "en": "Operating System Classification",
+    "es": "Clasificación de los sistemas operativos"
+  },
+  "📊 Classificação dos Sistemas Operacionais": {
+    "pt": "📊 Classificação dos Sistemas Operacionais",
+    "en": "📊 Operating System Classification",
+    "es": "📊 Clasificación de los sistemas operativos"
+  },
+  "💡 Clique em qualquer classificação para ver detalhes e explicações": {
+    "pt": "💡 Clique em qualquer classificação para ver detalhes e explicações",
+    "en": "💡 Click any classification for details and explanations",
+    "es": "💡 Haz clic en cualquier clasificación para ver detalles y explicaciones"
+  },
+  "💡 Sobre as Classificações": {
+    "pt": "💡 Sobre as Classificações",
+    "en": "💡 About the Classifications",
+    "es": "💡 Acerca de las clasificaciones"
+  },
+  "Quanto à Forma de Distribuição": {
+    "pt": "Quanto à Forma de Distribuição",
+    "en": "By Distribution Model",
+    "es": "Según la forma de distribución"
+  },
+  "Quanto ao Modo de Execução": {
+    "pt": "Quanto ao Modo de Execução",
+    "en": "By Execution Mode",
+    "es": "Según el modo de ejecución"
+  },
+  "Quanto ao Número de Processadores": {
+    "pt": "Quanto ao Número de Processadores",
+    "en": "By Number of Processors",
+    "es": "Según el número de procesadores"
+  },
+  "Quanto ao Número de Usuários": {
+    "pt": "Quanto ao Número de Usuários",
+    "en": "By Number of Users",
+    "es": "Según el número de usuarios"
+  },
+  "Quanto à Execução das Tarefas": {
+    "pt": "Quanto à Execução das Tarefas",
+    "en": "By Task Execution",
+    "es": "Según la ejecución de tareas"
+  },
+  "Quanto ao Propósito": {
+    "pt": "Quanto ao Propósito",
+    "en": "By Purpose",
+    "es": "Según el propósito"
+  },
+  "Quanto à Estrutura do Núcleo": {
+    "pt": "Quanto à Estrutura do Núcleo",
+    "en": "By Kernel Structure",
+    "es": "Según la estructura del núcleo"
+  },
+  "Código Aberto": {
+    "pt": "Código Aberto",
+    "en": "Open Source",
+    "es": "Código abierto"
+  },
+  "Proprietários": {
+    "pt": "Proprietários",
+    "en": "Proprietary",
+    "es": "Propietarios"
+  },
+  "Monotarefa": {
+    "pt": "Monotarefa",
+    "en": "Single-tasking",
+    "es": "Monotarea"
+  },
+  "Multitarefa": {
+    "pt": "Multitarefa",
+    "en": "Multitasking",
+    "es": "Multitarea"
+  },
+  "Monoprocessados": {
+    "pt": "Monoprocessados",
+    "en": "Single-processor",
+    "es": "Monoprocesador"
+  },
+  "Multiprocessados": {
+    "pt": "Multiprocessados",
+    "en": "Multiprocessor",
+    "es": "Multiprocesador"
+  },
+  "Monousuários": {
+    "pt": "Monousuários",
+    "en": "Single-user",
+    "es": "Monousuario"
+  },
+  "Multiusuários": {
+    "pt": "Multiusuários",
+    "en": "Multi-user",
+    "es": "Multiusuario"
+  },
+  "Lote (Batch)": {
+    "pt": "Lote (Batch)",
+    "en": "Batch",
+    "es": "Por lotes (Batch)"
+  },
+  "Tempo Compartilhado": {
+    "pt": "Tempo Compartilhado",
+    "en": "Time Sharing",
+    "es": "Tiempo compartido"
+  },
+  "Uso Geral": {
+    "pt": "Uso Geral",
+    "en": "General Purpose",
+    "es": "Uso general"
+  },
+  "Embarcados": {
+    "pt": "Embarcados",
+    "en": "Embedded",
+    "es": "Embebidos"
+  },
+  "Tempo Real": {
+    "pt": "Tempo Real",
+    "en": "Real Time",
+    "es": "Tiempo real"
+  },
+  "Monolíticos": {
+    "pt": "Monolíticos",
+    "en": "Monolithic",
+    "es": "Monolíticos"
+  },
+  "Código Aberto:": {
+    "pt": "Código Aberto:",
+    "en": "Open Source:",
+    "es": "Código abierto:"
+  },
+  "Código-fonte disponível publicamente": {
+    "pt": "Código-fonte disponível publicamente",
+    "en": "Publicly available source code",
+    "es": "Código fuente disponible públicamente"
+  },
+  "Proprietário:": {
+    "pt": "Proprietário:",
+    "en": "Proprietary:",
+    "es": "Propietario:"
+  },
+  "Código-fonte fechado e controlado": {
+    "pt": "Código-fonte fechado e controlado",
+    "en": "Closed and controlled source code",
+    "es": "Código fuente cerrado y controlado"
+  },
+  "Multitarefa:": {
+    "pt": "Multitarefa:",
+    "en": "Multitasking:",
+    "es": "Multitarea:"
+  },
+  "Executa vários processos simultaneamente": {
+    "pt": "Executa vários processos simultaneamente",
+    "en": "Runs multiple processes concurrently",
+    "es": "Ejecuta varios procesos simultáneamente"
+  },
+  "Multiprocessado:": {
+    "pt": "Multiprocessado:",
+    "en": "Multiprocessor:",
+    "es": "Multiprocesador:"
+  },
+  "Utiliza múltiplos processadores/núcleos": {
+    "pt": "Utiliza múltiplos processadores/núcleos",
+    "en": "Uses multiple processors/cores",
+    "es": "Utiliza múltiples procesadores/núcleos"
+  },
+  "Multiusuário:": {
+    "pt": "Multiusuário:",
+    "en": "Multi-user:",
+    "es": "Multiusuario:"
+  },
+  "Permite múltiplos usuários simultaneamente": {
+    "pt": "Permite múltiplos usuários simultaneamente",
+    "en": "Supports multiple simultaneous users",
+    "es": "Permite múltiples usuarios simultáneamente"
+  },
+  "Sistema de Tempo Real com latências previsíveis": {
+    "pt": "Sistema de Tempo Real com latências previsíveis",
+    "en": "Real-time system with predictable latencies",
+    "es": "Sistema de tiempo real con latencias predecibles"
+  },
+  "Vantagens:": {
+    "pt": "Vantagens:",
+    "en": "Advantages:",
+    "es": "Ventajas:"
+  },
+  "Desvantagens:": {
+    "pt": "Desvantagens:",
+    "en": "Disadvantages:",
+    "es": "Desventajas:"
+  },
+  "Características:": {
+    "pt": "Características:",
+    "en": "Features:",
+    "es": "Características:"
+  },
+  "Aplicações:": {
+    "pt": "Aplicações:",
+    "en": "Applications:",
+    "es": "Aplicaciones:"
+  },
+  "Considerações:": {
+    "pt": "Considerações:",
+    "en": "Considerations:",
+    "es": "Consideraciones:"
+  },
+  "Exemplo:": {
+    "pt": "Exemplo:",
+    "en": "Example:",
+    "es": "Ejemplo:"
+  },
+  "O código-fonte está disponível publicamente, permitindo que qualquer pessoa possa modificá-lo e distribuí-lo livremente, como ocorre com as diversas distribuições do Linux.": {
+    "pt": "O código-fonte está disponível publicamente, permitindo que qualquer pessoa possa modificá-lo e distribuí-lo livremente, como ocorre com as diversas distribuições do Linux.",
+    "en": "The source code is publicly available, allowing anyone to modify and distribute it freely, as with the various Linux distributions.",
+    "es": "El código fuente está disponible públicamente, lo que permite modificarlo y distribuirlo libremente, como ocurre con las distintas distribuciones de Linux."
+  },
+  "Liberdade de personalização às necessidades específicas": {
+    "pt": "Liberdade de personalização às necessidades específicas",
+    "en": "Freedom to customize for specific needs",
+    "es": "Libertad de personalización para necesidades específicas"
+  },
+  "Colaboração de uma comunidade global de desenvolvedores": {
+    "pt": "Colaboração de uma comunidade global de desenvolvedores",
+    "en": "Collaboration from a global developer community",
+    "es": "Colaboración de una comunidad global de desarrolladores"
+  },
+  "Transparência e segurança através de auditorias constantes": {
+    "pt": "Transparência e segurança através de auditorias constantes",
+    "en": "Transparency and security through ongoing audits",
+    "es": "Transparencia y seguridad mediante auditorías constantes"
+  },
+  "Redução de custos sem necessidade de licenças": {
+    "pt": "Redução de custos sem necessidade de licenças",
+    "en": "Lower costs without license fees",
+    "es": "Reducción de costes sin necesidad de pagar licencias"
+  },
+  "Sistemas desenvolvidos e mantidos por empresas com código-fonte fechado. Os usuários não têm acesso ao código-fonte e, na maioria dos casos, devem adquirir licenças para usá-los.": {
+    "pt": "Sistemas desenvolvidos e mantidos por empresas com código-fonte fechado. Os usuários não têm acesso ao código-fonte e, na maioria dos casos, devem adquirir licenças para usá-los.",
+    "en": "Systems developed and maintained by companies with closed source code. Users cannot access the source code and usually must purchase licenses to use them.",
+    "es": "Sistemas desarrollados y mantenidos por empresas con código fuente cerrado. Los usuarios no tienen acceso al código y, en la mayoría de los casos, deben adquirir licencias para utilizarlos."
+  },
+  "Suporte técnico dedicado": {
+    "pt": "Suporte técnico dedicado",
+    "en": "Dedicated technical support",
+    "es": "Soporte técnico dedicado"
+  },
+  "Integração com outros produtos da empresa": {
+    "pt": "Integração com outros produtos da empresa",
+    "en": "Integration with the company’s other products",
+    "es": "Integración con otros productos de la empresa"
+  },
+  "Sistemas limitam personalização": {
+    "pt": "Sistemas limitam personalização",
+    "en": "Systems limit customization",
+    "es": "Los sistemas limitan la personalización"
+  },
+  "Custos continuados de atualização e suporte": {
+    "pt": "Custos continuados de atualização e suporte",
+    "en": "Ongoing update and support costs",
+    "es": "Costes continuos de actualización y soporte"
+  },
+  "Apenas um processo é executado por vez. O sistema operacional executa um único programa até que este seja concluído, antes de iniciar outro.": {
+    "pt": "Apenas um processo é executado por vez. O sistema operacional executa um único programa até que este seja concluído, antes de iniciar outro.",
+    "en": "Only one process runs at a time. The operating system runs a single program to completion before starting another.",
+    "es": "Solo se ejecuta un proceso a la vez. El sistema operativo ejecuta un único programa hasta que termina antes de iniciar otro."
+  },
+  "Encontrado em dispositivos embarcados e sistemas legados como DOS e CP/M.": {
+    "pt": "Encontrado em dispositivos embarcados e sistemas legados como DOS e CP/M.",
+    "en": "Found in embedded devices and legacy systems such as DOS and CP/M.",
+    "es": "Se encuentra en dispositivos embebidos y sistemas antiguos como DOS y CP/M."
+  },
+  "Permite a execução de vários processos simultaneamente, distribuindo o tempo do processador entre os diferentes processos e alternando rapidamente entre eles para criar a sensação de execução simultânea.": {
+    "pt": "Permite a execução de vários processos simultaneamente, distribuindo o tempo do processador entre os diferentes processos e alternando rapidamente entre eles para criar a sensação de execução simultânea.",
+    "en": "Allows multiple processes to run concurrently by dividing processor time among them and switching rapidly to create the impression of simultaneous execution.",
+    "es": "Permite ejecutar varios procesos simultáneamente, distribuyendo el tiempo del procesador entre ellos y alternando rápidamente para crear la sensación de ejecución simultánea."
+  },
+  "Usuário pode executar vários programas ao mesmo tempo": {
+    "pt": "Usuário pode executar vários programas ao mesmo tempo",
+    "en": "Users can run several programs at once",
+    "es": "El usuario puede ejecutar varios programas a la vez"
+  },
+  "Maior eficiência e produtividade": {
+    "pt": "Maior eficiência e produtividade",
+    "en": "Greater efficiency and productivity",
+    "es": "Mayor eficiencia y productividad"
+  },
+  "Melhor utilização dos recursos do sistema": {
+    "pt": "Melhor utilização dos recursos do sistema",
+    "en": "Better use of system resources",
+    "es": "Mejor aprovechamiento de los recursos del sistema"
+  },
+  "Projetados para funcionar em sistemas com apenas um processador ou núcleo de processamento, mas podem ser tanto monotarefa como multitarefa. O fato de haver apenas um processador não impede que mais de uma aplicação seja executada pelo sistema operacional.": {
+    "pt": "Projetados para funcionar em sistemas com apenas um processador ou núcleo de processamento, mas podem ser tanto monotarefa como multitarefa. O fato de haver apenas um processador não impede que mais de uma aplicação seja executada pelo sistema operacional.",
+    "en": "Designed for systems with a single processor or processing core, but may support either single-tasking or multitasking. A single processor does not prevent the operating system from running more than one application.",
+    "es": "Diseñados para sistemas con un solo procesador o núcleo, pueden ser monotarea o multitarea. Tener un único procesador no impide que el sistema operativo ejecute más de una aplicación."
+  },
+  "Permitem a execução simultânea de múltiplas tarefas em diferentes processadores. Utilizam técnicas como multithreading, balanceamento de carga e paralelismo para otimizar o uso dos recursos.": {
+    "pt": "Permitem a execução simultânea de múltiplas tarefas em diferentes processadores. Utilizam técnicas como multithreading, balanceamento de carga e paralelismo para otimizar o uso dos recursos.",
+    "en": "Allow multiple tasks to execute simultaneously on different processors. They use techniques such as multithreading, load balancing and parallelism to optimize resource use.",
+    "es": "Permiten ejecutar múltiples tareas simultáneamente en diferentes procesadores. Utilizan técnicas como multihilo, balanceo de carga y paralelismo para optimizar los recursos."
+  },
+  "Execução de programas em paralelo verdadeiro": {
+    "pt": "Execução de programas em paralelo verdadeiro",
+    "en": "True parallel program execution",
+    "es": "Ejecución de programas en paralelo real"
+  },
+  "Redução drástica dos tempos de execução": {
+    "pt": "Redução drástica dos tempos de execução",
+    "en": "Substantially shorter execution times",
+    "es": "Reducción drástica de los tiempos de ejecución"
+  },
+  "Melhor aproveitamento de hardware moderno": {
+    "pt": "Melhor aproveitamento de hardware moderno",
+    "en": "Better use of modern hardware",
+    "es": "Mejor aprovechamiento del hardware moderno"
+  },
+  "Ideal para servidores e computação em nuvem": {
+    "pt": "Ideal para servidores e computação em nuvem",
+    "en": "Ideal for servers and cloud computing",
+    "es": "Ideal para servidores y computación en la nube"
+  },
+  "Atendem às necessidades de apenas um usuário por vez, com todos os recursos e configurações personalizados apenas para esse usuário. A autenticação era feita apenas uma vez durante o login, e o sistema era usado por um único usuário até o logout ou desligamento.": {
+    "pt": "Atendem às necessidades de apenas um usuário por vez, com todos os recursos e configurações personalizados apenas para esse usuário. A autenticação era feita apenas uma vez durante o login, e o sistema era usado por um único usuário até o logout ou desligamento.",
+    "en": "Serve one user at a time, with resources and settings tailored to that user. Authentication occurred once at login, and a single user used the system until logout or shutdown.",
+    "es": "Atienden a un solo usuario a la vez, con recursos y configuraciones personalizados para él. La autenticación se realizaba al iniciar sesión y un único usuario utilizaba el sistema hasta cerrar sesión o apagarlo."
+  },
+  "Cada usuário possui sua própria conta com configurações, arquivos e permissões de acesso individuais. Vários usuários podem fazer login e executar programas ao mesmo tempo, compartilhando recursos como processador, memória e dispositivos de armazenamento.": {
+    "pt": "Cada usuário possui sua própria conta com configurações, arquivos e permissões de acesso individuais. Vários usuários podem fazer login e executar programas ao mesmo tempo, compartilhando recursos como processador, memória e dispositivos de armazenamento.",
+    "en": "Each user has an account with individual settings, files and access permissions. Multiple users can log in and run programs at the same time, sharing resources such as the processor, memory and storage devices.",
+    "es": "Cada usuario tiene su propia cuenta con configuraciones, archivos y permisos individuales. Varios usuarios pueden iniciar sesión y ejecutar programas a la vez, compartiendo procesador, memoria y almacenamiento."
+  },
+  "Mecanismos de autenticação e controle de acesso": {
+    "pt": "Mecanismos de autenticação e controle de acesso",
+    "en": "Authentication and access control mechanisms",
+    "es": "Mecanismos de autenticación y control de acceso"
+  },
+  "Garantia de segurança e privacidade": {
+    "pt": "Garantia de segurança e privacidade",
+    "en": "Security and privacy safeguards",
+    "es": "Garantías de seguridad y privacidad"
+  },
+  "Gerenciamento centralizado de contas e recursos": {
+    "pt": "Gerenciamento centralizado de contas e recursos",
+    "en": "Centralized account and resource management",
+    "es": "Gestión centralizada de cuentas y recursos"
+  },
+  "Compartilhamento eficiente de recursos": {
+    "pt": "Compartilhamento eficiente de recursos",
+    "en": "Efficient resource sharing",
+    "es": "Uso compartido eficiente de recursos"
+  },
+  "Os programas são agrupados em lotes e processados sequencialmente, sem necessidade de intervenção direta do usuário durante a execução. Cada trabalho (job) é submetido ao sistema operacional, que os organiza e processa em ordem.": {
+    "pt": "Os programas são agrupados em lotes e processados sequencialmente, sem necessidade de intervenção direta do usuário durante a execução. Cada trabalho (job) é submetido ao sistema operacional, que os organiza e processa em ordem.",
+    "en": "Programs are grouped into batches and processed sequentially without direct user intervention during execution. Each job is submitted to the operating system, which organizes and processes them in order.",
+    "es": "Los programas se agrupan en lotes y se procesan secuencialmente sin intervención directa del usuario. Cada trabajo se envía al sistema operativo, que los organiza y procesa en orden."
+  },
+  "Particularmente útil em ambientes de grande processamento de dados, como nas primeiras gerações de mainframes, onde tarefas extensas podiam ser executadas sem a presença constante de operadores.": {
+    "pt": "Particularmente útil em ambientes de grande processamento de dados, como nas primeiras gerações de mainframes, onde tarefas extensas podiam ser executadas sem a presença constante de operadores.",
+    "en": "Particularly useful for large-scale data processing, as in early mainframes, where lengthy tasks could run without operators being constantly present.",
+    "es": "Especialmente útil en entornos de procesamiento masivo de datos, como los primeros mainframes, donde las tareas extensas podían ejecutarse sin la presencia constante de operadores."
+  },
+  "IBM OS/360, lançado na década de 1960": {
+    "pt": "IBM OS/360, lançado na década de 1960",
+    "en": "IBM OS/360, released in the 1960s",
+    "es": "IBM OS/360, lanzado en la década de 1960"
+  },
+  "Permite que múltiplos programas sejam executados simultaneamente, oferecendo uma experiência de uso mais interativa. O sistema operacional divide o tempo do processador entre diferentes processos, alternando rapidamente entre eles.": {
+    "pt": "Permite que múltiplos programas sejam executados simultaneamente, oferecendo uma experiência de uso mais interativa. O sistema operacional divide o tempo do processador entre diferentes processos, alternando rapidamente entre eles.",
+    "en": "Allows multiple programs to run concurrently for a more interactive experience. The operating system divides processor time among processes, switching rapidly between them.",
+    "es": "Permite ejecutar múltiples programas simultáneamente para ofrecer una experiencia más interactiva. El sistema operativo divide el tiempo del procesador entre procesos y alterna rápidamente entre ellos."
+  },
+  "Experiência interativa para o usuário": {
+    "pt": "Experiência interativa para o usuário",
+    "en": "Interactive user experience",
+    "es": "Experiencia interactiva para el usuario"
+  },
+  "Múltiplos usuários compartilham o sistema eficientemente": {
+    "pt": "Múltiplos usuários compartilham o sistema eficientemente",
+    "en": "Multiple users share the system efficiently",
+    "es": "Múltiples usuarios comparten el sistema eficientemente"
+  },
+  "Cada usuário tem sua sessão aparentemente exclusiva": {
+    "pt": "Cada usuário tem sua sessão aparentemente exclusiva",
+    "en": "Each user has a seemingly exclusive session",
+    "es": "Cada usuario tiene una sesión aparentemente exclusiva"
+  },
+  "Base para sistemas operacionais modernos": {
+    "pt": "Base para sistemas operacionais modernos",
+    "en": "Foundation for modern operating systems",
+    "es": "Base de los sistemas operativos modernos"
+  },
+  "Unix, desde os anos 1970": {
+    "pt": "Unix, desde os anos 1970",
+    "en": "Unix, since the 1970s",
+    "es": "Unix, desde los años 1970"
+  },
+  "Projetados para suportar uma diversidade de aplicativos e usuários, priorizando a versatilidade e o desempenho médio. Embora possam lidar com tarefas sensíveis ao tempo, não oferecem garantias rígidas de latência como os sistemas de tempo real.": {
+    "pt": "Projetados para suportar uma diversidade de aplicativos e usuários, priorizando a versatilidade e o desempenho médio. Embora possam lidar com tarefas sensíveis ao tempo, não oferecem garantias rígidas de latência como os sistemas de tempo real.",
+    "en": "Designed to support diverse applications and users, prioritizing versatility and average performance. Although they can handle time-sensitive tasks, they do not provide strict latency guarantees like real-time systems.",
+    "es": "Diseñados para admitir diversas aplicaciones y usuarios, priorizando la versatilidad y el rendimiento medio. Aunque pueden gestionar tareas sensibles al tiempo, no ofrecen garantías estrictas de latencia como los sistemas de tiempo real."
+  },
+  "Projetados para utilização em dispositivos específicos com recursos limitados.": {
+    "pt": "Projetados para utilização em dispositivos específicos com recursos limitados.",
+    "en": "Designed for specific devices with limited resources.",
+    "es": "Diseñados para dispositivos específicos con recursos limitados."
+  },
+  "Sistemas automotivos": {
+    "pt": "Sistemas automotivos",
+    "en": "Automotive systems",
+    "es": "Sistemas de automoción"
+  },
+  "Eletrônica de consumo": {
+    "pt": "Eletrônica de consumo",
+    "en": "Consumer electronics",
+    "es": "Electrónica de consumo"
+  },
+  "Controle industrial": {
+    "pt": "Controle industrial",
+    "en": "Industrial control",
+    "es": "Control industrial"
+  },
+  "Dispositivos médicos": {
+    "pt": "Dispositivos médicos",
+    "en": "Medical devices",
+    "es": "Dispositivos médicos"
+  },
+  "Equipamentos bélicos": {
+    "pt": "Equipamentos bélicos",
+    "en": "Military equipment",
+    "es": "Equipos militares"
+  },
+  "Construídos para responder a eventos em tempo real com latências mínimas previsíveis. Comumente usados em sistemas críticos onde o tempo de resposta é crucial.": {
+    "pt": "Construídos para responder a eventos em tempo real com latências mínimas previsíveis. Comumente usados em sistemas críticos onde o tempo de resposta é crucial.",
+    "en": "Built to respond to real-time events with low, predictable latencies. Commonly used in critical systems where response time is crucial.",
+    "es": "Construidos para responder a eventos en tiempo real con latencias mínimas predecibles. Se utilizan en sistemas críticos donde el tiempo de respuesta es crucial."
+  },
+  "Controle de processos industriais": {
+    "pt": "Controle de processos industriais",
+    "en": "Industrial process control",
+    "es": "Control de procesos industriales"
+  },
+  "Sistemas de controle de voo": {
+    "pt": "Sistemas de controle de voo",
+    "en": "Flight control systems",
+    "es": "Sistemas de control de vuelo"
+  },
+  "Equipamentos médicos críticos": {
+    "pt": "Equipamentos médicos críticos",
+    "en": "Critical medical equipment",
+    "es": "Equipos médicos críticos"
+  },
+  "Sistemas de segurança automotiva": {
+    "pt": "Sistemas de segurança automotiva",
+    "en": "Automotive safety systems",
+    "es": "Sistemas de seguridad de automoción"
+  },
+  "O núcleo é implementado como um único e grande programa onde todos os serviços do sistema são executados. Todos os subsistemas e drivers estão diretamente integrados ao núcleo.": {
+    "pt": "O núcleo é implementado como um único e grande programa onde todos os serviços do sistema são executados. Todos os subsistemas e drivers estão diretamente integrados ao núcleo.",
+    "en": "The kernel is implemented as one large program in which all system services run. All subsystems and drivers are directly integrated into the kernel.",
+    "es": "El núcleo se implementa como un único programa grande en el que se ejecutan todos los servicios. Los subsistemas y controladores están integrados directamente en el núcleo."
+  },
+  "Melhor desempenho para operações frequentes": {
+    "pt": "Melhor desempenho para operações frequentes",
+    "en": "Better performance for frequent operations",
+    "es": "Mejor rendimiento en operaciones frecuentes"
+  },
+  "Chamadas de sistema mais rápidas": {
+    "pt": "Chamadas de sistema mais rápidas",
+    "en": "Faster system calls",
+    "es": "Llamadas al sistema más rápidas"
+  },
+  "Comunicação eficiente entre componentes": {
+    "pt": "Comunicação eficiente entre componentes",
+    "en": "Efficient communication between components",
+    "es": "Comunicación eficiente entre componentes"
+  },
+  "Maior complexidade": {
+    "pt": "Maior complexidade",
+    "en": "Greater complexity",
+    "es": "Mayor complejidad"
+  },
+  "Manutenção mais difícil": {
+    "pt": "Manutenção mais difícil",
+    "en": "More difficult maintenance",
+    "es": "Mantenimiento más difícil"
+  },
+  "Alterações podem afetar todo o sistema": {
+    "pt": "Alterações podem afetar todo o sistema",
+    "en": "Changes may affect the entire system",
+    "es": "Los cambios pueden afectar a todo el sistema"
+  },
+  "O núcleo fornece apenas funcionalidades básicas: gerenciamento de memória, processos e comunicação. Outros serviços como sistemas de arquivos e drivers são implementados como processos de usuário.": {
+    "pt": "O núcleo fornece apenas funcionalidades básicas: gerenciamento de memória, processos e comunicação. Outros serviços como sistemas de arquivos e drivers são implementados como processos de usuário.",
+    "en": "The kernel provides only basic functions: memory management, process management and communication. Other services, such as file systems and drivers, are implemented as user processes.",
+    "es": "El núcleo solo proporciona funciones básicas: gestión de memoria, procesos y comunicación. Otros servicios, como sistemas de archivos y controladores, se implementan como procesos de usuario."
+  },
+  "Sistema mais simples e fácil de entender": {
+    "pt": "Sistema mais simples e fácil de entender",
+    "en": "A simpler system that is easier to understand",
+    "es": "Sistema más sencillo y fácil de entender"
+  },
+  "Maior flexibilidade e modularidade": {
+    "pt": "Maior flexibilidade e modularidade",
+    "en": "Greater flexibility and modularity",
+    "es": "Mayor flexibilidad y modularidad"
+  },
+  "Melhor isolamento e segurança": {
+    "pt": "Melhor isolamento e segurança",
+    "en": "Better isolation and security",
+    "es": "Mejor aislamiento y seguridad"
+  },
+  "Fácil adição ou remoção de serviços": {
+    "pt": "Fácil adição ou remoção de serviços",
+    "en": "Easy addition or removal of services",
+    "es": "Facilidad para añadir o eliminar servicios"
+  },
+  "Problemas isolados não afetam todo o sistema": {
+    "pt": "Problemas isolados não afetam todo o sistema",
+    "en": "Isolated problems do not affect the whole system",
+    "es": "Los problemas aislados no afectan a todo el sistema"
+  },
+  "Historicamente associado a desempenho inferior": {
+    "pt": "Historicamente associado a desempenho inferior",
+    "en": "Historically associated with lower performance",
+    "es": "Históricamente asociado a un rendimiento inferior"
+  },
+  "Necessidade de comunicação entre processos": {
+    "pt": "Necessidade de comunicação entre processos",
+    "en": "Requires interprocess communication",
+    "es": "Necesidad de comunicación entre procesos"
+  },
+  "Otimizações modernas reduzem essa diferença": {
+    "pt": "Otimizações modernas reduzem essa diferença",
+    "en": "Modern optimizations reduce this gap",
+    "es": "Las optimizaciones modernas reducen esta diferencia"
+  },
+  "🔓 Código Aberto": {
+    "pt": "🔓 Código Aberto",
+    "en": "🔓 Open Source",
+    "es": "🔓 Código abierto"
+  },
+  "🔒 Proprietários": {
+    "pt": "🔒 Proprietários",
+    "en": "🔒 Proprietary",
+    "es": "🔒 Propietarios"
+  },
+  "1️⃣ Monotarefa": {
+    "pt": "1️⃣ Monotarefa",
+    "en": "1️⃣ Single-tasking",
+    "es": "1️⃣ Monotarea"
+  },
+  "🔀 Multitarefa": {
+    "pt": "🔀 Multitarefa",
+    "en": "🔀 Multitasking",
+    "es": "🔀 Multitarea"
+  },
+  "1️⃣ Monoprocessados": {
+    "pt": "1️⃣ Monoprocessados",
+    "en": "1️⃣ Single-processor",
+    "es": "1️⃣ Monoprocesador"
+  },
+  "⚡ Multiprocessados": {
+    "pt": "⚡ Multiprocessados",
+    "en": "⚡ Multiprocessor",
+    "es": "⚡ Multiprocesador"
+  },
+  "👤 Monousuários": {
+    "pt": "👤 Monousuários",
+    "en": "👤 Single-user",
+    "es": "👤 Monousuario"
+  },
+  "👥 Multiusuários": {
+    "pt": "👥 Multiusuários",
+    "en": "👥 Multi-user",
+    "es": "👥 Multiusuario"
+  },
+  "📦 Lote (Batch)": {
+    "pt": "📦 Lote (Batch)",
+    "en": "📦 Batch",
+    "es": "📦 Por lotes (Batch)"
+  },
+  "🖥️ Uso Geral": {
+    "pt": "🖥️ Uso Geral",
+    "en": "🖥️ General Purpose",
+    "es": "🖥️ Uso general"
+  },
+  "🔧 Embarcados": {
+    "pt": "🔧 Embarcados",
+    "en": "🔧 Embedded",
+    "es": "🔧 Embebidos"
+  },
+  "🏛️ Monolíticos": {
+    "pt": "🏛️ Monolíticos",
+    "en": "🏛️ Monolithic",
+    "es": "🏛️ Monolíticos"
+  },
+  "⏱️ Tempo Compartilhado (Time Sharing)": {
+    "pt": "⏱️ Tempo Compartilhado (Time Sharing)",
+    "en": "⏱️ Time Sharing",
+    "es": "⏱️ Tiempo compartido (Time Sharing)"
+  },
+  "⚡ Tempo Real (RTOS)": {
+    "pt": "⚡ Tempo Real (RTOS)",
+    "en": "⚡ Real Time (RTOS)",
+    "es": "⚡ Tiempo real (RTOS)"
+  },
+  "⚙️ Micronúcleo (Microkernel)": {
+    "pt": "⚙️ Micronúcleo (Microkernel)",
+    "en": "⚙️ Microkernel",
+    "es": "⚙️ Micronúcleo (Microkernel)"
+  }
+};
+  let lang = 'pt';
+  const normalize = value => value.replace(/\s+/g, ' ').trim();
+  const patterns = Object.entries(translations).filter(([key]) => key.includes('{0}')).map(([key, values]) => ({
+    values, regex: new RegExp('^' + key.split('{0}').map(part => part.replace(/[.*+?^$()|[\]\\]/g, '\\$&')).join('(.+?)') + '$')
+  }));
+  function text(source, ...args) {
+    const key = normalize(source);
+    let result = translations[key]?.[lang];
+    if (result === undefined) {
+      for (const pattern of patterns) {
+        const match = key.match(pattern.regex);
+        if (match) { result = pattern.values[lang].replace('{0}', match[1]); break; }
+      }
+    }
+    return (result ?? source).replace(/\{(\d+)\}/g, (_, index) => args[Number(index)] ?? '{' + index + '}');
+  }
+  window.toolI18n = { text, locale: () => ({pt:'pt-BR', en:'en-US', es:'es-ES'}[lang]) };
+  const style = document.createElement('style');
+  style.textContent = '.tool-language-switch{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:7px;margin-bottom:16px}.tool-language-switch button{width:auto;min-height:40px;padding:8px 12px;border:1px solid #94a3b8;border-radius:999px;background:#f1f5f9;color:#172033;font:600 14px system-ui;cursor:pointer;text-transform:none;letter-spacing:normal}.tool-language-switch button[aria-pressed="true"]{background:#1d4ed8;color:white}.tool-language-switch button:focus-visible{outline:3px solid #60a5fa;outline-offset:3px}@media print{.tool-language-switch{display:none}}';
+  document.head.appendChild(style);
+  const controls = document.createElement('div');
+  controls.className = 'tool-language-switch';
+  controls.setAttribute('role', 'group');
+  controls.innerHTML = '<button type="button" data-lang="pt" lang="pt-BR">🇧🇷 Português</button><button type="button" data-lang="es" lang="es">🇪🇸 Español</button><button type="button" data-lang="en" lang="en">🇺🇸 English</button>';
+  const host = document.querySelector('main, .container, .shell') || document.body;
+  host.prepend(controls);
+  const textSources = new WeakMap();
+  const attributeSources = new WeakMap();
+  // Retain source text and the original nodes to preserve listeners and form state.
+  function localize(value, previous) {
+    const source = previous && previous.last === value ? previous.source : value;
+    const content = text(source);
+    const last = content === source ? source : (source.match(/^\s*/)[0] + content + source.match(/\s*$/)[0]);
+    return {source, last};
+  }
+  const observer = new MutationObserver(refresh);
+  function refresh() {
+    observer.disconnect();
+    const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_TEXT, {acceptNode(node) {
+      return node.parentElement.closest('script, style, .tool-language-switch') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+    }});
+    let node;
+    while ((node = walker.nextNode())) {
+      const record = localize(node.nodeValue, textSources.get(node));
+      if (node.nodeValue !== record.last) node.nodeValue = record.last;
+      textSources.set(node, record);
+    }
+    document.querySelectorAll('[title], [aria-label], [placeholder]').forEach(element => {
+      if (element.closest('.tool-language-switch')) return;
+      const records = attributeSources.get(element) || {};
+      for (const attribute of ['title', 'aria-label', 'placeholder']) {
+        if (!element.hasAttribute(attribute)) continue;
+        const value = element.getAttribute(attribute);
+        const record = localize(value, records[attribute]);
+        if (value !== record.last) element.setAttribute(attribute, record.last);
+        records[attribute] = record;
+      }
+      attributeSources.set(element, records);
+    });
+    observer.observe(document.documentElement, {subtree:true, childList:true, characterData:true, attributes:true, attributeFilter:['title','aria-label','placeholder']});
+  }
+  function setLanguage(value) {
+    if (!['pt','en','es'].includes(value)) return;
+    lang = value;
+    document.documentElement.lang = value === 'pt' ? 'pt-BR' : value;
+    controls.setAttribute('aria-label', value === 'en' ? 'Language' : 'Idioma');
+    controls.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.lang === value)));
+    refresh();
+    window.dispatchEvent(new Event('tool-language-change'));
+  }
+  controls.addEventListener('click', event => {
+    const button = event.target.closest('[data-lang]');
+    if (button) setLanguage(button.dataset.lang);
+  });
+  setLanguage('pt');
+})();
+
+</script>
+<script>
+        const explanations = {
+            "Quanto à Forma de Distribuição": {
+                sections: [
+                    {
+                        title: "🔓 Código Aberto",
+                        content: "O código-fonte está disponível publicamente, permitindo que qualquer pessoa possa modificá-lo e distribuí-lo livremente, como ocorre com as diversas distribuições do Linux.",
+                        advantages: [
+                            "Liberdade de personalização às necessidades específicas",
+                            "Colaboração de uma comunidade global de desenvolvedores",
+                            "Transparência e segurança através de auditorias constantes",
+                            "Redução de custos sem necessidade de licenças"
+                        ]
+                    },
+                    {
+                        title: "🔒 Proprietários",
+                        content: "Sistemas desenvolvidos e mantidos por empresas com código-fonte fechado. Os usuários não têm acesso ao código-fonte e, na maioria dos casos, devem adquirir licenças para usá-los.",
+                        advantages: [
+                            "Suporte técnico dedicado",
+                            "Integração com outros produtos da empresa",
+                            "Sistemas limitam personalização",
+                            "Custos continuados de atualização e suporte"
+                        ]
+                    }
+                ]
+            },
+            "Quanto ao Modo de Execução": {
+                sections: [
+                    {
+                        title: "1️⃣ Monotarefa",
+                        content: "Apenas um processo é executado por vez. O sistema operacional executa um único programa até que este seja concluído, antes de iniciar outro.",
+                        examples: "Encontrado em dispositivos embarcados e sistemas legados como DOS e CP/M."
+                    },
+                    {
+                        title: "🔀 Multitarefa",
+                        content: "Permite a execução de vários processos simultaneamente, distribuindo o tempo do processador entre os diferentes processos e alternando rapidamente entre eles para criar a sensação de execução simultânea.",
+                        advantages: [
+                            "Usuário pode executar vários programas ao mesmo tempo",
+                            "Maior eficiência e produtividade",
+                            "Melhor utilização dos recursos do sistema"
+                        ]
+                    }
+                ]
+            },
+            "Quanto ao Número de Processadores": {
+                sections: [
+                    {
+                        title: "1️⃣ Monoprocessados",
+                        content: "Projetados para funcionar em sistemas com apenas um processador ou núcleo de processamento, mas podem ser tanto monotarefa como multitarefa. O fato de haver apenas um processador não impede que mais de uma aplicação seja executada pelo sistema operacional."
+                    },
+                    {
+                        title: "⚡ Multiprocessados",
+                        content: "Permitem a execução simultânea de múltiplas tarefas em diferentes processadores. Utilizam técnicas como multithreading, balanceamento de carga e paralelismo para otimizar o uso dos recursos.",
+                        advantages: [
+                            "Execução de programas em paralelo verdadeiro",
+                            "Redução drástica dos tempos de execução",
+                            "Melhor aproveitamento de hardware moderno",
+                            "Ideal para servidores e computação em nuvem"
+                        ]
+                    }
+                ]
+            },
+            "Quanto ao Número de Usuários": {
+                sections: [
+                    {
+                        title: "👤 Monousuários",
+                        content: "Atendem às necessidades de apenas um usuário por vez, com todos os recursos e configurações personalizados apenas para esse usuário. A autenticação era feita apenas uma vez durante o login, e o sistema era usado por um único usuário até o logout ou desligamento."
+                    },
+                    {
+                        title: "👥 Multiusuários",
+                        content: "Cada usuário possui sua própria conta com configurações, arquivos e permissões de acesso individuais. Vários usuários podem fazer login e executar programas ao mesmo tempo, compartilhando recursos como processador, memória e dispositivos de armazenamento.",
+                        features: [
+                            "Mecanismos de autenticação e controle de acesso",
+                            "Garantia de segurança e privacidade",
+                            "Gerenciamento centralizado de contas e recursos",
+                            "Compartilhamento eficiente de recursos"
+                        ]
+                    }
+                ]
+            },
+            "Quanto à Execução das Tarefas": {
+                sections: [
+                    {
+                        title: "📦 Lote (Batch)",
+                        content: "Os programas são agrupados em lotes e processados sequencialmente, sem necessidade de intervenção direta do usuário durante a execução. Cada trabalho (job) é submetido ao sistema operacional, que os organiza e processa em ordem.",
+                        context: "Particularmente útil em ambientes de grande processamento de dados, como nas primeiras gerações de mainframes, onde tarefas extensas podiam ser executadas sem a presença constante de operadores.",
+                        example: "IBM OS/360, lançado na década de 1960"
+                    },
+                    {
+                        title: "⏱️ Tempo Compartilhado (Time Sharing)",
+                        content: "Permite que múltiplos programas sejam executados simultaneamente, oferecendo uma experiência de uso mais interativa. O sistema operacional divide o tempo do processador entre diferentes processos, alternando rapidamente entre eles.",
+                        advantages: [
+                            "Experiência interativa para o usuário",
+                            "Múltiplos usuários compartilham o sistema eficientemente",
+                            "Cada usuário tem sua sessão aparentemente exclusiva",
+                            "Base para sistemas operacionais modernos"
+                        ],
+                        example: "Unix, desde os anos 1970"
+                    }
+                ]
+            },
+            "Quanto ao Propósito": {
+                sections: [
+                    {
+                        title: "🖥️ Uso Geral",
+                        content: "Projetados para suportar uma diversidade de aplicativos e usuários, priorizando a versatilidade e o desempenho médio. Embora possam lidar com tarefas sensíveis ao tempo, não oferecem garantias rígidas de latência como os sistemas de tempo real."
+                    },
+                    {
+                        title: "🔧 Embarcados",
+                        content: "Projetados para utilização em dispositivos específicos com recursos limitados.",
+                        applications: [
+                            "Sistemas automotivos",
+                            "Eletrônica de consumo",
+                            "Controle industrial",
+                            "Dispositivos médicos",
+                            "Equipamentos bélicos"
+                        ]
+                    },
+                    {
+                        title: "⚡ Tempo Real (RTOS)",
+                        content: "Construídos para responder a eventos em tempo real com latências mínimas previsíveis. Comumente usados em sistemas críticos onde o tempo de resposta é crucial.",
+                        applications: [
+                            "Controle de processos industriais",
+                            "Sistemas de controle de voo",
+                            "Equipamentos médicos críticos",
+                            "Sistemas de segurança automotiva"
+                        ]
+                    }
+                ]
+            },
+            "Quanto à Estrutura do Núcleo": {
+                sections: [
+                    {
+                        title: "🏛️ Monolíticos",
+                        content: "O núcleo é implementado como um único e grande programa onde todos os serviços do sistema são executados. Todos os subsistemas e drivers estão diretamente integrados ao núcleo.",
+                        advantages: [
+                            "Melhor desempenho para operações frequentes",
+                            "Chamadas de sistema mais rápidas",
+                            "Comunicação eficiente entre componentes"
+                        ],
+                        disadvantages: [
+                            "Maior complexidade",
+                            "Manutenção mais difícil",
+                            "Alterações podem afetar todo o sistema"
+                        ]
+                    },
+                    {
+                        title: "⚙️ Micronúcleo (Microkernel)",
+                        content: "O núcleo fornece apenas funcionalidades básicas: gerenciamento de memória, processos e comunicação. Outros serviços como sistemas de arquivos e drivers são implementados como processos de usuário.",
+                        advantages: [
+                            "Sistema mais simples e fácil de entender",
+                            "Maior flexibilidade e modularidade",
+                            "Melhor isolamento e segurança",
+                            "Fácil adição ou remoção de serviços",
+                            "Problemas isolados não afetam todo o sistema"
+                        ],
+                        considerations: [
+                            "Historicamente associado a desempenho inferior",
+                            "Necessidade de comunicação entre processos",
+                            "Otimizações modernas reduzem essa diferença"
+                        ]
+                    }
+                ]
+            }
+        };
+
+        const classifications = [
+            {
+                title: "Quanto à Forma de Distribuição",
+                categories: [
+                    {
+                        name: "Código Aberto",
+                        examples: ["Linux", "BSD"]
+                    },
+                    {
+                        name: "Proprietários",
+                        examples: ["Windows NT/XP/10/11", "macOS"]
+                    }
+                ]
+            },
+            {
+                title: "Quanto ao Modo de Execução",
+                categories: [
+                    {
+                        name: "Monotarefa",
+                        examples: ["MS-DOS", "CP/M"]
+                    },
+                    {
+                        name: "Multitarefa",
+                        examples: ["Linux", "BSD", "Windows NT/XP/10/11", "macOS"]
+                    }
+                ]
+            },
+            {
+                title: "Quanto ao Número de Processadores",
+                categories: [
+                    {
+                        name: "Monoprocessados",
+                        examples: ["MS-DOS", "Windows 98"]
+                    },
+                    {
+                        name: "Multiprocessados",
+                        examples: ["Linux", "BSD", "Windows NT", "macOS"]
+                    }
+                ]
+            },
+            {
+                title: "Quanto ao Número de Usuários",
+                categories: [
+                    {
+                        name: "Monousuários",
+                        examples: ["MS-DOS", "Windows 3.1", "Windows 98"]
+                    },
+                    {
+                        name: "Multiusuários",
+                        examples: ["Linux", "BSD", "Windows NT", "macOS"]
+                    }
+                ]
+            },
+            {
+                title: "Quanto à Execução das Tarefas",
+                categories: [
+                    {
+                        name: "Lote (Batch)",
+                        examples: ["IBM OS/360"]
+                    },
+                    {
+                        name: "Tempo Compartilhado",
+                        examples: ["UNIX"]
+                    }
+                ]
+            },
+            {
+                title: "Quanto ao Propósito",
+                categories: [
+                    {
+                        name: "Uso Geral",
+                        examples: ["Windows", "macOS", "Linux"]
+                    },
+                    {
+                        name: "Embarcados",
+                        examples: ["QNX", "FreeRTOS", "ThreadX"]
+                    },
+                    {
+                        name: "Tempo Real",
+                        examples: ["FreeRTOS"]
+                    }
+                ],
+                isTriple: true
+            },
+            {
+                title: "Quanto à Estrutura do Núcleo",
+                categories: [
+                    {
+                        name: "Monolíticos",
+                        examples: ["Unix", "Linux", "Windows"]
+                    },
+                    {
+                        name: "Microkernel",
+                        examples: ["QNX", "Minix", "Mach", "GNU Hurd"]
+                    }
+                ]
+            }
+        ];
+
+        // Modal functionality
+        const modal = document.getElementById('explanationModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        const closeBtn = document.getElementsByClassName('close')[0];
+
+        function showModal(classificationTitle) {
+            const explanation = explanations[classificationTitle];
+            if (!explanation) return;
+
+            modalTitle.textContent = classificationTitle;
+            
+            let bodyHTML = '';
+            explanation.sections.forEach(section => {
+                bodyHTML += `<div class="explanation-section">`;
+                bodyHTML += `<h3>${section.title}</h3>`;
+                bodyHTML += `<p>${section.content}</p>`;
+                
+                if (section.advantages) {
+                    bodyHTML += `<div class="highlight-box"><strong>Vantagens:</strong><ul>`;
+                    section.advantages.forEach(adv => {
+                        bodyHTML += `<li>${adv}</li>`;
+                    });
+                    bodyHTML += `</ul></div>`;
+                }
+                
+                if (section.disadvantages) {
+                    bodyHTML += `<div class="highlight-box"><strong>Desvantagens:</strong><ul>`;
+                    section.disadvantages.forEach(dis => {
+                        bodyHTML += `<li>${dis}</li>`;
+                    });
+                    bodyHTML += `</ul></div>`;
+                }
+                
+                if (section.features) {
+                    bodyHTML += `<div class="highlight-box"><strong>Características:</strong><ul>`;
+                    section.features.forEach(feat => {
+                        bodyHTML += `<li>${feat}</li>`;
+                    });
+                    bodyHTML += `</ul></div>`;
+                }
+                
+                if (section.applications) {
+                    bodyHTML += `<div class="highlight-box"><strong>Aplicações:</strong><ul>`;
+                    section.applications.forEach(app => {
+                        bodyHTML += `<li>${app}</li>`;
+                    });
+                    bodyHTML += `</ul></div>`;
+                }
+                
+                if (section.considerations) {
+                    bodyHTML += `<div class="highlight-box"><strong>Considerações:</strong><ul>`;
+                    section.considerations.forEach(con => {
+                        bodyHTML += `<li>${con}</li>`;
+                    });
+                    bodyHTML += `</ul></div>`;
+                }
+                
+                if (section.context) {
+                    bodyHTML += `<p><em>${section.context}</em></p>`;
+                }
+                
+                if (section.example) {
+                    bodyHTML += `<p><strong>Exemplo:</strong> ${section.example}</p>`;
+                }
+                
+                bodyHTML += `</div>`;
+            });
+            
+            modalBody.innerHTML = bodyHTML;
+            modal.style.display = 'block';
+        }
+
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && modal.style.display === 'block') {
+                modal.style.display = 'none';
+            }
+        });
+
+        function renderClassifications() {
+            const grid = document.getElementById('classificationsGrid');
+            
+            classifications.forEach(classification => {
+                const card = document.createElement('div');
+                card.className = 'classification-card';
+                card.onclick = () => showModal(classification.title);
+                
+                const title = document.createElement('h2');
+                title.textContent = classification.title;
+                card.appendChild(title);
+                
+                const categoriesDiv = document.createElement('div');
+                categoriesDiv.className = classification.isTriple ? 'categories triple' : 
+                                         classification.categories.length === 1 ? 'categories single' : 
+                                         'categories';
+                
+                classification.categories.forEach(category => {
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'category';
+                    
+                    const categoryTitle = document.createElement('h3');
+                    categoryTitle.textContent = category.name;
+                    categoryDiv.appendChild(categoryTitle);
+                    
+                    const examplesDiv = document.createElement('div');
+                    examplesDiv.className = 'examples';
+                    
+                    category.examples.forEach(example => {
+                        const exampleItem = document.createElement('div');
+                        exampleItem.textContent = example;
+                        examplesDiv.appendChild(exampleItem);
+                    });
+                    
+                    categoryDiv.appendChild(examplesDiv);
+                    categoriesDiv.appendChild(categoryDiv);
+                });
+                
+                card.appendChild(categoriesDiv);
+                grid.appendChild(card);
+            });
+        }
+
+        // Renderizar as classificações ao carregar a página
+        renderClassifications();
+
+        // Adicionar animação de entrada
+        window.addEventListener('load', () => {
+            const cards = document.querySelectorAll('.classification-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 50);
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

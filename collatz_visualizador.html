@@ -171,7 +171,7 @@
       display: block;
       width: 100%;
       height: 100%;
-      touch-action: none;
+      touch-action: pan-y;
     }
 
     .mensagem {
@@ -216,6 +216,31 @@
       }
     }
   </style>
+<style id="mobile-presentation">
+/* Mobile presentation: comfortable touch targets, readable form fields. */
+.mobile-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+@media screen and (max-width:760px), screen and (pointer:coarse) {
+  html body button, html body [role="button"], html body select,
+  html body input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+  html body .file-label { min-height:44px!important; }
+  html body button { min-width:44px!important; touch-action:manipulation; }
+  html body input[type="range"] { height:44px!important; padding-block:0; }
+  html body input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+  html body select, html body textarea { font-size:16px!important; max-width:100%; }
+  button, input, select, textarea { scroll-margin-block:16px; }
+}
+@media screen and (max-width:760px) {
+  html { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+  pre { max-width:100%; overflow-x:auto; }
+  .mobile-scroll { max-width:100%; overflow-x:auto; overscroll-behavior-x:contain; }
+  .mobile-scroll:focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
+  .mobile-scroll-hint { display:block; font:500 12px/1.5 system-ui,sans-serif; color:#526273; margin:8px 0; }
+  .mobile-scroll-hint::before { content:'↔ Deslize para ver todo o conteúdo'; }
+  html[lang^="en"] .mobile-scroll-hint::before { content:'↔ Swipe to see all the content'; }
+  html[lang^="es"] .mobile-scroll-hint::before { content:'↔ Desliza para ver todo el contenido'; }
+}
+@media screen and (min-width:761px) { .mobile-scroll-hint { display:none; } }
+</style>
 </head>
 
 <body>
@@ -298,7 +323,256 @@
     </section>
   </main>
 
-  <script>
+  <script data-tool-i18n>
+
+(() => {
+  'use strict';
+  const translations = {
+  "Visualizador da Conjectura de Collatz": {
+    "pt": "Visualizador da Conjectura de Collatz",
+    "en": "Collatz Conjecture Visualizer",
+    "es": "Visualizador de la conjetura de Collatz"
+  },
+  "Conjectura de Collatz": {
+    "pt": "Conjectura de Collatz",
+    "en": "Collatz Conjecture",
+    "es": "Conjetura de Collatz"
+  },
+  "O eixo horizontal representa as iterações e o eixo vertical mostra o valor obtido em cada etapa da sequência.": {
+    "pt": "O eixo horizontal representa as iterações e o eixo vertical mostra o valor obtido em cada etapa da sequência.",
+    "en": "The horizontal axis represents iterations and the vertical axis shows the value obtained at each step of the sequence.",
+    "es": "El eje horizontal representa las iteraciones y el eje vertical muestra el valor obtenido en cada paso de la secuencia."
+  },
+  "Número inicial": {
+    "pt": "Número inicial",
+    "en": "Starting number",
+    "es": "Número inicial"
+  },
+  "Velocidade": {
+    "pt": "Velocidade",
+    "en": "Speed",
+    "es": "Velocidad"
+  },
+  "Lenta": {
+    "pt": "Lenta",
+    "en": "Slow",
+    "es": "Lenta"
+  },
+  "Normal": {
+    "pt": "Normal",
+    "en": "Normal",
+    "es": "Normal"
+  },
+  "Rápida": {
+    "pt": "Rápida",
+    "en": "Fast",
+    "es": "Rápida"
+  },
+  "Muito rápida": {
+    "pt": "Muito rápida",
+    "en": "Very fast",
+    "es": "Muy rápida"
+  },
+  "Iniciar": {
+    "pt": "Iniciar",
+    "en": "Start",
+    "es": "Iniciar"
+  },
+  "Pausar": {
+    "pt": "Pausar",
+    "en": "Pause",
+    "es": "Pausar"
+  },
+  "Próximo passo": {
+    "pt": "Próximo passo",
+    "en": "Next step",
+    "es": "Siguiente paso"
+  },
+  "Reiniciar": {
+    "pt": "Reiniciar",
+    "en": "Reset",
+    "es": "Reiniciar"
+  },
+  "Valor atual": {
+    "pt": "Valor atual",
+    "en": "Current value",
+    "es": "Valor actual"
+  },
+  "Iterações": {
+    "pt": "Iterações",
+    "en": "Iterations",
+    "es": "Iteraciones"
+  },
+  "Maior valor": {
+    "pt": "Maior valor",
+    "en": "Maximum value",
+    "es": "Valor máximo"
+  },
+  "Quantidade de termos": {
+    "pt": "Quantidade de termos",
+    "en": "Number of terms",
+    "es": "Cantidad de términos"
+  },
+  "Digite um número inteiro positivo e pressione “Iniciar”.": {
+    "pt": "Digite um número inteiro positivo e pressione “Iniciar”.",
+    "en": "Enter a positive integer and press “Start”.",
+    "es": "Introduce un número entero positivo y pulsa “Iniciar”."
+  },
+  "Regra:": {
+    "pt": "Regra:",
+    "en": "Rule:",
+    "es": "Regla:"
+  },
+  "se": {
+    "pt": "se",
+    "en": "if",
+    "es": "si"
+  },
+  "for par, o próximo valor será": {
+    "pt": "for par, o próximo valor será",
+    "en": "is even, the next value is",
+    "es": "es par, el siguiente valor será"
+  },
+  ". Se for ímpar, será": {
+    "pt": ". Se for ímpar, será",
+    "en": ". If it is odd, it is",
+    "es": ". Si es impar, será"
+  },
+  ". O processo termina quando chega a": {
+    "pt": ". O processo termina quando chega a",
+    "en": ". The process ends when it reaches",
+    "es": ". El proceso termina cuando llega a"
+  },
+  "Gráfico da sequência de Collatz": {
+    "pt": "Gráfico da sequência de Collatz",
+    "en": "Collatz sequence chart",
+    "es": "Gráfico de la secuencia de Collatz"
+  },
+  "Informe um número inteiro positivo dentro do limite seguro do JavaScript.": {
+    "pt": "Informe um número inteiro positivo dentro do limite seguro do JavaScript.",
+    "en": "Enter a positive integer within JavaScript’s safe integer range.",
+    "es": "Introduce un entero positivo dentro del rango seguro de JavaScript."
+  },
+  "A sequência ultrapassou o limite de inteiros seguros do JavaScript.": {
+    "pt": "A sequência ultrapassou o limite de inteiros seguros do JavaScript.",
+    "en": "The sequence exceeded JavaScript’s safe integer range.",
+    "es": "La secuencia superó el rango de enteros seguros de JavaScript."
+  },
+  "Executando a sequência...": {
+    "pt": "Executando a sequência...",
+    "en": "Running the sequence...",
+    "es": "Ejecutando la secuencia..."
+  },
+  "Execução pausada.": {
+    "pt": "Execução pausada.",
+    "en": "Execution paused.",
+    "es": "Ejecución pausada."
+  },
+  "Visualização reiniciada. Pressione “Iniciar” ou “Próximo passo”.": {
+    "pt": "Visualização reiniciada. Pressione “Iniciar” ou “Próximo passo”.",
+    "en": "Visualization reset. Press “Start” or “Next step”.",
+    "es": "Visualización reiniciada. Pulsa “Iniciar” o “Siguiente paso”."
+  },
+  "Sequência iniciada em {0}.": {
+    "pt": "Sequência iniciada em {0}.",
+    "en": "Sequence started at {0}.",
+    "es": "Secuencia iniciada en {0}."
+  },
+  "A sequência chegou a 1 após {0} iterações.": {
+    "pt": "A sequência chegou a 1 após {0} iterações.",
+    "en": "The sequence reached 1 after {0} iterations.",
+    "es": "La secuencia llegó a 1 tras {0} iteraciones."
+  },
+  "Iteração": {
+    "pt": "Iteração",
+    "en": "Iteration",
+    "es": "Iteración"
+  },
+  "Valor de n": {
+    "pt": "Valor de n",
+    "en": "Value of n",
+    "es": "Valor de n"
+  }
+};
+  let lang = 'pt';
+  const normalize = value => value.replace(/\s+/g, ' ').trim();
+  const patterns = Object.entries(translations).filter(([key]) => key.includes('{0}')).map(([key, values]) => ({
+    values, regex: new RegExp('^' + key.split('{0}').map(part => part.replace(/[.*+?^$()|[\]\\]/g, '\\$&')).join('(.+?)') + '$')
+  }));
+  function text(source, ...args) {
+    const key = normalize(source);
+    let result = translations[key]?.[lang];
+    if (result === undefined) {
+      for (const pattern of patterns) {
+        const match = key.match(pattern.regex);
+        if (match) { result = pattern.values[lang].replace('{0}', match[1]); break; }
+      }
+    }
+    return (result ?? source).replace(/\{(\d+)\}/g, (_, index) => args[Number(index)] ?? '{' + index + '}');
+  }
+  window.toolI18n = { text, locale: () => ({pt:'pt-BR', en:'en-US', es:'es-ES'}[lang]) };
+  const style = document.createElement('style');
+  style.textContent = '.tool-language-switch{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:7px;margin-bottom:16px}.tool-language-switch button{width:auto;min-height:40px;padding:8px 12px;border:1px solid #94a3b8;border-radius:999px;background:#f1f5f9;color:#172033;font:600 14px system-ui;cursor:pointer;text-transform:none;letter-spacing:normal}.tool-language-switch button[aria-pressed="true"]{background:#1d4ed8;color:white}.tool-language-switch button:focus-visible{outline:3px solid #60a5fa;outline-offset:3px}@media print{.tool-language-switch{display:none}}';
+  document.head.appendChild(style);
+  const controls = document.createElement('div');
+  controls.className = 'tool-language-switch';
+  controls.setAttribute('role', 'group');
+  controls.innerHTML = '<button type="button" data-lang="pt" lang="pt-BR">🇧🇷 Português</button><button type="button" data-lang="es" lang="es">🇪🇸 Español</button><button type="button" data-lang="en" lang="en">🇺🇸 English</button>';
+  const host = document.querySelector('main, .container, .shell') || document.body;
+  host.prepend(controls);
+  const textSources = new WeakMap();
+  const attributeSources = new WeakMap();
+  // Retain source text and the original nodes to preserve listeners and form state.
+  function localize(value, previous) {
+    const source = previous && previous.last === value ? previous.source : value;
+    const content = text(source);
+    const last = content === source ? source : (source.match(/^\s*/)[0] + content + source.match(/\s*$/)[0]);
+    return {source, last};
+  }
+  const observer = new MutationObserver(refresh);
+  function refresh() {
+    observer.disconnect();
+    const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_TEXT, {acceptNode(node) {
+      return node.parentElement.closest('script, style, .tool-language-switch') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+    }});
+    let node;
+    while ((node = walker.nextNode())) {
+      const record = localize(node.nodeValue, textSources.get(node));
+      if (node.nodeValue !== record.last) node.nodeValue = record.last;
+      textSources.set(node, record);
+    }
+    document.querySelectorAll('[title], [aria-label], [placeholder]').forEach(element => {
+      if (element.closest('.tool-language-switch')) return;
+      const records = attributeSources.get(element) || {};
+      for (const attribute of ['title', 'aria-label', 'placeholder']) {
+        if (!element.hasAttribute(attribute)) continue;
+        const value = element.getAttribute(attribute);
+        const record = localize(value, records[attribute]);
+        if (value !== record.last) element.setAttribute(attribute, record.last);
+        records[attribute] = record;
+      }
+      attributeSources.set(element, records);
+    });
+    observer.observe(document.documentElement, {subtree:true, childList:true, characterData:true, attributes:true, attributeFilter:['title','aria-label','placeholder']});
+  }
+  function setLanguage(value) {
+    if (!['pt','en','es'].includes(value)) return;
+    lang = value;
+    document.documentElement.lang = value === 'pt' ? 'pt-BR' : value;
+    controls.setAttribute('aria-label', value === 'en' ? 'Language' : 'Idioma');
+    controls.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.lang === value)));
+    refresh();
+    window.dispatchEvent(new Event('tool-language-change'));
+  }
+  controls.addEventListener('click', event => {
+    const button = event.target.closest('[data-lang]');
+    if (button) setLanguage(button.dataset.lang);
+  });
+  setLanguage('pt');
+})();
+
+</script>
+<script>
     "use strict";
 
     const canvas = document.getElementById("grafico");
@@ -490,12 +764,12 @@
         ? Math.max(...sequencia)
         : 0;
 
-      valorAtualTexto.textContent = atual.toLocaleString("pt-BR");
+      valorAtualTexto.textContent = atual.toLocaleString(window.toolI18n.locale());
       iteracoesTexto.textContent = Math.max(0, sequencia.length - 1)
-        .toLocaleString("pt-BR");
-      maiorValorTexto.textContent = maior.toLocaleString("pt-BR");
+        .toLocaleString(window.toolI18n.locale());
+      maiorValorTexto.textContent = maior.toLocaleString(window.toolI18n.locale());
       quantidadeTermosTexto.textContent = sequencia.length
-        .toLocaleString("pt-BR");
+        .toLocaleString(window.toolI18n.locale());
 
       desenharGrafico();
     }
@@ -590,7 +864,7 @@
         ctx.fillStyle = "#667085";
         ctx.textAlign = "right";
         ctx.fillText(
-          valor.toLocaleString("pt-BR"),
+          valor.toLocaleString(window.toolI18n.locale()),
           margem.esquerda - 9,
           y
         );
@@ -616,7 +890,7 @@
         ctx.fillStyle = "#667085";
         ctx.textAlign = "center";
         ctx.fillText(
-          indice.toLocaleString("pt-BR"),
+          indice.toLocaleString(window.toolI18n.locale()),
           x,
           altura - margem.inferior + 21
         );
@@ -667,7 +941,7 @@
       ctx.font = "bold 13px Arial";
       ctx.textAlign = "center";
       ctx.fillText(
-        "Iteração",
+        window.toolI18n.text("Iteração"),
         margem.esquerda + larguraUtil / 2,
         altura - 15
       );
@@ -676,7 +950,7 @@
       ctx.save();
       ctx.translate(18, margem.topo + alturaUtil / 2);
       ctx.rotate(-Math.PI / 2);
-      ctx.fillText("Valor de n", 0, 0);
+      ctx.fillText(window.toolI18n.text("Valor de n"), 0, 0);
       ctx.restore();
     }
 
@@ -700,6 +974,7 @@
 
     window.addEventListener("resize", desenharGrafico);
 
+    window.addEventListener("tool-language-change", atualizarInterface);
     atualizarInterface();
   </script>
 </body>

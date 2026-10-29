@@ -445,7 +445,32 @@
         }
         @media print { .language-switch { display: none; } }
     </style>
-</head>
+<style id="mobile-presentation">
+/* Mobile presentation: comfortable touch targets, readable form fields. */
+.mobile-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+@media screen and (max-width:760px), screen and (pointer:coarse) {
+  html body button, html body [role="button"], html body select,
+  html body input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+  html body .file-label { min-height:44px!important; }
+  html body button { min-width:44px!important; touch-action:manipulation; }
+  html body input[type="range"] { height:44px!important; padding-block:0; }
+  html body input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+  html body select, html body textarea { font-size:16px!important; max-width:100%; }
+  button, input, select, textarea { scroll-margin-block:16px; }
+}
+@media screen and (max-width:760px) {
+  html { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+  pre { max-width:100%; overflow-x:auto; }
+  .mobile-scroll { max-width:100%; overflow-x:auto; overscroll-behavior-x:contain; }
+  .mobile-scroll:focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
+  .mobile-scroll-hint { display:block; font:500 12px/1.5 system-ui,sans-serif; color:#526273; margin:8px 0; }
+  .mobile-scroll-hint::before { content:'↔ Deslize para ver todo o conteúdo'; }
+  html[lang^="en"] .mobile-scroll-hint::before { content:'↔ Swipe to see all the content'; }
+  html[lang^="es"] .mobile-scroll-hint::before { content:'↔ Desliza para ver todo el contenido'; }
+}
+@media screen and (min-width:761px) { .mobile-scroll-hint { display:none; } }
+</style>
+<style>@media screen and (max-width:760px){.simulation-details{grid-template-columns:minmax(0,1fr)}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.controls > div{min-width:0}.address-breakdown{overflow-wrap:anywhere}}</style></head>
 <body>
     <div class="container">
       <div class="language-switch" role="group" aria-label="Idioma">
@@ -581,7 +606,7 @@
                     <div class="step-info" id="stepInfo"></div>
                     <div class="address-breakdown" id="addressBreakdown"></div>
                 </div>
-                <div id="cacheVisualization"></div>
+                <p class="mobile-scroll-hint" aria-hidden="true"></p><div id="cacheVisualization" class="mobile-scroll" tabindex="0"></div>
             </div>
 
             <div class="history-panel">
@@ -595,6 +620,7 @@
     <script>
         // Each file remains self-contained and works offline.
         const translations = {
+  "Simulador de Cache — Localidade": {pt:"Simulador de Cache — Localidade", en:"Cache Simulator — Locality", es:"Simulador de caché — Localidad"},
   "FIFO (First In, First Out)": {
     "pt": "FIFO (First In, First Out)",
     "en": "FIFO (First In, First Out)",

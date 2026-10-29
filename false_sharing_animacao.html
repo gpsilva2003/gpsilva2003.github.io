@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>False Sharing — animação</title>
+  <link rel="preconnect" href="https://api.fontshare.com" />
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=clash-display@500,600&display=swap" rel="stylesheet">
+  <style>
+    :root, [data-theme="light"] {
+      --color-bg: #f7f6f2; --color-surface: #f9f8f5; --color-surface-2: #fbfbf9; --color-surface-offset: #f3f0ec;
+      --color-border: #d4d1ca; --color-text: #28251d; --color-text-muted: #6f6b63; --color-text-inverse: #f9f8f4;
+      --color-primary: #01696f; --color-primary-hover: #0c4e54; --color-blue: #006494; --color-warning: #964219;
+      --color-error: #a12c7b; --color-success: #437a22; --radius-md: 0.75rem; --radius-lg: 1rem; --radius-xl: 1.5rem;
+      --radius-full: 9999px; --shadow-md: 0 12px 32px rgba(0,0,0,.12); --transition-interactive: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+      --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem; --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem; --space-12: 3rem;
+      --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem); --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem); --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+      --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem); --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.1rem); --text-2xl: clamp(2rem, 1.2rem + 2.5vw, 3rem);
+      --font-body: 'Satoshi', 'Inter', sans-serif; --font-display: 'Clash Display', 'Satoshi', sans-serif;
+    }
+    [data-theme="dark"] {
+      --color-bg: #121312; --color-surface: #181a19; --color-surface-2: #1d201f; --color-surface-offset: #232624;
+      --color-border: #313533; --color-text: #ece9e2; --color-text-muted: #a5a297; --color-text-inverse: #101111;
+      --color-primary: #59b7bd; --color-primary-hover: #7ad1d6; --color-blue: #69a7e0; --color-warning: #db8a58;
+      --color-error: #e37ac1; --color-success: #8dd16e; --shadow-md: 0 18px 38px rgba(0,0,0,.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; font-family: var(--font-body); font-size: var(--text-base); line-height: 1.5; color: var(--color-text);
+      background: radial-gradient(circle at top left, rgba(89,183,189,.14), transparent 24%), radial-gradient(circle at 85% 10%, rgba(105,167,224,.10), transparent 20%), linear-gradient(180deg, var(--color-bg), #0d0e0e);
+    }
+    button, input { font: inherit; }
+    .shell { width: min(1420px, calc(100% - 28px)); margin: 0 auto; padding: var(--space-8) 0 var(--space-12); }
+    .topbar { display:flex; justify-content:space-between; align-items:center; gap:var(--space-4); margin-bottom:var(--space-8); }
+    .brand { display:flex; align-items:center; gap:var(--space-3); }
+    .brand svg { width:34px; height:34px; }
+    .brand-mark { color: var(--color-primary); }
+    .theme-toggle { min-width:44px; min-height:44px; display:inline-flex; align-items:center; justify-content:center; padding:0 var(--space-3); border-radius:var(--radius-full); color:var(--color-text); background:color-mix(in oklab, var(--color-surface-offset) 88%, transparent); border:1px solid color-mix(in oklab, var(--color-text) 14%, transparent); cursor:pointer; }
+    .hero { display:grid; grid-template-columns: 1.1fr .9fr; gap: var(--space-6); margin-bottom: var(--space-6); }
+    .panel { background: color-mix(in oklab, var(--color-surface) 92%, transparent); border:1px solid color-mix(in oklab, var(--color-text) 12%, transparent); border-radius:var(--radius-xl); box-shadow:var(--shadow-md); backdrop-filter: blur(14px); }
+    .hero-copy { padding: 1.5rem; }
+    .eyebrow { display:inline-flex; align-items:center; gap:var(--space-2); padding:.35rem .75rem; border-radius:var(--radius-full); background:color-mix(in oklab, var(--color-primary) 14%, var(--color-surface)); color:var(--color-primary); font-size:var(--text-xs); letter-spacing:.08em; text-transform:uppercase; margin-bottom:var(--space-4); }
+    h1,h2,h3 { margin:0; line-height:1.05; }
+    h1 { font-family:var(--font-display); font-size:var(--text-2xl); margin-bottom:var(--space-4); max-width:15ch; }
+    .hero-copy p { max-width:60ch; color:var(--color-text-muted); margin:0 0 var(--space-5); }
+    .legend { display:grid; grid-template-columns: repeat(2, minmax(160px, 1fr)); gap:10px; margin-top:var(--space-4); }
+    .legend-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px; background:color-mix(in oklab, var(--color-surface-offset) 82%, transparent); border:1px solid color-mix(in oklab, var(--color-text) 10%, transparent); color:var(--color-text-muted); font-size:var(--text-sm); }
+    .dot { width:11px; height:11px; border-radius:50%; flex:none; }
+    .hero-side { padding:1.2rem; display:grid; gap:12px; align-content:start; }
+    .metrics { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; }
+    .metric { padding:12px; border-radius:14px; background:color-mix(in oklab, var(--color-surface-offset) 86%, transparent); border:1px solid color-mix(in oklab, var(--color-text) 10%, transparent); }
+    .metric strong { display:block; font-size:var(--text-xl); font-family:var(--font-display); }
+    .metric span { color:var(--color-text-muted); font-size:var(--text-sm); }
+    .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+    .btn { min-height:44px; padding:.75rem .95rem; border-radius:var(--radius-full); border:1px solid transparent; cursor:pointer; transition: transform var(--transition-interactive), background var(--transition-interactive), border-color var(--transition-interactive), box-shadow var(--transition-interactive); }
+    .btn:hover { transform:translateY(-1px); }
+    .btn-primary { background:var(--color-primary); color:var(--color-text-inverse); box-shadow:0 10px 24px color-mix(in oklab, var(--color-primary) 26%, transparent); }
+    .btn-primary:hover { background:var(--color-primary-hover); }
+    .btn-secondary { background:color-mix(in oklab, var(--color-surface-offset) 82%, transparent); color:var(--color-text); border-color:color-mix(in oklab, var(--color-text) 12%, transparent); }
+    .speed-wrap { display:flex; align-items:center; gap:10px; padding:.7rem .95rem; border-radius:var(--radius-full); background:color-mix(in oklab, var(--color-surface-offset) 80%, transparent); border:1px solid color-mix(in oklab, var(--color-text) 10%, transparent); }
+    .speed-wrap label { font-size:var(--text-sm); color:var(--color-text-muted); }
+    .speed-wrap input { accent-color:var(--color-primary); }
+    .layout { display:grid; grid-template-columns:minmax(0, 1.45fr) minmax(320px, .8fr); gap:var(--space-6); align-items:start; }
+    .diagram-panel { padding:1.2rem; overflow:hidden; }
+    .diagram-header p, .side-panel p { color:var(--color-text-muted); margin:8px 0 0; }
+    .system-diagram { position:relative; display:grid; gap:12px; }
+    .cpu-row { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px; }
+    .core { position:relative; padding:12px; border-radius:16px; background:linear-gradient(180deg, color-mix(in oklab, var(--color-surface-2) 92%, transparent), color-mix(in oklab, var(--color-surface-offset) 90%, transparent)); border:1px solid color-mix(in oklab, var(--color-text) 12%, transparent); min-height:246px; }
+    .core h3 { font-size:1.15rem; margin-bottom:8px; }
+    .core small { color:var(--color-text-muted); }
+    .cache-stack { display:grid; gap:10px; margin-top:12px; }
+    .cache-box, .shared-box, .memory-box { position:relative; border-radius:12px; border:1px solid color-mix(in oklab, var(--color-text) 10%, transparent); background:color-mix(in oklab, var(--color-surface-offset) 86%, transparent); overflow:hidden; }
+    .cache-head { display:flex; justify-content:space-between; align-items:center; padding:8px 10px; font-size:.88rem; color:var(--color-text-muted); border-bottom:1px solid color-mix(in oklab, var(--color-text) 8%, transparent); }
+    .cache-content { padding:9px; display:grid; gap:8px; }
+    .line-card { position:relative; padding:8px; border-radius:12px; background:linear-gradient(135deg, color-mix(in oklab, var(--color-surface) 82%, transparent), color-mix(in oklab, var(--color-surface-2) 90%, transparent)); border:1px solid color-mix(in oklab, var(--color-text) 10%, transparent); transition: transform 340ms cubic-bezier(0.16,1,0.3,1), box-shadow 340ms cubic-bezier(0.16,1,0.3,1), border-color 340ms cubic-bezier(0.16,1,0.3,1), background 340ms cubic-bezier(0.16,1,0.3,1); }
+    .line-card.active { transform:translateY(-3px) scale(1.01); box-shadow:0 14px 30px rgba(0,0,0,.18); }
+    .line-card.invalid { border-color:color-mix(in oklab, var(--color-error) 50%, transparent); background:color-mix(in oklab, var(--color-error) 12%, var(--color-surface-offset)); opacity:.75; }
+    .line-card.shared-focus { border-color:color-mix(in oklab, var(--color-primary) 60%, transparent); box-shadow:0 0 0 1px color-mix(in oklab, var(--color-primary) 28%, transparent), 0 12px 26px rgba(0,0,0,.16); }
+    .line-title { display:flex; justify-content:space-between; gap:8px; margin-bottom:7px; font-size:.74rem; text-transform:uppercase; letter-spacing:.08em; color:var(--color-text-muted); }
+    .line-fields { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; }
+    .cell { position:relative; padding:7px; border-radius:10px; background:color-mix(in oklab, var(--color-surface) 84%, transparent); border:1px solid color-mix(in oklab, var(--color-text) 8%, transparent); min-height:58px; }
+    .cell .name { display:block; font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; color:var(--color-text-muted); margin-bottom:3px; }
+    .cell .value { position:relative; display:inline-block; font-family:var(--font-display); font-size:1.18rem; }
+    .cell .addr { display:block; margin-top:1px; font-size:11px; color:var(--color-text-muted); }
+    .cell.badge-a { box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-primary) 20%, transparent); }
+    .cell.badge-b { box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-warning) 24%, transparent); }
+    .shared-box { padding:10px; }
+    .shared-inner { display:grid; gap:8px; }
+    .memory-box { padding:10px; min-height:152px; }
+    .memory-grid { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:8px; margin-top:8px; }
+    .mem-word { padding:9px 7px; border-radius:10px; background:color-mix(in oklab, var(--color-surface-offset) 88%, transparent); border:1px solid color-mix(in oklab, var(--color-text) 10%, transparent); font-size:var(--text-sm); text-align:center; }
+    .mem-word.hot-a { background:color-mix(in oklab, var(--color-primary) 14%, var(--color-surface-offset)); border-color:color-mix(in oklab, var(--color-primary) 35%, transparent); }
+    .mem-word.hot-b { background:color-mix(in oklab, var(--color-warning) 18%, var(--color-surface-offset)); border-color:color-mix(in oklab, var(--color-warning) 40%, transparent); }
+    .line-svg { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:visible; }
+    .bus-line { stroke:color-mix(in oklab, var(--color-text) 20%, transparent); stroke-width:2.5; fill:none; stroke-linecap:round; stroke-dasharray:8 10; opacity:.55; }
+    .pulse { fill:none; stroke-width:6; stroke-linecap:round; stroke-dasharray:1 220; opacity:0; filter:drop-shadow(0 0 10px currentColor); }
+    .pulse.show { animation: travel var(--pulse-duration, 1400ms) linear forwards; opacity:1; }
+    .pulse.teal { stroke:var(--color-primary); color:var(--color-primary); }
+    .pulse.orange { stroke:var(--color-warning); color:var(--color-warning); }
+    .pulse.pink { stroke:var(--color-error); color:var(--color-error); }
+    .pulse.blue { stroke:var(--color-blue); color:var(--color-blue); }
+    @keyframes travel { from { stroke-dashoffset:220; opacity:0; } 12% { opacity:.95; } 88% { opacity:.95; } to { stroke-dashoffset:0; opacity:0; } }
+    .side-panel { padding:1.2rem; display:grid; gap:14px; position:sticky; top:20px; }
+    .status-box, .note, .step { padding:12px; border-radius:14px; background:color-mix(in oklab, var(--color-surface-offset) 80%, transparent); border:1px solid color-mix(in oklab, var(--color-text) 10%, transparent); }
+    .status-title { font-size:var(--text-sm); color:var(--color-text-muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:8px; }
+    .status-message { font-size:var(--text-lg); font-weight:700; }
+    .timeline, .notes { display:grid; gap:10px; }
+    .step { display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:start; opacity:.62; transition: opacity 220ms ease, border-color 220ms ease, transform 220ms ease; }
+    .step.active { opacity:1; transform:translateX(2px); border-color:color-mix(in oklab, var(--color-primary) 26%, transparent); }
+    .step-num { width:28px; height:28px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:color-mix(in oklab, var(--color-primary) 16%, transparent); color:var(--color-primary); font-size:var(--text-sm); font-weight:700; }
+    .note { color:var(--color-text-muted); font-size:var(--text-sm); }
+    .emph-a { color:var(--color-primary); font-weight:700; }
+    .emph-b { color:var(--color-warning); font-weight:700; }
+    .footer-help { color:var(--color-text-muted); font-size:var(--text-sm); }
+    .cell.incrementing, .mem-word.incrementing, .metric.incrementing { border-color:color-mix(in oklab, var(--color-success) 40%, transparent); background:color-mix(in oklab, var(--color-success) 14%, var(--color-surface-offset)); }
+    .cell.incrementing .value, .metric.incrementing strong, .mem-word.incrementing strong { animation: popValue 720ms cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes popValue { 0% { transform:translateY(0) scale(1); opacity:.82; } 35% { transform:translateY(-6px) scale(1.18); opacity:1; } 100% { transform:translateY(0) scale(1); opacity:1; } }
+    @media (max-width:1120px) { .hero, .layout { grid-template-columns:1fr; } .side-panel { position:static; } }
+    @media (max-width:760px) {
+      .shell { width:min(100% - 18px, 1420px); } .cpu-row, .metrics, .legend, .memory-grid, .line-fields { grid-template-columns:1fr; }
+      .hero-copy, .hero-side, .diagram-panel, .side-panel { padding:1rem; } h1 { max-width:100%; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; } }
+  </style>
+<style id="mobile-presentation">
+/* Mobile presentation: comfortable touch targets, readable form fields. */
+.mobile-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+@media screen and (max-width:760px), screen and (pointer:coarse) {
+  html body button, html body [role="button"], html body select,
+  html body input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+  html body .file-label { min-height:44px!important; }
+  html body button { min-width:44px!important; touch-action:manipulation; }
+  html body input[type="range"] { height:44px!important; padding-block:0; }
+  html body input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+  html body select, html body textarea { font-size:16px!important; max-width:100%; }
+  button, input, select, textarea { scroll-margin-block:16px; }
+}
+@media screen and (max-width:760px) {
+  html { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+  pre { max-width:100%; overflow-x:auto; }
+  .mobile-scroll { max-width:100%; overflow-x:auto; overscroll-behavior-x:contain; }
+  .mobile-scroll:focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
+  .mobile-scroll-hint { display:block; font:500 12px/1.5 system-ui,sans-serif; color:#526273; margin:8px 0; }
+  .mobile-scroll-hint::before { content:'↔ Deslize para ver todo o conteúdo'; }
+  html[lang^="en"] .mobile-scroll-hint::before { content:'↔ Swipe to see all the content'; }
+  html[lang^="es"] .mobile-scroll-hint::before { content:'↔ Desliza para ver todo el contenido'; }
+}
+@media screen and (min-width:761px) { .mobile-scroll-hint { display:none; } }
+</style>
+<style>@media screen and (max-width:760px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.diagram-panel{min-width:0}.mobile-diagram-scroll{overflow-x:auto;overscroll-behavior-x:contain;max-width:100%}.mobile-diagram-scroll .system-diagram{width:740px;min-width:740px}.mobile-diagram-scroll .cpu-row,.mobile-diagram-scroll .line-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.mobile-diagram-scroll .memory-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.speed-wrap{max-width:100%;flex-wrap:wrap}.topbar .brand{min-width:0}.brand svg{flex-shrink:0}.line-title{letter-spacing:.03em}.tool-language-switch{justify-content:center}}</style></head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <svg viewBox="0 0 64 64" fill="none" aria-hidden="true"><rect x="6" y="12" width="52" height="40" rx="14" stroke="currentColor" stroke-width="3"></rect><path class="brand-mark" d="M18 31.5h10m8 0h10M32 21v21" stroke="currentColor" stroke-width="5" stroke-linecap="round"></path></svg>
+        <div><strong style="display:block">False Sharing</strong><span style="color:var(--color-text-muted);font-size:var(--text-sm)">animação de coerência de cache</span></div>
+      </div>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Alternar tema"></button>
+    </header>
+
+    <section class="hero">
+      <div class="panel hero-copy">
+        <div class="eyebrow">cache line · MESI simplificado</div>
+        <h1>Duas variáveis diferentes, mesma linha de cache.</h1>
+        <p>Esta versão compacta mostra o <strong>false sharing</strong> com as caixas menores e com incrementos explícitos de <span class="emph-a">x</span> e <span class="emph-b">y</span> quando cada escrita acontece. O destaque verde e o salto do número deixam claro o instante em que a variável muda.</p>
+        <div class="legend">
+          <div class="legend-item"><span class="dot" style="background:var(--color-primary)"></span>Leitura / tráfego do Núcleo 0</div>
+          <div class="legend-item"><span class="dot" style="background:var(--color-warning)"></span>Escrita do Núcleo 1</div>
+          <div class="legend-item"><span class="dot" style="background:var(--color-error)"></span>Invalidação remota</div>
+          <div class="legend-item"><span class="dot" style="background:var(--color-success)"></span>Incremento visível de variável</div>
+        </div>
+      </div>
+      <aside class="panel hero-side">
+        <div class="metrics">
+          <div class="metric" id="metric-a"><strong id="counter-a">0</strong><span>Valor local de x</span></div>
+          <div class="metric" id="metric-b"><strong id="counter-b">0</strong><span>Valor local de y</span></div>
+          <div class="metric"><strong id="invalidations">0</strong><span>Invalidações geradas</span></div>
+          <div class="metric"><strong id="transfers">0</strong><span>Transferências de linha</span></div>
+        </div>
+        <div class="controls">
+          <button class="btn btn-primary" id="playBtn" type="button">Iniciar animação</button>
+          <button class="btn btn-secondary" id="stepBtn" type="button">Avançar passo</button>
+          <button class="btn btn-secondary" id="resetBtn" type="button">Resetar</button>
+          <div class="speed-wrap"><label for="speed">Velocidade</label><input id="speed" type="range" min="0.55" max="1.8" step="0.05" value="1" /></div>
+        </div>
+        <p>As escritas agora mostram claramente <strong>0 → 1</strong> ou <strong>1 → 2</strong> por meio da atualização animada dos valores nas caches e na memória.</p>
+      </aside>
+    </section>
+
+    <section class="layout">
+      <div class="panel diagram-panel">
+        <div class="diagram-header">
+          <div>
+            <h2>Arquitetura animada</h2>
+            <p>Núcleo 0 e Núcleo 1 têm caches L1/L2 privadas; L3 e memória mantêm a linha compartilhada.</p>
+          </div>
+        </div>
+
+        <div class="system-diagram" id="diagram">
+          <svg class="line-svg" viewBox="0 0 1200 900" preserveAspectRatio="none" aria-hidden="true">
+            <defs><filter id="glow"><feGaussianBlur stdDeviation="3.5" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter></defs>
+            <path id="path-l3-c0" class="bus-line" d="M 600 505 C 600 462, 470 462, 260 382"></path>
+            <path id="path-l3-c1" class="bus-line" d="M 600 505 C 600 462, 730 462, 940 382"></path>
+            <path id="path-invalidate-right" class="bus-line" d="M 260 322 C 460 458, 740 458, 940 322"></path>
+            <path id="path-invalidate-left" class="bus-line" d="M 940 322 C 740 458, 460 458, 260 322"></path>
+            <path id="pulseA" class="pulse teal" filter="url(#glow)"></path>
+            <path id="pulseB" class="pulse orange" filter="url(#glow)"></path>
+            <path id="pulseInv" class="pulse pink" filter="url(#glow)"></path>
+            <path id="pulseRefetch" class="pulse blue" filter="url(#glow)"></path>
+          </svg>
+
+          <div class="cpu-row">
+            <article class="core">
+              <h3>Núcleo 0</h3>
+              <small>Thread A lê/escreve <span class="emph-a">x</span></small>
+              <div class="cache-stack">
+                <section class="cache-box">
+                  <div class="cache-head"><strong>L1</strong><span>privada</span></div>
+                  <div class="cache-content">
+                    <div class="line-card" id="line-l1-0">
+                      <div class="line-title"><span>cache line 0x1000–0x103f</span><span id="state-l1-0">Inválida</span></div>
+                      <div class="line-fields">
+                        <div class="cell badge-a"><span class="name">x</span><span class="value" data-bind="x">0</span><span class="addr">0x1000</span></div>
+                        <div class="cell badge-b"><span class="name">y</span><span class="value" data-bind="y">0</span><span class="addr">0x1008</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+                <section class="cache-box">
+                  <div class="cache-head"><strong>L2</strong><span>privada</span></div>
+                  <div class="cache-content">
+                    <div class="line-card" id="line-l2-0">
+                      <div class="line-title"><span>cache line 0x1000–0x103f</span><span id="state-l2-0">Inválida</span></div>
+                      <div class="line-fields">
+                        <div class="cell badge-a"><span class="name">x</span><span class="value" data-bind="x">0</span><span class="addr">0x1000</span></div>
+                        <div class="cell badge-b"><span class="name">y</span><span class="value" data-bind="y">0</span><span class="addr">0x1008</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </article>
+
+            <article class="core">
+              <h3>Núcleo 1</h3>
+              <small>Thread B lê/escreve <span class="emph-b">y</span></small>
+              <div class="cache-stack">
+                <section class="cache-box">
+                  <div class="cache-head"><strong>L1</strong><span>privada</span></div>
+                  <div class="cache-content">
+                    <div class="line-card" id="line-l1-1">
+                      <div class="line-title"><span>cache line 0x1000–0x103f</span><span id="state-l1-1">Inválida</span></div>
+                      <div class="line-fields">
+                        <div class="cell badge-a"><span class="name">x</span><span class="value" data-bind="x">0</span><span class="addr">0x1000</span></div>
+                        <div class="cell badge-b"><span class="name">y</span><span class="value" data-bind="y">0</span><span class="addr">0x1008</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+                <section class="cache-box">
+                  <div class="cache-head"><strong>L2</strong><span>privada</span></div>
+                  <div class="cache-content">
+                    <div class="line-card" id="line-l2-1">
+                      <div class="line-title"><span>cache line 0x1000–0x103f</span><span id="state-l2-1">Inválida</span></div>
+                      <div class="line-fields">
+                        <div class="cell badge-a"><span class="name">x</span><span class="value" data-bind="x">0</span><span class="addr">0x1000</span></div>
+                        <div class="cell badge-b"><span class="name">y</span><span class="value" data-bind="y">0</span><span class="addr">0x1008</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </article>
+          </div>
+
+          <section class="shared-box">
+            <div class="cache-head"><strong>L3</strong><span>compartilhada</span></div>
+            <div class="shared-inner">
+              <div class="line-card shared-focus" id="line-l3">
+                <div class="line-title"><span>linha compartilhada</span><span id="state-l3">Compartilhada / diretório</span></div>
+                <div class="line-fields">
+                  <div class="cell badge-a"><span class="name">x</span><span class="value" data-bind="x">0</span><span class="addr">0x1000</span></div>
+                  <div class="cell badge-b"><span class="name">y</span><span class="value" data-bind="y">0</span><span class="addr">0x1008</span></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="memory-box">
+            <div class="cache-head"><strong>Memória principal</strong><span>DRAM</span></div>
+            <div class="memory-grid">
+              <div class="mem-word hot-a">0x1000<br><strong id="mem-x">x = 0</strong></div>
+              <div class="mem-word hot-b">0x1008<br><strong id="mem-y">y = 0</strong></div>
+              <div class="mem-word">0x1010<br><strong>z = 7</strong></div>
+              <div class="mem-word">0x1018<br><strong>w = 3</strong></div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <aside class="panel side-panel">
+        <div class="status-box">
+          <div class="status-title">Passo atual</div>
+          <div class="status-message" id="statusMessage">Pronto para começar.</div>
+          <p id="statusDetail">Ao iniciar, o Núcleo 0 buscará a linha contendo x e y. Depois, o Núcleo 1 incrementará y e invalidará a cópia remota da mesma linha.</p>
+        </div>
+        <div><h2 style="font-size:var(--text-lg)">Sequência</h2><div class="timeline" id="timeline"></div></div>
+        <div>
+          <h2 style="font-size:var(--text-lg)">O que observar</h2>
+          <div class="notes">
+            <div class="note">As caixas estão menores para deixar o diagrama mais compacto. Ainda assim, a mesma cache line de 64 bytes aparece em L1, L2, L3 e memória.</div>
+            <div class="note">Quando ocorre escrita, a variável modificada pisca e “salta”, mostrando o incremento visualmente em todas as cópias relevantes da linha.</div>
+            <div class="note">O false sharing continua vindo do compartilhamento da linha inteira, não da variável lógica isolada.</div>
+          </div>
+        </div>
+        <div class="footer-help">Dica: “Avançar passo” agora é melhor para pausar exatamente no incremento de x ou y.</div>
+      </aside>
+    </section>
+  </div>
+
+  <script data-tool-i18n>
+
+(() => {
+  'use strict';
+  const translations = {
+  "False Sharing — animação": {
+    "pt": "False Sharing — animação",
+    "en": "False Sharing — Animation",
+    "es": "False Sharing — Animación"
+  },
+  "animação de coerência de cache": {
+    "pt": "animação de coerência de cache",
+    "en": "cache coherence animation",
+    "es": "animación de coherencia de caché"
+  },
+  "cache line · MESI simplificado": {
+    "pt": "cache line · MESI simplificado",
+    "en": "cache line · simplified MESI",
+    "es": "línea de caché · MESI simplificado"
+  },
+  "Duas variáveis diferentes, mesma linha de cache.": {
+    "pt": "Duas variáveis diferentes, mesma linha de cache.",
+    "en": "Two different variables, the same cache line.",
+    "es": "Dos variables diferentes, la misma línea de caché."
+  },
+  "Esta versão compacta mostra o": {
+    "pt": "Esta versão compacta mostra o",
+    "en": "This compact version illustrates",
+    "es": "Esta versión compacta muestra el"
+  },
+  "com as caixas menores e com incrementos explícitos de": {
+    "pt": "com as caixas menores e com incrementos explícitos de",
+    "en": "with smaller boxes and explicit increments of",
+    "es": "con cuadros más pequeños e incrementos explícitos de"
+  },
+  "e": {
+    "pt": "e",
+    "en": "and",
+    "es": "y"
+  },
+  "quando cada escrita acontece. O destaque verde e o salto do número deixam claro o instante em que a variável muda.": {
+    "pt": "quando cada escrita acontece. O destaque verde e o salto do número deixam claro o instante em que a variável muda.",
+    "en": "at each write. The green highlight and bouncing number make the moment the variable changes clear.",
+    "es": "en cada escritura. El resaltado verde y el salto del número indican el instante en que cambia la variable."
+  },
+  "Leitura / tráfego do Núcleo 0": {
+    "pt": "Leitura / tráfego do Núcleo 0",
+    "en": "Core 0 reads / traffic",
+    "es": "Lectura / tráfico del núcleo 0"
+  },
+  "Escrita do Núcleo 1": {
+    "pt": "Escrita do Núcleo 1",
+    "en": "Core 1 writes",
+    "es": "Escritura del núcleo 1"
+  },
+  "Invalidação remota": {
+    "pt": "Invalidação remota",
+    "en": "Remote invalidation",
+    "es": "Invalidación remota"
+  },
+  "Incremento visível de variável": {
+    "pt": "Incremento visível de variável",
+    "en": "Visible variable increment",
+    "es": "Incremento visible de variable"
+  },
+  "Valor local de x": {
+    "pt": "Valor local de x",
+    "en": "Local value of x",
+    "es": "Valor local de x"
+  },
+  "Valor local de y": {
+    "pt": "Valor local de y",
+    "en": "Local value of y",
+    "es": "Valor local de y"
+  },
+  "Invalidações geradas": {
+    "pt": "Invalidações geradas",
+    "en": "Invalidations generated",
+    "es": "Invalidaciones generadas"
+  },
+  "Transferências de linha": {
+    "pt": "Transferências de linha",
+    "en": "Line transfers",
+    "es": "Transferencias de línea"
+  },
+  "Iniciar animação": {
+    "pt": "Iniciar animação",
+    "en": "Start animation",
+    "es": "Iniciar animación"
+  },
+  "Pausar animação": {
+    "pt": "Pausar animação",
+    "en": "Pause animation",
+    "es": "Pausar animación"
+  },
+  "Continuar animação": {
+    "pt": "Continuar animação",
+    "en": "Resume animation",
+    "es": "Continuar animación"
+  },
+  "Avançar passo": {
+    "pt": "Avançar passo",
+    "en": "Next step",
+    "es": "Avanzar un paso"
+  },
+  "Resetar": {
+    "pt": "Resetar",
+    "en": "Reset",
+    "es": "Reiniciar"
+  },
+  "Velocidade": {
+    "pt": "Velocidade",
+    "en": "Speed",
+    "es": "Velocidad"
+  },
+  "As escritas agora mostram claramente": {
+    "pt": "As escritas agora mostram claramente",
+    "en": "Writes now clearly show",
+    "es": "Las escrituras ahora muestran claramente"
+  },
+  "ou": {
+    "pt": "ou",
+    "en": "or",
+    "es": "o"
+  },
+  "por meio da atualização animada dos valores nas caches e na memória.": {
+    "pt": "por meio da atualização animada dos valores nas caches e na memória.",
+    "en": "through animated updates of the values in caches and memory.",
+    "es": "mediante la actualización animada de los valores en las cachés y en la memoria."
+  },
+  "Arquitetura animada": {
+    "pt": "Arquitetura animada",
+    "en": "Animated architecture",
+    "es": "Arquitectura animada"
+  },
+  "Núcleo 0 e Núcleo 1 têm caches L1/L2 privadas; L3 e memória mantêm a linha compartilhada.": {
+    "pt": "Núcleo 0 e Núcleo 1 têm caches L1/L2 privadas; L3 e memória mantêm a linha compartilhada.",
+    "en": "Core 0 and Core 1 have private L1/L2 caches; L3 and memory hold the shared line.",
+    "es": "Los núcleos 0 y 1 tienen cachés L1/L2 privadas; L3 y la memoria mantienen la línea compartida."
+  },
+  "Núcleo 0": {
+    "pt": "Núcleo 0",
+    "en": "Core 0",
+    "es": "Núcleo 0"
+  },
+  "Núcleo 1": {
+    "pt": "Núcleo 1",
+    "en": "Core 1",
+    "es": "Núcleo 1"
+  },
+  "Thread A lê/escreve": {
+    "pt": "Thread A lê/escreve",
+    "en": "Thread A reads/writes",
+    "es": "El hilo A lee/escribe"
+  },
+  "Thread B lê/escreve": {
+    "pt": "Thread B lê/escreve",
+    "en": "Thread B reads/writes",
+    "es": "El hilo B lee/escribe"
+  },
+  "privada": {
+    "pt": "privada",
+    "en": "private",
+    "es": "privada"
+  },
+  "cache line 0x1000–0x103f": {
+    "pt": "cache line 0x1000–0x103f",
+    "en": "cache line 0x1000–0x103f",
+    "es": "línea de caché 0x1000–0x103f"
+  },
+  "Inválida": {
+    "pt": "Inválida",
+    "en": "Invalid",
+    "es": "Inválida"
+  },
+  "compartilhada": {
+    "pt": "compartilhada",
+    "en": "shared",
+    "es": "compartida"
+  },
+  "linha compartilhada": {
+    "pt": "linha compartilhada",
+    "en": "shared line",
+    "es": "línea compartida"
+  },
+  "Compartilhada / diretório": {
+    "pt": "Compartilhada / diretório",
+    "en": "Shared / directory",
+    "es": "Compartida / directorio"
+  },
+  "Compartilhada": {
+    "pt": "Compartilhada",
+    "en": "Shared",
+    "es": "Compartida"
+  },
+  "Modificada": {
+    "pt": "Modificada",
+    "en": "Modified",
+    "es": "Modificada"
+  },
+  "Diretório atualizado": {
+    "pt": "Diretório atualizado",
+    "en": "Directory updated",
+    "es": "Directorio actualizado"
+  },
+  "Memória principal": {
+    "pt": "Memória principal",
+    "en": "Main memory",
+    "es": "Memoria principal"
+  },
+  "Passo atual": {
+    "pt": "Passo atual",
+    "en": "Current step",
+    "es": "Paso actual"
+  },
+  "Pronto para começar.": {
+    "pt": "Pronto para começar.",
+    "en": "Ready to start.",
+    "es": "Listo para comenzar."
+  },
+  "Ao iniciar, o Núcleo 0 buscará a linha contendo x e y. Depois, o Núcleo 1 incrementará y e invalidará a cópia remota da mesma linha.": {
+    "pt": "Ao iniciar, o Núcleo 0 buscará a linha contendo x e y. Depois, o Núcleo 1 incrementará y e invalidará a cópia remota da mesma linha.",
+    "en": "At the start, Core 0 will fetch the line containing x and y. Then Core 1 will increment y and invalidate the remote copy of that line.",
+    "es": "Al iniciar, el núcleo 0 buscará la línea que contiene x e y. Después, el núcleo 1 incrementará y e invalidará la copia remota de esa línea."
+  },
+  "Sequência": {
+    "pt": "Sequência",
+    "en": "Sequence",
+    "es": "Secuencia"
+  },
+  "1. Núcleo 0 lê x": {
+    "pt": "1. Núcleo 0 lê x",
+    "en": "1. Core 0 reads x",
+    "es": "1. El núcleo 0 lee x"
+  },
+  "Cache miss no Núcleo 0. A linha 0x1000–0x103f sobe para L2 e L1 do Núcleo 0 em estado compartilhado.": {
+    "pt": "Cache miss no Núcleo 0. A linha 0x1000–0x103f sobe para L2 e L1 do Núcleo 0 em estado compartilhado.",
+    "en": "Cache miss on Core 0. Line 0x1000–0x103f is fetched into Core 0’s L2 and L1 in the shared state.",
+    "es": "Fallo de caché en el núcleo 0. La línea 0x1000–0x103f se carga en L2 y L1 del núcleo 0 en estado compartido."
+  },
+  "2. Núcleo 1 incrementa y": {
+    "pt": "2. Núcleo 1 incrementa y",
+    "en": "2. Core 1 increments y",
+    "es": "2. El núcleo 1 incrementa y"
+  },
+  "Para escrever em y, o Núcleo 1 precisa da linha inteira em exclusividade. y é incrementado de 0 para 1 e a cópia do Núcleo 0 é invalidada.": {
+    "pt": "Para escrever em y, o Núcleo 1 precisa da linha inteira em exclusividade. y é incrementado de 0 para 1 e a cópia do Núcleo 0 é invalidada.",
+    "en": "To write to y, Core 1 needs exclusive ownership of the entire line. y is incremented from 0 to 1 and Core 0’s copy is invalidated.",
+    "es": "Para escribir en y, el núcleo 1 necesita la línea completa en exclusiva. y se incrementa de 0 a 1 y se invalida la copia del núcleo 0."
+  },
+  "3. Núcleo 0 lê x novamente": {
+    "pt": "3. Núcleo 0 lê x novamente",
+    "en": "3. Core 0 reads x again",
+    "es": "3. El núcleo 0 vuelve a leer x"
+  },
+  "x continua 0, mas a linha dele foi invalidada. O Núcleo 0 precisa buscar a linha de volta, agora contendo y = 1.": {
+    "pt": "x continua 0, mas a linha dele foi invalidada. O Núcleo 0 precisa buscar a linha de volta, agora contendo y = 1.",
+    "en": "x is still 0, but its line was invalidated. Core 0 must fetch the line again, now containing y = 1.",
+    "es": "x sigue siendo 0, pero su línea fue invalidada. El núcleo 0 debe recuperar la línea, que ahora contiene y = 1."
+  },
+  "4. Núcleo 0 incrementa x": {
+    "pt": "4. Núcleo 0 incrementa x",
+    "en": "4. Core 0 increments x",
+    "es": "4. El núcleo 0 incrementa x"
+  },
+  "Agora é o Núcleo 0 que quer exclusividade. x é incrementado de 0 para 1 e o protocolo invalida a linha inteira no Núcleo 1.": {
+    "pt": "Agora é o Núcleo 0 que quer exclusividade. x é incrementado de 0 para 1 e o protocolo invalida a linha inteira no Núcleo 1.",
+    "en": "Now Core 0 requests exclusive ownership. x is incremented from 0 to 1 and the protocol invalidates the entire line on Core 1.",
+    "es": "Ahora el núcleo 0 solicita exclusividad. x se incrementa de 0 a 1 y el protocolo invalida la línea completa en el núcleo 1."
+  },
+  "5. Núcleo 1 lê y de novo": {
+    "pt": "5. Núcleo 1 lê y de novo",
+    "en": "5. Core 1 reads y again",
+    "es": "5. El núcleo 1 vuelve a leer y"
+  },
+  "y ainda vale 1, porém a linha remota foi invalidada pela escrita em x. O Núcleo 1 precisa buscar a mesma linha outra vez.": {
+    "pt": "y ainda vale 1, porém a linha remota foi invalidada pela escrita em x. O Núcleo 1 precisa buscar a mesma linha outra vez.",
+    "en": "y is still 1, but the remote line was invalidated by the write to x. Core 1 must fetch the same line again.",
+    "es": "y sigue valiendo 1, pero la escritura en x invalidó la línea remota. El núcleo 1 debe buscar de nuevo la misma línea."
+  },
+  "6. Núcleo 1 incrementa y outra vez": {
+    "pt": "6. Núcleo 1 incrementa y outra vez",
+    "en": "6. Core 1 increments y again",
+    "es": "6. El núcleo 1 vuelve a incrementar y"
+  },
+  "O ciclo recomeça: y é incrementado de 1 para 2, o Núcleo 1 pega a linha em modo modificado e invalida a cópia do Núcleo 0.": {
+    "pt": "O ciclo recomeça: y é incrementado de 1 para 2, o Núcleo 1 pega a linha em modo modificado e invalida a cópia do Núcleo 0.",
+    "en": "The cycle repeats: y is incremented from 1 to 2, Core 1 takes the line in the modified state and invalidates Core 0’s copy.",
+    "es": "El ciclo se repite: y se incrementa de 1 a 2, el núcleo 1 toma la línea en estado modificado e invalida la copia del núcleo 0."
+  },
+  "O que observar": {
+    "pt": "O que observar",
+    "en": "What to watch",
+    "es": "Qué observar"
+  },
+  "As caixas estão menores para deixar o diagrama mais compacto. Ainda assim, a mesma cache line de 64 bytes aparece em L1, L2, L3 e memória.": {
+    "pt": "As caixas estão menores para deixar o diagrama mais compacto. Ainda assim, a mesma cache line de 64 bytes aparece em L1, L2, L3 e memória.",
+    "en": "The boxes are smaller to keep the diagram compact. The same 64-byte cache line still appears in L1, L2, L3 and memory.",
+    "es": "Los cuadros son más pequeños para compactar el diagrama. La misma línea de caché de 64 bytes aparece en L1, L2, L3 y memoria."
+  },
+  "Quando ocorre escrita, a variável modificada pisca e “salta”, mostrando o incremento visualmente em todas as cópias relevantes da linha.": {
+    "pt": "Quando ocorre escrita, a variável modificada pisca e “salta”, mostrando o incremento visualmente em todas as cópias relevantes da linha.",
+    "en": "On a write, the modified variable flashes and “jumps”, showing the increment in all relevant copies of the line.",
+    "es": "Al escribir, la variable modificada parpadea y “salta”, mostrando el incremento en todas las copias relevantes de la línea."
+  },
+  "O false sharing continua vindo do compartilhamento da linha inteira, não da variável lógica isolada.": {
+    "pt": "O false sharing continua vindo do compartilhamento da linha inteira, não da variável lógica isolada.",
+    "en": "False sharing comes from sharing the entire line, rather than an individual logical variable.",
+    "es": "El false sharing surge de compartir la línea completa, no la variable lógica aislada."
+  },
+  "Dica: “Avançar passo” agora é melhor para pausar exatamente no incremento de x ou y.": {
+    "pt": "Dica: “Avançar passo” agora é melhor para pausar exatamente no incremento de x ou y.",
+    "en": "Tip: use “Next step” to pause exactly at an increment of x or y.",
+    "es": "Consejo: utiliza “Avanzar un paso” para detenerte justo en el incremento de x o y."
+  },
+  "Alternar tema": {
+    "pt": "Alternar tema",
+    "en": "Toggle theme",
+    "es": "Cambiar tema"
+  },
+  "Alternar para tema claro": {
+    "pt": "Alternar para tema claro",
+    "en": "Switch to light theme",
+    "es": "Cambiar al tema claro"
+  },
+  "Alternar para tema escuro": {
+    "pt": "Alternar para tema escuro",
+    "en": "Switch to dark theme",
+    "es": "Cambiar al tema oscuro"
+  }
+};
+  let lang = 'pt';
+  const normalize = value => value.replace(/\s+/g, ' ').trim();
+  const patterns = Object.entries(translations).filter(([key]) => key.includes('{0}')).map(([key, values]) => ({
+    values, regex: new RegExp('^' + key.split('{0}').map(part => part.replace(/[.*+?^$()|[\]\\]/g, '\\$&')).join('(.+?)') + '$')
+  }));
+  function text(source, ...args) {
+    const key = normalize(source);
+    let result = translations[key]?.[lang];
+    if (result === undefined) {
+      for (const pattern of patterns) {
+        const match = key.match(pattern.regex);
+        if (match) { result = pattern.values[lang].replace('{0}', match[1]); break; }
+      }
+    }
+    return (result ?? source).replace(/\{(\d+)\}/g, (_, index) => args[Number(index)] ?? '{' + index + '}');
+  }
+  window.toolI18n = { text, locale: () => ({pt:'pt-BR', en:'en-US', es:'es-ES'}[lang]) };
+  const style = document.createElement('style');
+  style.textContent = '.tool-language-switch{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:7px;margin-bottom:16px}.tool-language-switch button{width:auto;min-height:40px;padding:8px 12px;border:1px solid #94a3b8;border-radius:999px;background:#f1f5f9;color:#172033;font:600 14px system-ui;cursor:pointer;text-transform:none;letter-spacing:normal}.tool-language-switch button[aria-pressed="true"]{background:#1d4ed8;color:white}.tool-language-switch button:focus-visible{outline:3px solid #60a5fa;outline-offset:3px}@media print{.tool-language-switch{display:none}}';
+  document.head.appendChild(style);
+  const controls = document.createElement('div');
+  controls.className = 'tool-language-switch';
+  controls.setAttribute('role', 'group');
+  controls.innerHTML = '<button type="button" data-lang="pt" lang="pt-BR">🇧🇷 Português</button><button type="button" data-lang="es" lang="es">🇪🇸 Español</button><button type="button" data-lang="en" lang="en">🇺🇸 English</button>';
+  const host = document.querySelector('main, .container, .shell') || document.body;
+  host.prepend(controls);
+  const textSources = new WeakMap();
+  const attributeSources = new WeakMap();
+  // Retain source text and the original nodes to preserve listeners and form state.
+  function localize(value, previous) {
+    const source = previous && previous.last === value ? previous.source : value;
+    const content = text(source);
+    const last = content === source ? source : (source.match(/^\s*/)[0] + content + source.match(/\s*$/)[0]);
+    return {source, last};
+  }
+  const observer = new MutationObserver(refresh);
+  function refresh() {
+    observer.disconnect();
+    const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_TEXT, {acceptNode(node) {
+      return node.parentElement.closest('script, style, .tool-language-switch') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+    }});
+    let node;
+    while ((node = walker.nextNode())) {
+      const record = localize(node.nodeValue, textSources.get(node));
+      if (node.nodeValue !== record.last) node.nodeValue = record.last;
+      textSources.set(node, record);
+    }
+    document.querySelectorAll('[title], [aria-label], [placeholder]').forEach(element => {
+      if (element.closest('.tool-language-switch')) return;
+      const records = attributeSources.get(element) || {};
+      for (const attribute of ['title', 'aria-label', 'placeholder']) {
+        if (!element.hasAttribute(attribute)) continue;
+        const value = element.getAttribute(attribute);
+        const record = localize(value, records[attribute]);
+        if (value !== record.last) element.setAttribute(attribute, record.last);
+        records[attribute] = record;
+      }
+      attributeSources.set(element, records);
+    });
+    observer.observe(document.documentElement, {subtree:true, childList:true, characterData:true, attributes:true, attributeFilter:['title','aria-label','placeholder']});
+  }
+  function setLanguage(value) {
+    if (!['pt','en','es'].includes(value)) return;
+    lang = value;
+    document.documentElement.lang = value === 'pt' ? 'pt-BR' : value;
+    controls.setAttribute('aria-label', value === 'en' ? 'Language' : 'Idioma');
+    controls.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.lang === value)));
+    refresh();
+    window.dispatchEvent(new Event('tool-language-change'));
+  }
+  controls.addEventListener('click', event => {
+    const button = event.target.closest('[data-lang]');
+    if (button) setLanguage(button.dataset.lang);
+  });
+  setLanguage('pt');
+})();
+
+</script>
+<script>
+    const html = document.documentElement;
+    const toggle = document.querySelector('[data-theme-toggle]');
+    let theme = html.getAttribute('data-theme') || 'light';
+    const renderTheme = () => {
+      html.setAttribute('data-theme', theme);
+      toggle.innerHTML = theme === 'dark'
+        ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
+        : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
+      toggle.setAttribute('aria-label', theme === 'dark' ? 'Alternar para tema claro' : 'Alternar para tema escuro');
+    };
+    renderTheme();
+    toggle.addEventListener('click', () => { theme = theme === 'dark' ? 'light' : 'dark'; renderTheme(); });
+
+    const steps = [
+      { title:'1. Núcleo 0 lê x', detail:'Cache miss no Núcleo 0. A linha 0x1000–0x103f sobe para L2 e L1 do Núcleo 0 em estado compartilhado.', status:{c0:'Compartilhada', c1:'Inválida', l3:'Compartilhada'}, values:{x:0,y:0}, counters:{transfers:1, invalidations:0}, pulse:['path-l3-c0','pulseA','teal'], highlight:['line-l3','line-l2-0','line-l1-0'], invalidate:[] },
+      { title:'2. Núcleo 1 incrementa y', detail:'Para escrever em y, o Núcleo 1 precisa da linha inteira em exclusividade. y é incrementado de 0 para 1 e a cópia do Núcleo 0 é invalidada.', status:{c0:'Inválida', c1:'Modificada', l3:'Diretório atualizado'}, values:{x:0,y:1}, counters:{transfers:2, invalidations:1}, pulse:['path-l3-c1','pulseB','orange'], highlight:['line-l3','line-l2-1','line-l1-1'], invalidate:['line-l2-0','line-l1-0'], invalidatePulse:['path-invalidate-right','pulseInv','pink'] },
+      { title:'3. Núcleo 0 lê x novamente', detail:'x continua 0, mas a linha dele foi invalidada. O Núcleo 0 precisa buscar a linha de volta, agora contendo y = 1.', status:{c0:'Compartilhada', c1:'Compartilhada', l3:'Compartilhada'}, values:{x:0,y:1}, counters:{transfers:3, invalidations:1}, pulse:['path-l3-c0','pulseRefetch','blue'], highlight:['line-l3','line-l2-0','line-l1-0','line-l2-1','line-l1-1'], invalidate:[] },
+      { title:'4. Núcleo 0 incrementa x', detail:'Agora é o Núcleo 0 que quer exclusividade. x é incrementado de 0 para 1 e o protocolo invalida a linha inteira no Núcleo 1.', status:{c0:'Modificada', c1:'Inválida', l3:'Diretório atualizado'}, values:{x:1,y:1}, counters:{transfers:4, invalidations:2}, pulse:['path-l3-c0','pulseA','teal'], highlight:['line-l3','line-l2-0','line-l1-0'], invalidate:['line-l2-1','line-l1-1'], invalidatePulse:['path-invalidate-left','pulseInv','pink'] },
+      { title:'5. Núcleo 1 lê y de novo', detail:'y ainda vale 1, porém a linha remota foi invalidada pela escrita em x. O Núcleo 1 precisa buscar a mesma linha outra vez.', status:{c0:'Compartilhada', c1:'Compartilhada', l3:'Compartilhada'}, values:{x:1,y:1}, counters:{transfers:5, invalidations:2}, pulse:['path-l3-c1','pulseRefetch','blue'], highlight:['line-l3','line-l2-1','line-l1-1','line-l2-0','line-l1-0'], invalidate:[] },
+      { title:'6. Núcleo 1 incrementa y outra vez', detail:'O ciclo recomeça: y é incrementado de 1 para 2, o Núcleo 1 pega a linha em modo modificado e invalida a cópia do Núcleo 0.', status:{c0:'Inválida', c1:'Modificada', l3:'Diretório atualizado'}, values:{x:1,y:2}, counters:{transfers:6, invalidations:3}, pulse:['path-l3-c1','pulseB','orange'], highlight:['line-l3','line-l2-1','line-l1-1'], invalidate:['line-l2-0','line-l1-0'], invalidatePulse:['path-invalidate-right','pulseInv','pink'] }
+    ];
+
+    const stateEls = { c0l1:document.getElementById('state-l1-0'), c0l2:document.getElementById('state-l2-0'), c1l1:document.getElementById('state-l1-1'), c1l2:document.getElementById('state-l2-1'), l3:document.getElementById('state-l3') };
+    const statusMessage = document.getElementById('statusMessage');
+    const statusDetail = document.getElementById('statusDetail');
+    const counterA = document.getElementById('counter-a');
+    const counterB = document.getElementById('counter-b');
+    const metricA = document.getElementById('metric-a');
+    const metricB = document.getElementById('metric-b');
+    const invalidationsEl = document.getElementById('invalidations');
+    const transfersEl = document.getElementById('transfers');
+    const memX = document.getElementById('mem-x');
+    const memY = document.getElementById('mem-y');
+    const bindX = document.querySelectorAll('[data-bind="x"]');
+    const bindY = document.querySelectorAll('[data-bind="y"]');
+    const lineCards = Array.from(document.querySelectorAll('.line-card'));
+    const timeline = document.getElementById('timeline');
+    const speed = document.getElementById('speed');
+    const pulses = { pulseA:document.getElementById('pulseA'), pulseB:document.getElementById('pulseB'), pulseInv:document.getElementById('pulseInv'), pulseRefetch:document.getElementById('pulseRefetch') };
+
+    steps.forEach((step, index) => {
+      const item = document.createElement('div');
+      item.className = 'step';
+      item.dataset.index = index;
+      item.innerHTML = `<div class="step-num">${index + 1}</div><div><strong>${step.title}</strong><div style="color:var(--color-text-muted);font-size:var(--text-sm);margin-top:4px;">${step.detail}</div></div>`;
+      timeline.appendChild(item);
+    });
+
+    let currentStep = -1;
+    let currentValues = { x: 0, y: 0 };
+    let playing = false;
+    let timer = null;
+
+    const pulseIncrement = target => {
+      if (!target) return;
+      target.classList.remove('incrementing');
+      void target.offsetWidth;
+      target.classList.add('incrementing');
+      setTimeout(() => target.classList.remove('incrementing'), 760);
+    };
+
+    const animateChangedValues = nextValues => {
+      if (nextValues.x !== currentValues.x) {
+        bindX.forEach(el => pulseIncrement(el.closest('.cell')));
+        pulseIncrement(metricA);
+        pulseIncrement(memX.closest('.mem-word'));
+      }
+      if (nextValues.y !== currentValues.y) {
+        bindY.forEach(el => pulseIncrement(el.closest('.cell')));
+        pulseIncrement(metricB);
+        pulseIncrement(memY.closest('.mem-word'));
+      }
+    };
+
+    const setValues = ({x, y}) => {
+      bindX.forEach(el => el.textContent = x);
+      bindY.forEach(el => el.textContent = y);
+      counterA.textContent = x;
+      counterB.textContent = y;
+      memX.textContent = `x = ${x}`;
+      memY.textContent = `y = ${y}`;
+      currentValues = { x, y };
+    };
+
+    const clearHighlights = () => {
+      lineCards.forEach(card => card.classList.remove('active', 'invalid'));
+      document.querySelectorAll('.step').forEach(step => step.classList.remove('active'));
+    };
+
+    const setStatusLabels = status => {
+      stateEls.c0l1.textContent = status.c0;
+      stateEls.c0l2.textContent = status.c0;
+      stateEls.c1l1.textContent = status.c1;
+      stateEls.c1l2.textContent = status.c1;
+      stateEls.l3.textContent = status.l3;
+    };
+
+    const animatePulse = (pathId, pulseId, colorClass) => {
+      const path = document.getElementById(pathId);
+      const pulse = pulses[pulseId];
+      pulse.setAttribute('d', path.getAttribute('d'));
+      pulse.setAttribute('class', `pulse ${colorClass} show`);
+      pulse.style.setProperty('--pulse-duration', `${Math.round(1400 / Number(speed.value))}ms`);
+      pulse.addEventListener('animationend', () => pulse.setAttribute('class', `pulse ${colorClass}`), { once: true });
+    };
+
+    const applyStep = index => {
+      const step = steps[index];
+      clearHighlights();
+      statusMessage.textContent = step.title;
+      statusDetail.textContent = step.detail;
+      setStatusLabels(step.status);
+      animateChangedValues(step.values);
+      setValues(step.values);
+      invalidationsEl.textContent = step.counters.invalidations;
+      transfersEl.textContent = step.counters.transfers;
+      step.highlight.forEach(id => document.getElementById(id).classList.add('active'));
+      step.invalidate.forEach(id => document.getElementById(id).classList.add('invalid'));
+      const activeTimeline = document.querySelector(`.step[data-index="${index}"]`);
+      if (activeTimeline) activeTimeline.classList.add('active');
+      if (step.pulse) animatePulse(...step.pulse);
+      if (step.invalidatePulse) setTimeout(() => animatePulse(...step.invalidatePulse), Math.round(260 / Number(speed.value)));
+    };
+
+    const reset = () => {
+      currentStep = -1; currentValues = { x: 0, y: 0 }; clearTimeout(timer); timer = null; playing = false;
+      document.getElementById('playBtn').textContent = 'Iniciar animação'; clearHighlights();
+      setStatusLabels({ c0:'Inválida', c1:'Inválida', l3:'Compartilhada / diretório' }); setValues({ x:0, y:0 });
+      invalidationsEl.textContent = '0'; transfersEl.textContent = '0';
+      statusMessage.textContent = 'Pronto para começar.';
+      statusDetail.textContent = 'Ao iniciar, o Núcleo 0 buscará a linha contendo x e y. Depois, o Núcleo 1 incrementará y e invalidará a cópia remota da mesma linha.';
+    };
+
+    const nextStep = () => { currentStep = (currentStep + 1) % steps.length; applyStep(currentStep); return currentStep; };
+    const playLoop = () => { if (!playing) return; nextStep(); timer = setTimeout(playLoop, Math.round(2500 / Number(speed.value))); };
+    document.getElementById('playBtn').addEventListener('click', () => { playing = !playing; document.getElementById('playBtn').textContent = playing ? 'Pausar animação' : 'Continuar animação'; clearTimeout(timer); if (playing) playLoop(); });
+    document.getElementById('stepBtn').addEventListener('click', () => { playing = false; document.getElementById('playBtn').textContent = 'Continuar animação'; clearTimeout(timer); nextStep(); });
+    document.getElementById('resetBtn').addEventListener('click', reset);
+    speed.addEventListener('input', () => { if (playing) { clearTimeout(timer); timer = setTimeout(playLoop, 50); } });
+    reset();
+  </script>
+<script data-mobile-diagram>(()=>{const diagram=document.getElementById('diagram'),scroll=document.createElement('div');scroll.className='mobile-diagram-scroll';scroll.tabIndex=0;diagram.before(scroll);scroll.append(diagram);const hint=document.createElement('p');hint.className='mobile-scroll-hint';hint.setAttribute('aria-hidden','true');scroll.before(hint);})();</script>
+</body>
+</html>
