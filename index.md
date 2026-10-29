@@ -32,13 +32,15 @@ exclude_from_localizations: ["assets", "images"]
   - Página histórica com o sistema operacional [Tropix](https://tropix-ufrj.github.io).
   
 ### Alguns Aplicativos Educacionais:
-- Arquitetura de Computadores e Sistemas Operacionais
+- **Arquitetura de Computadores e Sistemas Operacionais**
   - Animação de [Latência ao Longo do Tempo](./latencia_interativa.html)
+  - Conversor [Binário Hexadecimal](./conversor_binhex.html) 
   - Simulador de [Memória Cache](./simulador_cache_localidade.html)
   - Simulador de [Substituição de Páginas Memória Virtual](./simulador_paginas.html)
   - Classificação dos [Sistemas Operacionais](./classificacao_sistemas_operacionais.html)
-- Programação Paralela e Concorrente
+- **Programação Paralela e Concorrente**
   - Visualizador da [Conjectura de Collatz](./collatz_visualizador.html)
+  - Simulador do [Jantar dos Filósofos](.jantar_filosofos_mutex.htm)
   - Simulador de [Laços OpenMP](./simulador_lacos_openmp.html)
   - Animação de [False Sharing](./false_sharing_animacao.html)
 
