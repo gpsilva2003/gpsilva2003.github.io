@@ -50,7 +50,6 @@ exclude_from_localizations: ["assets", "images"]
   - Simulador de [Cáculo de Primos com MPI](./calculo_primos.html)
   - Simulador de [Cáculo de Primos com OpenMP](./calculo_primos_openmp.html)
   - Simulador de [Multiplicação Matriz-Vetor](./calculo_mxv.html)
-  - Simulador de [Multiplicação Matriz-Vetor](./calculo_mxv.html)
 
 ### Alguns joguinhos, para distrair:
 - [Cobrinha](./cobrinha2.html)
