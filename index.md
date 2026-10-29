@@ -38,15 +38,19 @@ exclude_from_localizations: ["assets", "images"]
   - Simulador de [Memória Cache](./simulador_cache_localidade.html)
   - Simulador de [Substituição de Páginas Memória Virtual](./simulador_paginas.html)
   - Classificação dos [Sistemas Operacionais](./classificacao_sistemas_operacionais.html)
+  - Configurador de [RAID](./raid_configurator.html)
 - **Programação Paralela e Concorrente**
   - Visualizador da [Conjectura de Collatz](./collatz_visualizador.html)
   - Simulador do [Jantar dos Filósofos](.jantar_filosofos_mutex.htm)
   - Simulador de [Laços OpenMP](./simulador_lacos_openmp.html)
+  - Simulador de [Collapse OpenMP](./simulador_openmp_collapse_tile.html)
+  - Simulador de [Collapse OpenACC](./simulador_openacc_collapse_tile.html)
   - Animação de [False Sharing](./false_sharing_animacao.html)
-  - Simulador de [Multiplicação Matriz-Vetor](./calculo_mxv.html)
   - Simulador de [Cáculo de Pi](./calculo_pi.html)
   - Simulador de [Cáculo de Primos com MPI](./calculo_primos.html)
   - Simulador de [Cáculo de Primos com OpenMP](./calculo_primos_openmp.html)
+  - Simulador de [Multiplicação Matriz-Vetor](./calculo_mxv.html)
+  - Simulador de [Multiplicação Matriz-Vetor](./calculo_mxv.html)
 
 ### Alguns joguinhos, para distrair:
 - [Cobrinha](./cobrinha2.html)
