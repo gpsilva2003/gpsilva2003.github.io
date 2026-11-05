@@ -37,6 +37,7 @@ exclude_from_localizations: ["assets", "images"]
   - Conversor [Binário Hexadecimal](./conversor_binhex.html) 
   - Simulador de [Memória Cache](./simulador_cache_localidade.html)
   - Simulador de [Substituição de Páginas Memória Virtual](./simulador_paginas.html)
+  - Simulador [Sistema de Arquivos FAT16](./simulador_fat16.html)
   - Classificação dos [Sistemas Operacionais](./classificacao_sistemas_operacionais.html)
   - Configurador de [RAID](./raid_configurator.html)
 - **Programação Paralela e Concorrente**
